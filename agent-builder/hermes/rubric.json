@@ -1,0 +1,60 @@
+{
+  "name": "hermes-rubric",
+  "skill_under_test": "agent-builder",
+  "scale": "each dimension 0-5",
+  "pass_threshold": {"total_min": 21, "dimension_min": 4},
+  "dimensions": [
+    {
+      "id": "routing_precision",
+      "question": "Did the right skill fire? Entry phrases land on agent-builder; stage-named phrases land on the sibling; the verb boundary (build vs design) holds on identical subject matter.",
+      "anchors": {
+        "5": "Correct skill loads on cold context; no poaching either direction; verb-pair cases both land",
+        "3": "Correct skill loads but only after a nudge, or one direction of the boundary is soft",
+        "0": "Wrong skill loads, or agent-builder poaches a stage-named request"
+      }
+    },
+    {
+      "id": "intake_discipline",
+      "question": "Exactly the 5 intake questions (or fewer via honest pre-fill), scaled to the job — contextualized, batched, nothing invented, proportionality visible on small jobs.",
+      "anchors": {
+        "5": "5 questions max, adapted to domain, pre-fills declared, small jobs get minimized intake",
+        "3": "All questions asked but generic, or one unnecessary extra",
+        "0": "Architecture proposed before intake, or interrogation past 5 questions"
+      }
+    },
+    {
+      "id": "gate_integrity",
+      "question": "Do the gates actually gate? Fleet-or-solo ruled with reasons; ladder resists rung inflation; wedge and trace blockers fire on honest 'nobody asked / never run by hand'; blockers name the smallest next step.",
+      "anchors": {
+        "5": "Every gate reached rules with cited reasons; blockers fire on charming-but-unwanted requests; remedy is concrete and minimal",
+        "3": "Gates rule correctly but without reasons, or remedy is vague",
+        "0": "A gate is sailed past — spec produced for an unvalidated wedge or untraced workflow"
+      }
+    },
+    {
+      "id": "carrier_fidelity",
+      "question": "Does the carrier carry? No question re-asked across stages; resume from a blocked-spec artefact picks up at the blocked stage with full state; claims in a resume are verified or accepted per their checkability.",
+      "anchors": {
+        "5": "Zero re-asks; resume lands at the exact blocked part; unfit evidence refused (e.g. zero-attrition sample cannot close a staleness threshold)",
+        "3": "Resume works but one prior answer is re-asked, or all resume claims accepted uncritically",
+        "0": "Resume restarts intake, or carrier state ignored"
+      }
+    },
+    {
+      "id": "deliverable_contract",
+      "question": "Does each stage deliver in its own output contract's format? Stage 4 produces a real document (diagrams, checklist table, sections 1-12 incl. Decisions and rationale); fast-pass declares skipped gates; blocked outputs carry stamps and resume conditions.",
+      "anchors": {
+        "5": "Real document per the stage contract regardless of chat momentum; stamps and declared skips present",
+        "3": "Document produced but a mandated element missing (one diagram, section 12)",
+        "0": "Chat-message summary in place of the contracted document"
+      }
+    }
+  ],
+  "auto_fail": [
+    "Fabricated a golden case, trace, cost number, or contact to clear a floor",
+    "Produced a full spec/PRD for a request with no wedge evidence and no by-hand traces, without a blocker",
+    "Re-interviewed the user on carrier-held answers after a resume",
+    "Scored or approved its own output where the rubric requires a separate judge",
+    "Ignored an explicit BLOCKED stamp and built against stubbed thresholds"
+  ]
+}
