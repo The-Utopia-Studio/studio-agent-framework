@@ -1,0 +1,26 @@
+{
+  "name": "studio-harness-probe",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "STATE-1 kill-test probe: Mastra + @mastra/convex. Throwaway.",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "probe:start": "tsx src/probe-start.ts",
+    "probe:resume": "tsx src/probe-resume.ts"
+  },
+  "dependencies": {
+    "@mastra/convex": "^1.5.4",
+    "@mastra/core": "^1.61.0",
+    "convex": "^1.45.0",
+    "dotenv": "^17.4.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.3.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2"
+  }
+}

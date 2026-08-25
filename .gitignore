@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.local
+.probe-run-id
+.mastra/
+*.db
+*.sqlite*
+*.libsql
+.DS_Store

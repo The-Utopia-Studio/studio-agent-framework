@@ -130,8 +130,18 @@ theatre, and it is a reportable bug — send it to Haniyah.
 
 `agent-builder/hermes/` is the harness around the orchestrator: `rubric.json`
 (5 dimensions × 0–5, pass ≥ 21, no dimension < 4), 9 golden cases, 5 adversarial cases
-drawn from *observed* failures, and `RESULTS.md`. Round 1 (17 Aug 2026): **6 pass ·
-1 partial · 0 fail**, 24/25 on the rubric.
+drawn from *observed* failures, and `RESULTS.md`.
+
+**Round 1 (17 Aug 2026), stated in full:** 9 golden cases exist; **7 were scored** —
+6 pass · 1 partial (G5, chat deleted before the rung ruling) · G8 and G9 unscored.
+The 5 adversarial cases were **not scored this round**, and two of them are known
+failures: **A3 over-blocks** the 14-`[Fact]` floor, and **A4 misses the base-rate
+trap** — both observed, both uncorrected in-skill. The 24/25 rubric figure is a
+round-level judge assessment **over the scored golden set only**; `gate_integrity`
+scored 5 while A3 and A4 are live gate-integrity regressions.
+
+Read that as: the router routes and the carrier carries. Whether the gates hold
+under adversarial pressure is **not yet demonstrated**.
 
 Two rules transfer to every skill's harness, and Hermes doubles as the proposed general
 eval standard for Studio skills — swap the cases, keep the structure:

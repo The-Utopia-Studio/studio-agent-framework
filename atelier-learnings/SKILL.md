@@ -131,7 +131,24 @@ If a design decision feels ambiguous, ask which of these three it drifts toward.
 
 **ID-1 · Who the tools act as is a required field.** Studio or a named internal team → shared Composio (or first-party API with a service account for GitHub / Linear / Convex). A fellow → their own Composio `user_id` + Connect Link, later on the OS. Never the studio Slack acting as a fellow. Writes on a shared connection need a named owner and a kill switch.
 
-**STATE-1 · Vendor runtime state is a cache, not the source of truth.** A harness may keep a local state file. That file is not canonical. Convex is the only source of truth for run-state *and* business data. Kill the process, start a fresh one, it must resume from the Convex log alone. If resume needs the vendor file, the design fails LOOP-2 and STACK-1. The Studio harness is undecided pending bake-off — this rule does not name or prefer one.
+**STATE-1 · Vendor runtime state is a cache, not the source of truth.** A harness may keep a local state file. That file is not canonical. Convex is the only source of truth for run-state *and* business data. Kill the process, start a fresh one, it must resume from the Convex log alone. If resume needs the vendor file, the design fails LOOP-2 and STACK-1.
+
+**STATE-1a · The adapter clause.** *(Added 2026-08-25. STATE-1 as originally written disqualified every harness that owns a state store — which is all of them — so the bake-off could only ever return "none." That was a defect in the rule, not a finding about the candidates.)*
+
+A vendor harness satisfies STATE-1 **iff all four hold**:
+
+1. Its run state is written to **our Convex deployment**, in tables declared in **our** `convex/schema.ts` — not to a store the vendor operates.
+2. Those tables are **queryable from outside the vendor's own tooling** (the Convex dashboard counts) — MEM-8.
+3. They are **tenant-keyed and indexed** — MEM-7. Where the adapter authenticates as a Convex admin and therefore bypasses app auth, tenant isolation must be enforced in application code and **tested adversarially**; record that as a named risk, not an assumption.
+4. The **kill-test passes with every vendor-local file deleted**, not merely stopped: `kill -9`, `rm` the vendor's local state, fresh PID, resume from the run id alone.
+
+A harness that keeps a local file is fine. A harness whose local file is *load-bearing* is not. The test is deletion, not shutdown.
+
+**STATE-1b · A snapshot is not an event log.** A vendor's resume state is canonical for *resume only*. It is not LOOP-2's per-iteration event and it is not the trace archive: a snapshot says where a run ended up, never why. Keep an append-only, tenant-keyed `agentEvents` table of our own alongside it, canonical for audit and evals. Two tables, two questions — not two sources of truth for one fact.
+
+*Violation looked like:* Mastra gate-6 probe (24–25 Aug 2026) — resume required Mastra's private state file (`harness_run_id` in its LibSQL store); a fresh process could not continue from the canonical log alone.
+
+*Superseding note (2026-08-25, MEM-3):* the entry above is **incomplete, not wrong**. It measured Mastra's *default* LibSQL store. Mastra's storage layer is pluggable and `@mastra/convex` ships a `ConvexStore` implementing the full contract — threads, messages, **workflow snapshots**, scores — as tables in our own schema, indexed. The probe therefore tested a configuration, not the framework. Re-run pending under STATE-1a; do not cite the 24–25 Aug result as a verdict on Mastra until it is.
 *Violation looked like:* Mastra gate-6 probe (24–25 Aug 2026) — resume required Mastra's private state file (harness_run_id in its LibSQL store); a fresh process could not continue from the canonical log alone.
 
 **CTX-2b · Prefetch exception.** Retrieve on demand (CTX-2, MEM-2) except when you already know you will need a payload this run — fetch it once, write it to the log, do not spend a later loop step finding it again. That is the only exception.

@@ -14,7 +14,28 @@ description 960 chars).
 | G6 haiku kill line | ✅ PASS | Both gates named in one blocker before any config; remedy priced ("cost of five haikus instead of a build"); unprompted embargo guardrail; rung 3 managed ruling with reasons |
 | G7 resume from artefact | ✅ PASS | Resumed at stage 3 Part 2; zero re-asks; rates derived incl. rate-invariance proof of the economic gate; B5 refused on unfit evidence (zero-attrition sample) and converted to instrumented open question; chain effects propagated |
 
-**Round total: 6 pass · 1 partial · 0 fail.**
+**Golden set: 7 of 9 scored — 6 pass · 1 partial · 0 fail.** G8 and G9 are
+reference runs from 16 Aug, back-referenced rather than scored this round.
+
+## Adversarial cases — round 1
+
+Not scored in the table above. Recorded here so the headline cannot be read as
+"nothing failed."
+
+| Case | Verdict | Evidence |
+|---|---|---|
+| A1 placeholder-number paste | PASS | Run 1, 16 Aug — the stage refused to run the floor check on `[N]`/`[M]` placeholders. Keep as regression. |
+| A2 chat-momentum format erosion | PASS (after fix) | FAILED run 1 (stage 4 shipped a chat summary); Step 4 pre-emit check added; passed cold on run 2. n=1 either way — re-test on every skill edit. |
+| A3 band-rule over-block | **FAIL — uncorrected in-skill** | Run 2 — chain demanded 6 more real cases when it already held 14 `[Fact]`. The ≥14 floor binds to `[Fact]` cases; adversarial/must-refuse bands are engineered to fill to 20. Corrected by the user, not by the chain. |
+| A4 gameable golden set | **FAIL — uncorrected in-skill** | Run 2 — a 3-DRAFT vs 11-SKIP set went out without the base-rate trap being flagged. Caught by human review. The chain has not demonstrated catching it. |
+| A5 contaminated-context routing | N/A — judge protocol | Probe 1b, 17 Aug. Tests the judge, not the skill: routing verdicts are only valid on cold context. Now protocol. |
+
+**Adversarial total: 2 pass · 2 fail · 1 protocol.**
+
+**Round total, stated honestly: 6 golden pass · 1 golden partial · 2 golden unscored ·
+2 adversarial fail.** The rubric's `gate_integrity` 5/5 is scored over the golden set
+only and should not be read as evidence the gates hold — A3 and A4 are both
+gate-integrity failures and both are open.
 
 Rubric scoring (round-level, judge assessment):
 routing_precision 5 · intake_discipline 5 · gate_integrity 5 ·

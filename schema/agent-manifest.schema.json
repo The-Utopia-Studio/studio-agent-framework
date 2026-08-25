@@ -1,0 +1,218 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/The-Utopia-Studio/studio-standard-agent-framework/schema/agent-manifest.schema.json",
+  "title": "AgentManifest",
+  "description": "The machine-readable output of the agent-builder chain, emitted alongside the PRD document. The .docx is what people read; this is what CI, the commit-v1 gate, and the eval harness read. One file per agent, versioned in git.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifestVersion", "packVersion", "id", "name", "kind", "rung", "tier",
+    "runtimeHome", "talkSurface", "toolIdentity", "autonomy", "memoryTiers",
+    "evalContract", "loop", "createdAt", "owner"
+  ],
+  "properties": {
+    "manifestVersion": { "const": "1.0.0" },
+    "packVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Version of studio-standard-agent-framework this manifest was produced under. Without this, 'set in stone' has no referent."
+    },
+    "harness": {
+      "type": "object",
+      "description": "Required when rung is 4. Pin it — LOOP-9 says rerun the eval suite on every upgrade, which you cannot do if the version floats.",
+      "additionalProperties": false,
+      "required": ["name", "version", "stateStore", "state1"],
+      "properties": {
+        "name": { "type": "string", "examples": ["@mastra/core", "@convex-dev/agent"] },
+        "version": { "type": "string", "description": "Exact pinned version, not a range." },
+        "stateStore": { "type": "string", "examples": ["@mastra/convex ConvexStore"] },
+        "state1": {
+          "type": "object",
+          "description": "STATE-1a evidence. An unproven claim here is a blocking open question.",
+          "additionalProperties": false,
+          "required": ["killTestPassed"],
+          "properties": {
+            "killTestPassed": { "type": "boolean" },
+            "testedAt": { "type": "string", "format": "date" },
+            "evidence": { "type": "string", "description": "Path to the probe log or transcript." },
+            "waiver": {
+              "type": "object",
+              "description": "W-01 waiver. Undated is not a waiver.",
+              "required": ["id", "reason", "date"],
+              "properties": {
+                "id": { "const": "W-01" },
+                "reason": { "type": "string" },
+                "date": { "type": "string", "format": "date" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "name": { "type": "string" },
+    "jobLine": {
+      "type": "string",
+      "description": "eval-first-spec Part 1: who gets what output, on what trigger, judged pass by what observable condition."
+    },
+    "kind": {
+      "enum": ["builder", "runtime"],
+      "description": "studio-product-framework docs/architecture.md treats this as binding: builder agents write product code; runtime agents act for end users in sandboxes and meter credits. Do not conflate them."
+    },
+    "rung": { "type": "integer", "minimum": 1, "maximum": 4 },
+    "tier": { "enum": ["A", "B", "C"] },
+    "runtimeHome": { "enum": ["utopia-os", "vercel-standalone", "local"] },
+    "talkSurface": {
+      "enum": ["os-ui", "slack", "schedule", "cli"],
+      "description": "HOME-1: a different answer from runtimeHome. Never infer one from the other."
+    },
+    "toolIdentity": {
+      "enum": ["studio-shared-composio", "team-shared-composio", "fellow-composio", "service-account"],
+      "description": "ID-1. Never the studio Slack acting as a fellow."
+    },
+    "autonomy": { "enum": ["L0", "L1", "L2", "L3", "L4"] },
+    "sandbox": {
+      "type": "object",
+      "description": "REQUIRED when kind is 'runtime'. @studio/ai-runtime hard-fails without requireSandbox: true.",
+      "additionalProperties": false,
+      "required": ["provider", "maxTurns", "maxSpendCredits"],
+      "properties": {
+        "provider": { "type": "string" },
+        "maxTurns": { "type": "integer", "minimum": 1, "description": "Maps 1:1 onto AgentBudget.maxTurns. No default — LOOP-8 caps fan-out in code, not in a prompt." },
+        "maxSpendCredits": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "tenancy": {
+      "type": "object",
+      "description": "MEM-7. Required when kind is 'runtime'.",
+      "additionalProperties": false,
+      "required": ["boundary", "enforcedBy", "adversariallyTested"],
+      "properties": {
+        "boundary": { "type": "string", "examples": ["tenantId"] },
+        "enforcedBy": { "type": "string", "description": "The actual check. 'we scope queries' is not an answer; name the function." },
+        "adversariallyTested": { "type": "boolean" }
+      }
+    },
+    "memoryTiers": {
+      "type": "object",
+      "description": "MEM-1: four tiers, named even when the answer is 'unused'. One vocabulary — this one.",
+      "additionalProperties": false,
+      "required": ["working", "episodic", "semantic", "procedural"],
+      "properties": {
+        "working":    { "$ref": "#/$defs/memoryTier" },
+        "episodic":   { "$ref": "#/$defs/memoryTier" },
+        "semantic":   { "$ref": "#/$defs/memoryTier" },
+        "procedural": { "$ref": "#/$defs/memoryTier" }
+      }
+    },
+    "loop": {
+      "type": "object",
+      "description": "LOOP-3: at least one verifiable/threshold exit AND at least one budget/stall guard. A round cap alone fails.",
+      "additionalProperties": false,
+      "required": ["pattern", "exits"],
+      "properties": {
+        "pattern": {
+          "enum": ["tool-loop", "plan-execute-verify", "generator-evaluator", "contract-first",
+                   "reflexion", "fan-out-fan-in", "jury", "human-gated", "outer-optimisation", "none"]
+        },
+        "exits": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": ["kind", "condition"],
+            "properties": {
+              "kind": { "enum": ["verifiable", "threshold", "budget", "stall"] },
+              "condition": { "type": "string" }
+            }
+          }
+        },
+        "humanGate": {
+          "type": "object",
+          "description": "LOOP-5 / 12-factor Factor 6. 'betweenToolSelectionAndInvocation' is the granularity approval actually needs.",
+          "properties": {
+            "granularity": { "enum": ["step-boundary", "between-tool-selection-and-invocation", "none"] },
+            "namedApprover": { "type": "string", "description": "A person, not a role. An unowned pause never happens." }
+          }
+        }
+      }
+    },
+    "evalContract": {
+      "type": "object",
+      "description": "Points at stage 3's contract. Never restates it.",
+      "additionalProperties": false,
+      "required": ["ref", "goldenCaseCount", "factCaseCount", "costPerOutcomeUsd"],
+      "properties": {
+        "ref": { "type": "string" },
+        "goldenCaseCount": { "type": "integer", "minimum": 0 },
+        "factCaseCount": { "type": "integer", "minimum": 0 },
+        "costPerOutcomeUsd": { "type": "number", "minimum": 0 },
+        "valuePerOutcomeUsd": { "type": "number", "minimum": 0 }
+      }
+    },
+    "observability": {
+      "type": "object",
+      "description": "STACK-4: from commit one, not later.",
+      "properties": {
+        "tracing": { "enum": ["langfuse", "none"] },
+        "eventLogTable": { "type": "string", "default": "agentEvents" }
+      }
+    },
+    "waivers": {
+      "type": "array",
+      "description": "Rules knowingly broken. Silent violation is forbidden; an undated waiver is not a waiver.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ruleId", "reason", "date", "owner"],
+        "properties": {
+          "ruleId": { "type": "string", "pattern": "^[A-Z]+-[0-9]+[a-z]?$" },
+          "reason": { "type": "string" },
+          "date": { "type": "string", "format": "date" },
+          "owner": { "type": "string" }
+        }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "description": "REPORT-1: emitted even on the fast path. An empty array is a claim that none fired, not an absence of the field.",
+      "items": {
+        "type": "object",
+        "required": ["stage", "reason", "smallestNextStep"],
+        "properties": {
+          "stage": { "enum": ["intake", "workflow-design", "agent-design", "eval-first-spec", "agent-prd"] },
+          "reason": { "type": "string" },
+          "smallestNextStep": { "type": "string" }
+        }
+      }
+    },
+    "owner": { "type": "string" },
+    "createdAt": { "type": "string", "format": "date" }
+  },
+  "$defs": {
+    "memoryTier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["store", "writer", "loadTrigger"],
+      "properties": {
+        "store": { "type": "string", "description": "'unused' is a valid answer. A vague one is not." },
+        "writer": { "type": "string", "description": "A store with no writer stays empty and does not compound." },
+        "loadTrigger": { "type": "string", "description": "A store with no load trigger never enters the agent's head." }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "const": "runtime" } }, "required": ["kind"] },
+      "then": { "required": ["sandbox", "tenancy"] }
+    },
+    {
+      "if": { "properties": { "rung": { "const": 4 } }, "required": ["rung"] },
+      "then": { "required": ["harness"] }
+    },
+    {
+      "if": { "properties": { "tier": { "enum": ["B", "C"] } }, "required": ["tier"] },
+      "then": { "required": ["harness"] }
+    }
+  ]
+}

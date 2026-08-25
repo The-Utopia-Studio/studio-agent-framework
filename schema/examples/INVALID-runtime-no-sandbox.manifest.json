@@ -1,0 +1,68 @@
+{
+  "manifestVersion": "1.0.0",
+  "packVersion": "1.0.0",
+  "id": "runtime-no-sandbox",
+  "name": "Granola \u2192 Linear drafter",
+  "jobLine": "After each recorded meeting, the meeting owner gets a set of drafted Linear issues \u2014 judged correct if every issue a human would have filed was drafted, and nothing was drafted that they would not have filed.",
+  "kind": "runtime",
+  "rung": 2,
+  "tier": "A",
+  "runtimeHome": "local",
+  "talkSurface": "cli",
+  "toolIdentity": "fellow-composio",
+  "autonomy": "L1",
+  "memoryTiers": {
+    "working": {
+      "store": "assembled per call",
+      "writer": "the loop",
+      "loadTrigger": "every call"
+    },
+    "episodic": {
+      "store": "agentEvents (Convex)",
+      "writer": "the loop",
+      "loadTrigger": "on resume and for evals"
+    },
+    "semantic": {
+      "store": "CLAUDE.md",
+      "writer": "human, curated",
+      "loadTrigger": "at birth, every run"
+    },
+    "procedural": {
+      "store": "unused",
+      "writer": "unused",
+      "loadTrigger": "unused"
+    }
+  },
+  "loop": {
+    "pattern": "human-gated",
+    "exits": [
+      {
+        "kind": "verifiable",
+        "condition": "every drafted issue has a title, body and project, and schema-validates"
+      },
+      {
+        "kind": "budget",
+        "condition": "12 model calls or $0.40 per meeting, whichever first"
+      }
+    ],
+    "humanGate": {
+      "granularity": "step-boundary",
+      "namedApprover": "the meeting owner"
+    }
+  },
+  "evalContract": {
+    "ref": "evals/granola-linear-drafter.md",
+    "goldenCaseCount": 20,
+    "factCaseCount": 16,
+    "costPerOutcomeUsd": 0.31,
+    "valuePerOutcomeUsd": 18.0
+  },
+  "observability": {
+    "tracing": "langfuse",
+    "eventLogTable": "agentEvents"
+  },
+  "waivers": [],
+  "blockers": [],
+  "owner": "karanmjpinto",
+  "createdAt": "2026-08-25"
+}
