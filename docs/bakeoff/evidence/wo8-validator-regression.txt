@@ -1,0 +1,21 @@
+WO-8 acceptance — validator regression: each invariant is deliberately broken
+
+  PASS  BASELINE: intact run
+        validators that fired: (none, as expected)
+  PASS  BREAK V1: presented args differ from persisted
+        validators that fired: V1-args-match
+        -> Approval payload drift: presented args do not match persisted tool_args for run wo8-1-1787646987485
+  PASS  BREAK V2: forced duplicate send
+        validators that fired: V2-single-send
+        -> Duplicate send detected for run wo8-2-1787646987488: found 2 Slack POSTs, expected <=1
+  PASS  BREAK V3: LLM re-fired (two selection events)
+        validators that fired: V3-single-llm-selection
+        -> LLM re-invoked on resume for run wo8-3-1787646987491: expected exactly 1 tool-selection event
+  PASS  BREAK V5: silent exit, no terminal state
+        validators that fired: V5-terminal-state
+        -> Run wo8-4-1787646987494 ended without a recorded terminal state - silent exit is a hard failure
+  PASS  BREAK V6: event written outside the tenancy scope
+        validators that fired: V6-tenancy-scoped
+        -> 1 event(s) for run wo8-5-1787646987497 are outside resource=utopia-studio/thread=digest-test
+
+6/6 regression scenarios behaved correctly

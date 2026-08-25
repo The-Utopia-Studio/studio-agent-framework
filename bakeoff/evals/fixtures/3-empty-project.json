@@ -1,0 +1,37 @@
+{
+  "case": "3-empty-project",
+  "severity": "blocker",
+  "prd": "§2 row 3",
+  "description": "0 open issues -> no approval pause offered; terminal nothing-to-digest",
+  "linear": {
+    "mode": "ok",
+    "nodes": [
+      {
+        "id": "uuid-TUS-2659",
+        "identifier": "TUS-2659",
+        "title": "WO-3 · Closed already",
+        "updatedAt": "2026-08-20T09:00:00.000Z",
+        "state": {
+          "name": "Done",
+          "type": "completed"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      }
+    ]
+  },
+  "slack": {
+    "mode": "ok",
+    "status": 200,
+    "body": "ok"
+  },
+  "approval": null,
+  "crash": null,
+  "expect": {
+    "terminal_outcome": "nothing-to-digest",
+    "approval_pauses": 0,
+    "slack_posts": 0,
+    "json_record_written": true
+  }
+}

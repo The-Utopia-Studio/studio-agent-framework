@@ -1,0 +1,39 @@
+GOLDEN CASE 4 - crash resume - Mastra leg 1 - PASS (8/8 checks)
+$ node --env-file=.env evals/runner.js --harness=./mastra/entry.js --case=4-crash-resume
+
+--- KILL TEST LOG (phase 1 ran in a child process that SIGKILLed itself) ---
+phase1 exit: signal=SIGKILL status=null
+[phase1 pid=66932] run_start persisted
+[phase1 pid=66932] fetched 5 open issues
+[phase1 pid=66932] generate() finishReason=suspended mastraRunId=30cc2150-6a58-40ca-9911-2d64c6662978
+[phase1 pid=66932] llm_tool_selection persisted (tool + full args + harness_run_id)
+[phase1 pid=66932] handoff written (modelCalls=1)
+[phase1 pid=66932] SIGKILL self now
+
+child_signal                     : SIGKILL   <- real SIGKILL, not a graceful exit
+killed_by_sigkill                : True
+
+--- what the fresh process recovered, from OUR event log only ---
+resume_read_from                 : WO-2 SQLite event log (not the harness store)
+harness_run_id (Mastra native)   : 30cc2150-6a58-40ca-9911-2d64c6662978
+resumed                          : True
+restarted                        : False   <- no re-fetch, no re-selection
+args_byte_identical              : True
+tool_selection_events            : 1   <- PRD s9: exactly one, never re-fired
+tool_reselected_after_resume     : False
+model_calls_after_resume         : 0   <- 0 only because stopWhen was passed
+slack_posts                      : 1
+terminal_outcome                 : posted
+harness_native_resume            : succeeded
+resume_path                      : native: agent.approveToolCallGenerate() on the persisted harness_run_id
+
+--- persisted args (from SQLite) vs args presented at approval on resume ---
+{"digest_text":"*In Progress*\n- TUS-2670 WO-14 · Handover: Jaelene makes a real change unaided (Haniyah Umair)\n- TUS-2658 WO-2 · Verify connector blast radius matches the design (Haniyah Umair)\n\n*In Review*\n- TUS-2660 WO-4 · Stand up the quarterly meeting date list (Haniyah Umair)\n\n*Todo*\n- TUS-2661 WO-5 · Write CLAUDE.md (Oliver Graham-Yooll)\n- TUS-2663 WO-7 · Hand-run the R1 scan once (Oliver Graham-Yooll)"}
+
+--- event log after resume, raw SQL ---
+  {"step_index": 0, "step_name": "run_start", "tool_selected": null, "decision": null, "outcome": null}
+  {"step_index": 1, "step_name": "fetch_linear_issues_result", "tool_selected": null, "decision": null, "outcome": null}
+  {"step_index": 2, "step_name": "llm_tool_selection", "tool_selected": "post_to_slack", "decision": null, "outcome": null}
+  {"step_index": 3, "step_name": "approval_decision", "tool_selected": null, "decision": "approved", "outcome": null}
+  {"step_index": 4, "step_name": "post_to_slack_result", "tool_selected": null, "decision": null, "outcome": null}
+  {"step_index": 5, "step_name": "terminal", "tool_selected": null, "decision": null, "outcome": "posted"}

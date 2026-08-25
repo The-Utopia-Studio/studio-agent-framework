@@ -1,0 +1,29 @@
+GOLDEN CASE 6 - trace attribution - Mastra leg 1 - BLOCKED-NO-CREDENTIAL
+$ node --env-file=.env evals/runner.js --harness=./mastra/entry.js --case=6-trace-attribution
+
+BLOCK 6-trace-attribution  4/4 checks
+       BLOCKED on missing credentials: LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY
+
+--- What IS verified: Mastra's own exported spans carry the git sha ---
+traces/mastra-spans.jsonl, 32 span events for one run:
+{"event_type":"span_started","trace_id":"b7d8e2a5fd87c95ed914eb5a8ec609ec","span_id":"65ff00a631e77c9e","span_name":"agent run: 'linear-digest'","span_type":"agent_run","git_sha":"6e64bd20047c6494625d90d4b428dab34d34a542","resource":"utopia-studio","thread":"digest-test","at":"2026-08-25T08:34:37.564Z"}
+{"event_type":"span_updated","trace_id":"b7d8e2a5fd87c95ed914eb5a8ec609ec","span_id":"65ff00a631e77c9e","span_name":"agent run: 'linear-digest'","span_type":"agent_run","git_sha":"6e64bd20047c6494625d90d4b428dab34d34a542","resource":"utopia-studio","thread":"digest-test","at":"2026-08-25T08:34:37.573Z"}
+{"event_type":"span_started","trace_id":"b7d8e2a5fd87c95ed914eb5a8ec609ec","span_id":"16f09041e500bcf6","span_name":"llm: 'claude-sonnet-4-6'","span_type":"model_generation","git_sha":"6e64bd20047c6494625d90d4b428dab34d34a542","resource":"utopia-studio","thread":"digest-test","at":"2026-08-25T08:34:37.580Z"}
+{"event_type":"span_started","trace_id":"b7d8e2a5fd87c95ed914eb5a8ec609ec","span_id":"8e9c6e0dd83d528a","span_name":"step: 0","span_type":"model_step","git_sha":"6e64bd20047c6494625d90d4b428dab34d34a542","resource":"utopia-studio","thread":"digest-test","at":"2026-08-25T08:34:37.591Z"}
+...
+
+--- What is NOT verified: no Langfuse trace id exists ---
+langfuse_exporter_wired      True
+langfuse_exporter_active     False
+langfuse_trace_id            None
+mastra_trace_id              b7d8e2a5fd87c95ed914eb5a8ec609ec
+trace_has_git_sha            True
+blocked                      ['LANGFUSE_PUBLIC_KEY', 'LANGFUSE_SECRET_KEY']
+
+--- docs-vs-reality gap found while wiring this ---
+@mastra/observability@1.17.1 source documents the exporter hook as '_exportEvent'
+(dist/index.js:4235) but BaseExporter.exportTracingEvent calls '_exportTracingEvent'
+(dist/index.js:4341). Implementing the documented name fails SILENTLY:
+  [Observability] tracing handler error [handler=git-sha-file-exporter]:
+  TypeError: this._exportTracingEvent is not a function
+The run still reported success while exporting zero spans.

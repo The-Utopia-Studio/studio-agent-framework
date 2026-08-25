@@ -1,0 +1,70 @@
+LEG 4 (FLUE) - CASE 5 - Flue's OWN durable stream, read by raw sqlite3 only
+
+$ sqlite3 runs/1-happy-path.db.flue.db ".tables"
+flue_agent_submissions                  
+flue_attachment_chunks                  
+flue_attachments                        
+flue_conversation_fold_checkpoint_chunks
+flue_conversation_fold_checkpoints      
+flue_conversation_stream_batch_chunks   
+flue_conversation_stream_batches        
+flue_conversation_streams               
+flue_meta                               
+flue_submission_chunks                  
+
+$ sqlite3 ... "select submission_id, status, attempt_count, max_attempts from flue_agent_submissions limit 1"
+submission_id = sub_01M0W7RSKAM9FA0198R7PRDV82
+  session_key = agent-session:["LinearDigest","digest-1-happy-path-74665-1787654071865","default","default"]
+         kind = dispatch
+       status = settled
+attempt_count = 1
+ max_attempts = 10
+     owner_id = owner_01M0W7RSK9HPY7DPW8VJQQ48BD
+
+--- the tool call WITH FULL ARGS, recovered from Flue's stream by raw SQL + JSON parse ---
+{
+  "v": 1,
+  "id": "record_01M0W7RSQB8J11AWH4TBP3KP3S",
+  "type": "assistant_tool_call",
+  "conversationId": "conv_01M0W7RSKC1469VYD3P9A23NKP",
+  "harness": "default",
+  "session": "default",
+  "timestamp": "2026-08-25T10:34:32.043Z",
+  "submissionId": "sub_01M0W7RSKAM9FA0198R7PRDV82",
+  "attemptId": "attempt_01M0W7RSKFEM3VZNJS0W9SA4A9",
+  "operationId": "op_01M0W7RSN28Y1R25WTXXJ500RX",
+  "turnId": "turn_01M0W7RSN6AVQYGKVSG32CGTES",
+  "messageId": "entry_01M0W7RSQ9XNQ9SF9X64WDZ8G4",
+  "blockId": "block_01M0W7RSQB425SW0EYZ2298DRV",
+  "blockIndex": 0,
+  "toolCallId": "call_mock_1",
+  "name": "post_to_slack",
+  "arguments": {
+    "digest_text": "*In Progress*\n- TUS-2670 WO-14 \u00b7 Handover: Jaelene makes a real change unaided (Haniyah Umair)\n- TUS-2658 WO-2 \u00b7 Verify connector blast radius matches the design (Haniyah Umair)\n\n*In Review*\n- TUS-2660 WO-4 \u00b7 Stand up the quarte
+
+--- record types in Flue's stream (all via raw SQL) ---
+     7  assistant_message_started
+     7  assistant_message_completed
+     5  conversation_created
+     5  user_message
+     5  resource_snapshot
+     5  agent_start_run
+     5  assistant_tool_call
+     5  tool_step_settled
+     5  tool_outcome
+     5  tool_results_committed
+     5  submission_settled
+     2  assistant_text_started
+     2  assistant_text_delta
+     2  assistant_text_completed
+
+--- compaction: fold-checkpoint machinery EXISTS but is unused at this scale ---
+CREATE TABLE flue_conversation_fold_checkpoints (
+  path TEXT PRIMARY KEY,
+  head_offset TEXT NOT NULL,
+  incarnation TEXT NOT NULL,
+  format_version INTEGER NOT NULL,
+  data TEXT,
+  chunk_count INTEGER
+);
+  rows: 0

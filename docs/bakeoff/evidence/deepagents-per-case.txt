@@ -1,0 +1,311 @@
+===== 1-happy-path  [PASS]  17/17  (144ms) =====
+  terminal_outcome                   posted
+  approval_pauses                    1
+  approval_args_visible              True
+  allowed_decisions                  ['approve', 'edit', 'reject']
+  args_byte_identical                True
+  tool_selection_events              1
+  model_calls                        1
+  slack_posts                        1
+  slack_attempts                     1
+  issues_used                        5
+  truncation_reported                False
+  renders_unassigned                 False
+  check_first_performed              True
+  blind_retry                        False
+  resumed                            False
+  restarted                          False
+  distinct_from_declined             False
+  sql_readable                       True
+  trace_spans_written                2
+  trace_id_present                   True
+  trace_has_git_sha                  True
+  langfuse_exporter_wired            True
+  langfuse_exporter_active           False
+  json_record_written                True
+
+===== 2-decline  [PASS]  14/14  (30ms) =====
+  terminal_outcome                   declined
+  approval_pauses                    1
+  approval_args_visible              True
+  allowed_decisions                  ['approve', 'edit', 'reject']
+  args_byte_identical                True
+  tool_selection_events              1
+  model_calls                        2
+  slack_posts                        0
+  slack_attempts                     0
+  issues_used                        5
+  truncation_reported                False
+  renders_unassigned                 False
+  check_first_performed              False
+  blind_retry                        False
+  resumed                            False
+  restarted                          False
+  distinct_from_declined             False
+  sql_readable                       True
+  trace_spans_written                2
+  trace_id_present                   True
+  trace_has_git_sha                  True
+  langfuse_exporter_wired            True
+  langfuse_exporter_active           False
+  json_record_written                True
+
+===== 3-empty-project  [PASS]  13/13  (3ms) =====
+  terminal_outcome                   nothing-to-digest
+  approval_pauses                    0
+  approval_args_visible              False
+  tool_selection_events              0
+  model_calls                        0
+  slack_posts                        0
+  slack_attempts                     0
+  issues_used                        0
+  truncation_reported                False
+  renders_unassigned                 False
+  check_first_performed              False
+  blind_retry                        False
+  resumed                            False
+  restarted                          False
+  distinct_from_declined             False
+  sql_readable                       True
+  trace_id_present                   False
+  trace_has_git_sha                  True
+  json_record_written                True
+
+===== 4-crash-resume  [PASS]  17/17  (573ms) =====
+  terminal_outcome                   posted
+  approval_pauses                    1
+  approval_args_visible              True
+  args_byte_identical                True
+  tool_selection_events              1
+  model_calls                        1
+  model_calls_after_resume           0
+  slack_posts                        1
+  slack_attempts                     1
+  issues_used                        0
+  truncation_reported                False
+  renders_unassigned                 False
+  check_first_performed              True
+  blind_retry                        False
+  persisted_send_found_on_resume     False
+  resumed                            True
+  restarted                          False
+  killed_by_sigkill                  True
+  child_signal                       SIGKILL
+  harness_native_resume              succeeded
+  resume_path                        native: fresh process resumed the checkpointed thread with Command({resume})
+  langgraph_thread_id                digest-4-crash-resume-85507-1787660189164
+  distinct_from_declined             False
+  sql_readable                       True
+  trace_id_present                   True
+  trace_has_git_sha                  True
+  json_record_written                True
+
+===== 5-sql-readable-state  [PASS]  13/13  (22ms) =====
+  terminal_outcome                   posted
+  approval_pauses                    1
+  approval_args_visible              True
+  allowed_decisions                  ['approve', 'edit', 'reject']
+  args_byte_identical                True
+  tool_selection_events              1
+  model_calls                        1
+  slack_posts                        1
+  slack_attempts                     1
+  issues_used                        5
+  truncation_reported                False
+  renders_unassigned                 False
+  check_first_performed              True
+  blind_retry                        False
+  resumed                            False
+  restarted                          False
+  distinct_from_declined             False
+  sql_readable                       True
+  trace_spans_written                2
+  trace_id_present                   True
+  trace_has_git_sha                  True
+  langfuse_exporter_wired            True
+  langfuse_exporter_active           False
+  json_record_written                True
+
+===== 6-trace-attribution  [BLOCKED-NO-CREDENTIAL]  13/13  (31ms) =====
+  terminal_outcome                   posted
+  approval_pauses                    1
+  approval_args_visible              True
+  allowed_decisions                  ['approve', 'edit', 'reject']
+  args_byte_identical                True
+  tool_selection_events              1
+  model_calls                        1
+  slack_posts                        1
+  slack_attempts                     1
+  issues_used                        5
+  truncation_reported                False
+  renders_unassigned                 False
+  check_first_performed              True
+  blind_retry                        False
+  resumed                            False
+  restarted                          False
+  distinct_from_declined             False
+  sql_readable                       True
+  trace_spans_written                2
+  trace_id_present                   True
+  trace_has_git_sha                  True
+  langfuse_exporter_wired            True
+  langfuse_exporter_active           False
+  langfuse_package                   langfuse-langchain@3.38.20 (installed, wired, inert without keys)
+  json_record_written                True
+
+===== 7-oversized-fetch  [PASS]  14/14  (22ms) =====
+  terminal_outcome                   posted
+  approval_pauses                    1
+  approval_args_visible              True
+  allowed_decisions                  ['approve', 'edit', 'reject']
+  args_byte_identical                True
+  tool_selection_events              1
+  model_calls                        1
+  slack_posts                        1
+  slack_attempts                     1
+  issues_used                        5
+  truncation_reported                True
+  truncation_mentions_total          13
+  renders_unassigned                 False
+  check_first_performed              True
+  blind_retry                        False
+  resumed                            False
+  restarted                          False
+  distinct_from_declined             False
+  sql_readable                       True
+  trace_spans_written                2
+  trace_id_present                   True
+  trace_has_git_sha                  True
+  langfuse_exporter_wired            True
+  langfuse_exporter_active           False
+  json_record_written                True
+
+===== 8-linear-api-failure  [PASS]  15/15  (3ms) =====
+  terminal_outcome                   failed
+  failure_stage                      fetch
+  error_message                      Linear API returned 503
+  approval_pauses                    0
+  approval_args_visible              False
+  tool_selection_events              0
+  model_calls                        0
+  slack_posts                        0
+  slack_attempts                     0
+  issues_used                        0
+  truncation_reported                False
+  renders_unassigned                 False
+  check_first_performed              False
+  blind_retry                        False
+  resumed                            False
+  restarted                          False
+  distinct_from_declined             True
+  sql_readable                       True
+  trace_id_present                   False
+  trace_has_git_sha                  True
+  json_record_written                True
+
+===== 9-slack-send-failure  [PASS]  15/15  (168ms) =====
+  terminal_outcome                   failed
+  failure_stage                      post
+  error_message                      slack 404: no_service
+  approval_pauses                    1
+  approval_args_visible              True
+  allowed_decisions                  ['approve', 'edit', 'reject']
+  args_byte_identical                True
+  tool_selection_events              1
+  model_calls                        1
+  slack_posts                        1
+  slack_attempts                     1
+  issues_used                        5
+  truncation_reported                False
+  renders_unassigned                 False
+  check_first_performed              True
+  blind_retry                        False
+  resumed                            False
+  restarted                          False
+  distinct_from_declined             True
+  sql_readable                       True
+  trace_spans_written                2
+  trace_id_present                   True
+  trace_has_git_sha                  True
+  langfuse_exporter_wired            True
+  langfuse_exporter_active           False
+  json_record_written                True
+
+===== 10a-malformed-missing-assignee  [PASS]  13/13  (66ms) =====
+  terminal_outcome                   posted
+  approval_pauses                    1
+  approval_args_visible              True
+  allowed_decisions                  ['approve', 'edit', 'reject']
+  args_byte_identical                True
+  tool_selection_events              1
+  model_calls                        1
+  slack_posts                        1
+  slack_attempts                     1
+  issues_used                        5
+  truncation_reported                False
+  renders_unassigned                 True
+  check_first_performed              True
+  blind_retry                        False
+  resumed                            False
+  restarted                          False
+  distinct_from_declined             False
+  sql_readable                       True
+  trace_spans_written                2
+  trace_id_present                   True
+  trace_has_git_sha                  True
+  langfuse_exporter_wired            True
+  langfuse_exporter_active           False
+  json_record_written                True
+
+===== 10b-malformed-missing-title  [PASS]  15/15  (5ms) =====
+  terminal_outcome                   failed
+  failure_stage                      validation
+  error_message                      Malformed issue in fetch response: missing title - failing run per Gate 6 validation
+  approval_pauses                    0
+  approval_args_visible              False
+  tool_selection_events              0
+  model_calls                        0
+  slack_posts                        0
+  slack_attempts                     0
+  issues_used                        0
+  truncation_reported                False
+  renders_unassigned                 False
+  check_first_performed              False
+  blind_retry                        False
+  resumed                            False
+  restarted                          False
+  error_names_field                  title
+  distinct_from_declined             True
+  sql_readable                       True
+  trace_id_present                   False
+  trace_has_git_sha                  True
+  json_record_written                True
+
+===== 11-post-crash-duplicate-check  [PASS]  14/14  (529ms) =====
+  terminal_outcome                   posted
+  approval_pauses                    1
+  approval_args_visible              True
+  args_byte_identical                True
+  tool_selection_events              1
+  model_calls                        1
+  model_calls_after_resume           0
+  slack_posts                        1
+  slack_attempts                     1
+  issues_used                        0
+  truncation_reported                False
+  renders_unassigned                 False
+  check_first_performed              True
+  blind_retry                        False
+  persisted_send_found_on_resume     False
+  resumed                            True
+  restarted                          False
+  killed_by_sigkill                  True
+  child_signal                       SIGKILL
+  harness_native_resume              succeeded
+  resume_path                        native: fresh process resumed the checkpointed thread with Command({resume})
+  langgraph_thread_id                digest-11-post-crash-duplicate-check-85507-1787660190060
+  distinct_from_declined             False
+  sql_readable                       True
+  trace_id_present                   True
+  trace_has_git_sha                  True
+  json_record_written                True

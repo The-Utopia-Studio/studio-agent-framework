@@ -1,0 +1,52 @@
+GOLDEN CASE 1 - happy path - Mastra leg 1 - PASS (9/9 checks)
+$ node --env-file=.env evals/runner.js --harness=./mastra/entry.js --case=1-happy-path
+
+--- intercepted approval payload (Mastra suspendPayload, shown to approver) ---
+{
+  "toolName": "post_to_slack",
+  "toolCallId": "toolu_mock_1",
+  "args": {
+    "digest_text": "*In Progress*\n- TUS-2670 WO-14 · Handover: Jaelene makes a real change unaided (Haniyah Umair)\n- TUS-2658 WO-2 · Verify connector blast radius matches the design (Haniyah Umair)\n\n*In Review*\n- TUS-2660 WO-4 · Stand up the quarterly meeting date list (Haniyah Umair)\n\n*Todo*\n- TUS-2661 WO-5 · Write CLAUDE.md (Oliver Graham-Yooll)\n- TUS-2663 WO-7 · Hand-run the R1 scan once (Oliver Graham-Yooll)"
+  }
+}
+
+--- tool_args as persisted to SQLite BEFORE the pause, read back ---
+{"digest_text":"*In Progress*\n- TUS-2670 WO-14 · Handover: Jaelene makes a real change unaided (Haniyah Umair)\n- TUS-2658 WO-2 · Verify connector blast radius matches the design (Haniyah Umair)\n\n*In Review*\n- TUS-2660 WO-4 · Stand up the quarterly meeting date list (Haniyah Umair)\n\n*Todo*\n- TUS-2661 WO-5 · Write CLAUDE.md (Oliver Graham-Yooll)\n- TUS-2663 WO-7 · Hand-run the R1 scan once (Oliver Graham-Yooll)"}
+
+byte-identical persisted-vs-presented : True
+approval_pauses                       : 1
+tool_selection_events (PRD s9 metric) : 1
+model_calls (raw HTTP to model)       : 2 (1 select + 1 during approval)
+slack_posts                           : 1
+check_first_performed                 : True
+terminal_outcome                      : posted
+git_sha on every event row            : 42d8a321d02f4b136a59108dc30e84a87e8e4ca8
+
+--- observed Mastra createTool execute() signature ---
+{
+  "arg0Keys": [
+    "digest_text"
+  ],
+  "arg1Keys": [
+    "mastra",
+    "memory",
+    "runId",
+    "requestContext",
+    "actor",
+    "workspace",
+    "browser",
+    "observe",
+    "writer",
+    "tracing",
+    "loggerVNext",
+    "metrics"
+  ]
+}
+
+--- event log, raw SQL ---
+  {"step_index": 0, "step_name": "run_start", "tool_selected": null, "decision": null, "outcome": null, "git_sha": "42d8a32"}
+  {"step_index": 1, "step_name": "fetch_linear_issues_result", "tool_selected": null, "decision": null, "outcome": null, "git_sha": "42d8a32"}
+  {"step_index": 2, "step_name": "llm_tool_selection", "tool_selected": "post_to_slack", "decision": null, "outcome": null, "git_sha": "42d8a32"}
+  {"step_index": 3, "step_name": "approval_decision", "tool_selected": null, "decision": "approved", "outcome": null, "git_sha": "42d8a32"}
+  {"step_index": 4, "step_name": "post_to_slack_result", "tool_selected": null, "decision": null, "outcome": null, "git_sha": "42d8a32"}
+  {"step_index": 5, "step_name": "terminal", "tool_selected": null, "decision": null, "outcome": "posted", "git_sha": "42d8a32"}
