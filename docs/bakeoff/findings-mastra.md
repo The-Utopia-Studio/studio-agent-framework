@@ -335,3 +335,93 @@ supplied this session.
 configuration, with the two schema/constructor-naming corrections in §4 folded into whatever
 canonical setup doc the framework ships. `mastra/convex/schema.ts` and
 `mastra/convex/mastra/storage.ts` in this PR are directly reusable as that reference.
+
+---
+
+## 9. A fifth axis: working memory — a capability the other two legs don't have at all
+
+Not part of the linear-digest PRD (§7 explicitly turns memory off for this test vehicle —
+*"semantic and procedural: not used, explicit non-goal, no dedup, no cross-run memory"*),
+so this isn't a golden case. Run as a standalone spike after the operator asked whether
+Mastra's advantage here is real or assumed.
+
+### 9.1 The premise, checked before testing it
+
+Before running anything: does `@mastra/memory` actually offer something Deep Agents and
+Flue don't?
+
+```
+@mastra/memory exports: Memory, WorkingMemory, SemanticRecall, MessageHistory, Subconscious,
+  WorkingMemoryExtractor, WorkingMemoryStateProcessor, KnowledgeSemanticIndexCoordinator, ...
+
+deepagents@1.13.1: no memory-named dependency, no memory-named export.
+  Has usePersistentState — raw key-value state, the primitive @flue/runtime also has.
+
+@flue/runtime: no dedicated memory package. usePersistentState only — same shape as Deep
+  Agents', raw persisted state with no extraction or recall semantics.
+```
+
+Confirmed: only Mastra has a named subsystem for extracting salient facts from a
+conversation and retrieving them automatically. The other two legs offer "persist arbitrary
+state you write yourself," which is a lower-level primitive — it's what STATE-1a's own
+snapshot mechanism uses, not a memory system.
+
+### 9.2 The test
+
+A standalone Mastra agent, `Memory` configured with `workingMemory: { enabled: true }` over
+LibSQL, live Kimi K2.6. Two **separate** `generate()` calls on the same `thread`/`resource`
+id — no manual context carried between them by the test itself.
+
+```
+TURN 1: "My favorite project is called 'Project Kestrel' and my deploy day is always a Thursday."
+  reply: "Got it — Project Kestrel, deploying every Thursday."
+
+TURN 2 (new call, no mention of the fact in this prompt):
+  "What is the name of my favorite project, and what day do I deploy?"
+  reply: "Your favorite project is Project Kestrel, and you deploy every Thursday."
+```
+
+Not trusting the model's word for it — the raw persisted row, queried directly from LibSQL:
+
+```sql
+sqlite> select * from mastra_resources;
+id            = resource-memtest-1
+workingMemory = # User Information
+                - **First Name**:
+                - **Last Name**:
+                ...
+                - **Facts**: Favorite project is "Project Kestrel". Deploy day is always Thursday.
+                - **Projects**: Project Kestrel
+```
+
+Mastra extracted the fact into structured working memory via its own internal
+`updateWorkingMemory` tool call after turn 1, and injected it into turn 2's context
+automatically — no application code carried the fact across calls.
+
+### 9.3 A second interop wrinkle with Kimi, found in passing
+
+Moonshot's API returned a non-fatal schema warning on Mastra's internal
+`updateWorkingMemory` tool call:
+
+```
+'msh-schema-warning': "tools.function[updateWorkingMemory].parameters is not a valid
+  moonshot flavored json schema, details: <At path 'root': unsupported keywords: $schema>"
+```
+
+Mastra's generated tool schema includes a `$schema` key that Moonshot's validator flags as
+unsupported. It did not block the call here (a warning, not a rejection), and the D-39
+`thinking: disabled` workaround was still required for this spike exactly as for the digest
+agent. Worth knowing before relying on Mastra memory + Kimi in a real deployment — this is
+a second, independent interop rough edge on top of D-39, not a repeat of it.
+
+### 9.4 Scope of this result
+
+This is one working-memory round-trip, not a golden-case suite. It does not test semantic
+recall (vector-backed retrieval across a long history), multi-resource isolation (MEM-7),
+or memory under the crash/resume conditions §5 tests for workflow state. If working memory
+becomes something the framework actually leans on, it deserves its own eval suite the way
+STATE-1a got one here — this section establishes that the capability is real and working,
+not that it's production-hardened.
+
+**Verdict: working memory — native, verified on a live model, with raw stored evidence.**
+Neither Deep Agents nor Flue has an equivalent primitive to compare it against.
