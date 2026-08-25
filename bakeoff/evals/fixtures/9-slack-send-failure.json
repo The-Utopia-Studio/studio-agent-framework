@@ -1,0 +1,91 @@
+{
+  "case": "9-slack-send-failure",
+  "severity": "major",
+  "prd": "§2 row 9",
+  "description": "approval granted; Slack webhook returns non-2xx -> failure recorded distinctly from declined, in both JSON record and trace",
+  "linear": {
+    "mode": "ok",
+    "nodes": [
+      {
+        "id": "uuid-TUS-2670",
+        "identifier": "TUS-2670",
+        "title": "WO-14 · Handover: Jaelene makes a real change unaided",
+        "updatedAt": "2026-08-21T09:00:00.000Z",
+        "state": {
+          "name": "In Progress",
+          "type": "started"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      },
+      {
+        "id": "uuid-TUS-2658",
+        "identifier": "TUS-2658",
+        "title": "WO-2 · Verify connector blast radius matches the design",
+        "updatedAt": "2026-08-20T09:00:00.000Z",
+        "state": {
+          "name": "In Progress",
+          "type": "started"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      },
+      {
+        "id": "uuid-TUS-2661",
+        "identifier": "TUS-2661",
+        "title": "WO-5 · Write CLAUDE.md",
+        "updatedAt": "2026-08-19T09:00:00.000Z",
+        "state": {
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "assignee": {
+          "name": "Oliver Graham-Yooll"
+        }
+      },
+      {
+        "id": "uuid-TUS-2663",
+        "identifier": "TUS-2663",
+        "title": "WO-7 · Hand-run the R1 scan once",
+        "updatedAt": "2026-08-18T09:00:00.000Z",
+        "state": {
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "assignee": {
+          "name": "Oliver Graham-Yooll"
+        }
+      },
+      {
+        "id": "uuid-TUS-2660",
+        "identifier": "TUS-2660",
+        "title": "WO-4 · Stand up the quarterly meeting date list",
+        "updatedAt": "2026-08-17T09:00:00.000Z",
+        "state": {
+          "name": "In Review",
+          "type": "started"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      }
+    ]
+  },
+  "slack": {
+    "mode": "http_error",
+    "status": 404,
+    "body": "no_service"
+  },
+  "approval": "approve",
+  "crash": null,
+  "expect": {
+    "terminal_outcome": "failed",
+    "failure_stage": "post",
+    "distinct_from_declined": true,
+    "recorded_in_json": true,
+    "recorded_in_trace": true,
+    "slack_attempts": 1
+  }
+}

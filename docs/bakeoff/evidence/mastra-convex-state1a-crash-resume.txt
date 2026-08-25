@@ -1,0 +1,15 @@
+harness : mastra (leg 1)
+mode    : MOCK FIXTURES
+cases   : 2
+
+[Workflow agentic-loop] shouldPersistSnapshot excludes the "running" status, so concurrent resume() calls for run f6b6ae83-e194-4fdd-ad0b-02859c499e6c cannot be de-duplicated. Concurrent resumes may execute downstream steps more than once.
+[Workflow executionWorkflow] shouldPersistSnapshot excludes the "running" status, so concurrent resume() calls for run f6b6ae83-e194-4fdd-ad0b-02859c499e6c cannot be de-duplicated. Concurrent resumes may execute downstream steps more than once.
+PASS  4-crash-resume  (10656ms)  17/17 checks
+[Workflow agentic-loop] shouldPersistSnapshot excludes the "running" status, so concurrent resume() calls for run 01d0d2c7-cd36-47ba-89a8-4f880b1f4d63 cannot be de-duplicated. Concurrent resumes may execute downstream steps more than once.
+[Workflow executionWorkflow] shouldPersistSnapshot excludes the "running" status, so concurrent resume() calls for run 01d0d2c7-cd36-47ba-89a8-4f880b1f4d63 cannot be de-duplicated. Concurrent resumes may execute downstream steps more than once.
+PASS  11-post-crash-duplicate-check  (11501ms)  14/14 checks
+
+----------------------------------------------------------------
+PASS 2   FAIL 0   PRIMITIVE-GAP 0   BLOCKED 0   ERROR 0   of 2
+----------------------------------------------------------------
+results -> runs/last-suite.json

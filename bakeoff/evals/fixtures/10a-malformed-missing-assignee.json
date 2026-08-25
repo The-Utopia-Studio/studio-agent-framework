@@ -1,0 +1,87 @@
+{
+  "case": "10a-malformed-missing-assignee",
+  "severity": "minor",
+  "prd": "§2 row 10a",
+  "description": "one issue has no assignee -> digest renders \"unassigned\" deterministically; run proceeds normally",
+  "linear": {
+    "mode": "ok",
+    "nodes": [
+      {
+        "id": "uuid-TUS-2671",
+        "identifier": "TUS-2671",
+        "title": "Orphan issue",
+        "updatedAt": "2026-08-21T09:00:00.000Z",
+        "state": {
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "assignee": null
+      },
+      {
+        "id": "uuid-TUS-2670",
+        "identifier": "TUS-2670",
+        "title": "WO-14 · Handover: Jaelene makes a real change unaided",
+        "updatedAt": "2026-08-21T09:00:00.000Z",
+        "state": {
+          "name": "In Progress",
+          "type": "started"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      },
+      {
+        "id": "uuid-TUS-2658",
+        "identifier": "TUS-2658",
+        "title": "WO-2 · Verify connector blast radius matches the design",
+        "updatedAt": "2026-08-20T09:00:00.000Z",
+        "state": {
+          "name": "In Progress",
+          "type": "started"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      },
+      {
+        "id": "uuid-TUS-2661",
+        "identifier": "TUS-2661",
+        "title": "WO-5 · Write CLAUDE.md",
+        "updatedAt": "2026-08-19T09:00:00.000Z",
+        "state": {
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "assignee": {
+          "name": "Oliver Graham-Yooll"
+        }
+      },
+      {
+        "id": "uuid-TUS-2663",
+        "identifier": "TUS-2663",
+        "title": "WO-7 · Hand-run the R1 scan once",
+        "updatedAt": "2026-08-18T09:00:00.000Z",
+        "state": {
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "assignee": {
+          "name": "Oliver Graham-Yooll"
+        }
+      }
+    ]
+  },
+  "slack": {
+    "mode": "ok",
+    "status": 200,
+    "body": "ok"
+  },
+  "approval": "approve",
+  "crash": null,
+  "expect": {
+    "terminal_outcome": "posted",
+    "renders_unassigned": true,
+    "invented_assignee": false,
+    "slack_posts": 1
+  }
+}

@@ -1,0 +1,69 @@
+LEG 3 (DEEP AGENTS) - CASE 5 - LangGraph's OWN checkpoint store, raw sqlite3 only
+
+$ sqlite3 runs/1-happy-path.db.langgraph.db ".tables"
+checkpoints  writes     
+
+$ sqlite3 ... ".schema"
+CREATE TABLE checkpoints (
+  thread_id TEXT NOT NULL,
+  checkpoint_ns TEXT NOT NULL DEFAULT '',
+  checkpoint_id TEXT NOT NULL,
+  parent_checkpoint_id TEXT,
+  type TEXT,
+  checkpoint BLOB,
+  metadata BLOB,
+  PRIMARY KEY (thread_id, checkpoint_ns, checkpoint_id)
+);
+CREATE TABLE writes (
+  thread_id TEXT NOT NULL,
+  checkpoint_ns TEXT NOT NULL DEFAULT '',
+  checkpoint_id TEXT NOT NULL,
+  task_id TEXT NOT NULL,
+  idx INTEGER NOT NULL,
+  channel TEXT NOT NULL,
+  type TEXT,
+  value BLOB,
+  PRIMARY KEY (thread_id, checkpoint_ns, checkpoint_id, task_id, idx)
+);
+
+row counts:
+  checkpoints      39
+  writes           93
+
+checkpoint payloads are type=json, not an opaque blob:
+json|1414
+json|1691
+json|1844
+json|1942
+
+--- the tool call WITH FULL ARGS, recovered from channel_values.messages by raw SQL ---
+[
+  {
+    "id": "call_mock_1",
+    "type": "function",
+    "function": {
+      "name": "post_to_slack",
+      "arguments": "{\"digest_text\":\"*In Progress*\\n- TUS-2670 WO-14 \u00b7 Handover: Jaelene makes a real change unaided (Haniyah Umair)\\n- TUS-2658 WO-2 \u00b7 Verify connector blast radius matches the design (Haniyah Umair)\\n\\n*In Review*\\n- TUS-2660 WO-4 \u00b7 Stand up the quarterly meeting date list (Haniyah Umair)\\n\\n*Todo*\\n- TUS-2661 WO-5 \u00b7 Write CLAUDE.md (Oliver Graham-Yooll)\\n- TUS-2663 WO-7 \u00b7 Hand-run the R1 scan once (Oliver Graham-Yooll)\"}"
+    }
+  }
+]
+
+--- the interrupt payload AND the human decision are both durable ---
+__interrupt__|{"id":"7e9b42400d3c62e92b66348a142d7b42","value":{"actionRequests":[{"name":"post_to_slack","args":{"digest_text":"*In Progress*\n- TUS-2670 WO-14 · Handover: Jaelene makes a real change unaided (Haniyah Umair)\n- TUS-2658 WO-2 · Verify connector blast radius 
+__resume__|{"decisions":[{"type":"approve"}]}
+__resume__|[{"decisions":[{"type":"approve"}]}]
+__interrupt__|{"id":"1d0641d444a4b3002a170440d06e8e79","value":{"actionRequests":[{"name":"post_to_slack","args":{"digest_text":"*In Progress*\n- TUS-2670 WO-14 · Handover: Jaelene makes a real change unaided (Haniyah Umair)\n- TUS-2658 WO-2 · Verify connector blast radius 
+
+--- channels recorded in the writes table ---
+messages
+branch:to:FilesystemMiddleware.before_agent
+branch:to:patchToolCallsMiddleware.before_agent
+branch:to:model_request
+branch:to:HumanInTheLoopMiddleware.after_model
+__interrupt__
+__resume__
+__pregel_tasks
+threadModelCallCount
+runModelCallCount
+branch:to:ModelCallLimitMiddleware.before_model
+branch:to:ModelCallLimitMiddleware.after_model

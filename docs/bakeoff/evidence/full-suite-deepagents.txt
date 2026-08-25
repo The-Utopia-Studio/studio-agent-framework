@@ -1,0 +1,22 @@
+harness : deepagents (leg 3)
+mode    : MOCK FIXTURES
+cases   : 12
+
+PASS  1-happy-path  (144ms)  17/17 checks
+PASS  2-decline  (30ms)  14/14 checks
+PASS  3-empty-project  (3ms)  13/13 checks
+PASS  4-crash-resume  (573ms)  17/17 checks
+PASS  5-sql-readable-state  (22ms)  13/13 checks
+BLOCK 6-trace-attribution  (31ms)  13/13 checks
+       BLOCKED on missing credentials: LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY
+PASS  7-oversized-fetch  (22ms)  14/14 checks
+PASS  8-linear-api-failure  (3ms)  15/15 checks
+PASS  9-slack-send-failure  (168ms)  15/15 checks
+PASS  10a-malformed-missing-assignee  (66ms)  13/13 checks
+PASS  10b-malformed-missing-title  (5ms)  15/15 checks
+PASS  11-post-crash-duplicate-check  (529ms)  14/14 checks
+
+----------------------------------------------------------------
+PASS 11   FAIL 0   PRIMITIVE-GAP 0   BLOCKED 1   ERROR 0   of 12
+----------------------------------------------------------------
+results -> runs/last-suite.json
