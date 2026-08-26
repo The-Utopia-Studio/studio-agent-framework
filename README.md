@@ -168,27 +168,33 @@ Prove it by killing the process. That is a test, not a nice-to-have.
 
 ---
 
-## The runtime harness is UNDECIDED
+## The coded-agent standard: Mastra + Convex
 
-**Bake-off in progress. Do not name any vendor as the Studio default harness.** Not in a
-PRD, not in a work order, not in a "well we're probably going to use…". `agent-prd`
-Appendix C says *Undecided — bake-off* and that is the current answer.
+**Mastra + ConvexStore is the Studio standard harness for Tier B/C coded agents.** Mastra
+runs the agent loop; Convex holds the canonical, append-only, tenant-keyed event log and
+business data. These are complementary roles, not competing choices.
 
-What we know so far, as evidence only:
+This decision is based on the Mastra-on-Convex STATE-1a probe: a live Kimi K2.6 agent was
+hard-killed with `SIGKILL`, then resumed in a fresh process from the remote Convex state
+without a model re-fire or duplicate send. An independent process also read the suspended
+state directly from Convex. See [`docs/bakeoff/findings-mastra.md`](docs/bakeoff/findings-mastra.md).
 
-| Harness | Status | Finding |
-|---|---|---|
-| **Mastra** | Probed 24–25 Aug 2026 — **evidence only, not a decision** | **STATE-1 miss.** Resume required Mastra's private state file — `harness_run_id` in its LibSQL store. A fresh process could not continue from the canonical log alone. Recorded in `atelier-learnings` as a dated *Violation looked like* under STATE-1. |
-| **Flue** | In test now | Open. No verdict. Do not pre-write one. |
+Mastra's default local/LibSQL state is **not** the approved production architecture. A
+qualifying build uses `ConvexStore`, and it must still prove its own kill-and-fresh-process
+recovery. The decision makes Mastra the Studio default; it does not claim Mastra is best in
+every context.
 
-A probe result is a dated observation about one candidate at one point in time. It is not
-a ban, not an endorsement, and not a default. When the bake-off closes, the decision lands
-in `atelier-learnings` as a rule and in `agent-prd` Appendix C as a default — until then,
-any PRD that names a harness as settled is wrong.
+An alternative harness requires a dated, evidence-backed waiver and must meet the same
+STATE-1/STATE-1a requirements: canonical state in a tenant-keyed, externally queryable
+store; hard-kill recovery in a fresh process; no duplicate external action.
 
-**Convex is the intended source of truth** — one store for the append-only event log *and*
-business data, tenant-keyed, human-readable and queryable from outside whatever wrote it
-(STACK-1, MEM-7, MEM-8). Do not duplicate canonical state into an external store.
+### Decision record — 26 August 2026
+
+**Decision:** Mastra + ConvexStore is the standard runtime harness for coded Tier B/C
+Studio agents. **Evidence:** live-model hard-kill, fresh-process recovery, independent
+Convex read-back, and no duplicate-send verification. **Review condition:** revisit this
+default only when new evidence shows the standard no longer meets Studio requirements or a
+candidate demonstrably meets them better under the same conformance suite.
 
 **The W-01 waiver.** A probe may run its canonical log somewhere other than Convex *only*
 under a dated **W-01** waiver: which probe, which store is standing in as canonical, why

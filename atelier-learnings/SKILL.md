@@ -111,7 +111,7 @@ If a design decision feels ambiguous, ask which of these three it drifts toward.
 
 **STACK-2 ·** Durable execution: **buy, don't build** — Inngest as default for multi-tenant lines; Trigger.dev for sovereign/self-hosted deployments.
 
-**STACK-3 ·** Loop layer per tier: **Tier-B durable/resumable/approval-gated pipelines use raw fetch** (total loop control); **Tier-A single-shot agents may use a framework loop** (e.g. Vercel AI SDK). This resolves the documented contradiction between the stack doc and Atelier's AGENTS.md — decided per tier, recorded once.
+**STACK-3 ·** Coded-agent harness: **Mastra with ConvexStore** is the Studio standard for Tier-B/C durable, resumable, or approval-gated agents. Mastra runs the loop; Convex holds the canonical, tenant-keyed state and append-only event log. **Tier-A** single-shot agents may use a lightweight framework loop (for example Vercel AI SDK) or no runtime at all. An alternative harness needs a dated, evidence-backed waiver and must meet the same STATE-1/STATE-1a tests.
 
 **STACK-4 ·** Observability: **Langfuse wired in from the first commit** — every tool call, error, and cost traced.
 
@@ -131,8 +131,7 @@ If a design decision feels ambiguous, ask which of these three it drifts toward.
 
 **ID-1 · Who the tools act as is a required field.** Studio or a named internal team → shared Composio (or first-party API with a service account for GitHub / Linear / Convex). A fellow → their own Composio `user_id` + Connect Link, later on the OS. Never the studio Slack acting as a fellow. Writes on a shared connection need a named owner and a kill switch.
 
-**STATE-1 · Vendor runtime state is a cache, not the source of truth.** A harness may keep a local state file. That file is not canonical. Convex is the only source of truth for run-state *and* business data. Kill the process, start a fresh one, it must resume from the Convex log alone. If resume needs the vendor file, the design fails LOOP-2 and STACK-1. The Studio harness is undecided pending bake-off — this rule does not name or prefer one.
-*Violation looked like:* Mastra gate-6 probe (24–25 Aug 2026) — resume required Mastra's private state file (harness_run_id in its LibSQL store); a fresh process could not continue from the canonical log alone.
+**STATE-1 · Vendor runtime state is a cache, not the source of truth.** For the Studio standard, Mastra uses **ConvexStore**: Mastra runs the loop, while Convex is the only canonical source of truth for run-state and business data. A local/vendor state file is never canonical. Kill the process, start a fresh one, and it must resume from Convex alone. If resume needs a vendor-local file, the design fails LOOP-2 and STACK-1. This is verified for Mastra + Convex by the STATE-1a hard-kill, fresh-process test; every qualifying build must still run its own test.
 
 **CTX-2b · Prefetch exception.** Retrieve on demand (CTX-2, MEM-2) except when you already know you will need a payload this run — fetch it once, write it to the log, do not spend a later loop step finding it again. That is the only exception.
 

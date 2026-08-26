@@ -221,7 +221,7 @@ once and cites it three times.
 
 **4 · Learnings loaded.** `atelier-learnings` was applied. New production misses become a rule ID + eval case, not a Slack anecdote.
 
-**5 · Home, identity, one store.** Runtime home and talk surface are both named (HOME-1). Tool identity is named (ID-1). Convex is the only source of truth; a kill-and-fresh-process resume from the log is required on rung 4 / Tier B–C (STATE-1, LOOP-2). Any vendor state file is cache. Harness remains undecided pending bake-off.
+**5 · Home, identity, one store.** Runtime home and talk surface are both named (HOME-1). Tool identity is named (ID-1). For rung 4 / Tier B–C, Mastra + ConvexStore is the Studio standard: Mastra runs the agent loop and Convex is the only source of truth. A kill-and-fresh-process resume from Convex is required (STATE-1, LOOP-2); any vendor-local state is cache. An alternative harness requires a dated, evidence-backed waiver and the same tests.
 
 The chain ships only when: intake *and Step 0b* are on record; the fleet-or-solo verdict is explicit;
 every agent has a four-part spec; the rung is named with a reason; the eval contract
