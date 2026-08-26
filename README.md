@@ -196,6 +196,9 @@ Convex read-back, and no duplicate-send verification. **Review condition:** revi
 default only when new evidence shows the standard no longer meets Studio requirements or a
 candidate demonstrably meets them better under the same conformance suite.
 
+Read the decision and Product Framework / future Utopia OS integration rationale in
+[`docs/decisions/2026-08-26-mastra-convex-and-product-framework.md`](docs/decisions/2026-08-26-mastra-convex-and-product-framework.md).
+
 **The W-01 waiver.** A probe may run its canonical log somewhere other than Convex *only*
 under a dated **W-01** waiver: which probe, which store is standing in as canonical, why
 Convex wasn't used, and the date. The waiver covers a probe — it does not travel to a
