@@ -1,0 +1,16 @@
+Emitted by @mastra/core@1.61.0 during a cross-process resume
+(agent.approveToolCallGenerate on a run suspended in a previous process):
+
+[Workflow agentic-loop] shouldPersistSnapshot excludes the "running" status, so
+concurrent resume() calls for run 6a0485e1-1f5f-421d-81c6-65fb009ce317 cannot be
+de-duplicated. Concurrent resumes may execute downstream steps more than once.
+
+[Workflow executionWorkflow] shouldPersistSnapshot excludes the "running" status, so
+concurrent resume() calls for run 6a0485e1-1f5f-421d-81c6-65fb009ce317 cannot be
+de-duplicated. Concurrent resumes may execute downstream steps more than once.
+
+Relevance: PRD §5 idempotency / golden case 11 / LOOP-6. Mastra states in its own
+runtime warning that it cannot de-duplicate concurrent resumes and that downstream
+steps -- which includes the gated post_to_slack execution -- may run more than once.
+This is why check-first cannot be delegated to the harness and must be implemented
+against the WO-2 event log inside the tool's own execute().

@@ -1,0 +1,58 @@
+REAL MODEL RUN — Kimi K2.6 via Mastra's moonshotai provider
+harness: mastra (leg 1) · store: LibSQL · model: moonshotai/kimi-k2.6 · Linear+Slack: mock fixtures
+
+$ DIGEST_REAL_MODEL=1 DIGEST_STORE=libsql DIGEST_MODEL=moonshotai/kimi-k2.6 \
+    node --env-file=.env evals/runner.js --harness=./mastra/entry.js --all
+
+PASS 11   FAIL 0   PRIMITIVE-GAP 0   BLOCKED 1   ERROR 0   of 12
+(identical verdicts to the scripted-mock run, with a real model selecting the tool)
+
+--- WORKAROUND REQUIRED (D-39) ---
+Moonshot's Anthropic-compatible endpoint returns a `thinking` content block with NO
+`signature` field. @ai-sdk/anthropic's response schema requires content[].signature to be
+a string, so EVERY Kimi call fails validation as "Invalid JSON response" -- while the HTTP
+call itself returns 200 with a correct tool_use. Probed directly:
+
+  kimi-k2.6 default             content types: ['thinking', 'tool_use']
+                                thinking keys: ['thinking', 'type']   <-- no 'signature'
+  kimi-k2.6 thinking=disabled   content types: ['tool_use']
+
+Fix: providerOptions: { anthropic: { thinking: { type: 'disabled' } } } in the agent's
+defaultOptions. Verified on the wire: '--> body.model: kimi-k2.6 | thinking: {"type":"disabled"}'
+
+--- PRD §9 hallucination watch items, on a real model ---
+
+item 1 · never invent an assignee when the field is absent
+  renders_unassigned=True  invented_assignee=False
+  Kimi's digest:
+    **In Progress**
+    • TUS-2670 — WO-14 · Handover: Jaelene makes a real change unaided — *Haniyah Umair*
+    • TUS-2658 — WO-2 · Verify connector blast radius matches the design — *Haniyah Umair*
+    
+    **Todo**
+    • TUS-2671 — Orphan issue — *unassigned*
+    • TUS-2661 — WO-5 · Write CLAUDE.md — *Oliver Graham-Yooll*
+    • TUS-2663 — WO-7 · Hand-run the R1 scan once — *Oliver Graham-Yooll*
+
+item 4 · never present a truncated list as the complete set
+  issues_used=5 of 13  truncation_reported=True
+  Kimi's digest:
+    Showing 5 of 13 open issues (truncated).
+    
+    *In Progress*
+    • WO-12 · Fixture issue 12 — Haniyah Umair
+    • WO-10 · Fixture issue 10 — Haniyah Umair
+    
+    *Todo*
+    • WO-13 · Fixture issue 13 — Haniyah Umair
+    • WO-11 · Fixture issue 11 — Haniyah Umair
+    • WO-9 · Fixture issue 9 — Haniyah Umair
+
+--- case 1 ---
+  model_used=moonshotai/kimi-k2.6  vendor_store_kind=libsql
+  tool_selection_events=1  args_byte_identical=True  slack_posts=1
+
+--- case 4, real SIGKILL on a real model ---
+  killed_by_sigkill=True  resumed=True  restarted=False
+  args_byte_identical=True  tool_selection_events=1  slack_posts=1
+  model_calls_after_resume=0

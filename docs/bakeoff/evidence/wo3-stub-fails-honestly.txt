@@ -1,0 +1,85 @@
+harness : stub (M0 — no harness wired)
+mode    : MOCK FIXTURES
+cases   : 12
+
+FAIL  1-happy-path  (0ms)  0/8 checks
+       expect terminal_outcome: harness reported no value for "terminal_outcome"
+       expect approval_pauses: harness reported no value for "approval_pauses"
+       expect approval_args_visible: harness reported no value for "approval_args_visible"
+       expect slack_posts: harness reported no value for "slack_posts"
+       expect llm_calls: harness reported no value for "llm_calls"
+       expect json_record_written: harness reported no value for "json_record_written"
+       expect trace_has_git_sha: harness reported no value for "trace_has_git_sha"
+       expect truncation_reported: harness reported no value for "truncation_reported"
+FAIL  2-decline  (0ms)  0/5 checks
+       expect terminal_outcome: harness reported no value for "terminal_outcome"
+       expect approval_pauses: harness reported no value for "approval_pauses"
+       expect slack_posts: harness reported no value for "slack_posts"
+       expect llm_calls: harness reported no value for "llm_calls"
+       expect json_record_written: harness reported no value for "json_record_written"
+FAIL  3-empty-project  (0ms)  0/4 checks
+       expect terminal_outcome: harness reported no value for "terminal_outcome"
+       expect approval_pauses: harness reported no value for "approval_pauses"
+       expect slack_posts: harness reported no value for "slack_posts"
+       expect json_record_written: harness reported no value for "json_record_written"
+FAIL  4-crash-resume  (0ms)  0/7 checks
+       expect terminal_outcome: harness reported no value for "terminal_outcome"
+       expect resumed: harness reported no value for "resumed"
+       expect restarted: harness reported no value for "restarted"
+       expect llm_calls_total: harness reported no value for "llm_calls"
+       expect llm_calls_after_resume: harness reported no value for "llm_calls_after_resume"
+       expect slack_posts_max: harness reported no value for "slack_posts"
+       expect args_byte_identical: harness reported no value for "args_byte_identical"
+FAIL  5-sql-readable-state  (0ms)  0/4 checks
+       expect terminal_outcome: harness reported no value for "terminal_outcome"
+       expect sql_readable: harness reported no value for "sql_readable"
+       expect framework_api_required: harness reported no value for "framework_api_required"
+       expect sql_columns_present: harness reported no sql_columns array
+FAIL  6-trace-attribution  (0ms)  0/4 checks
+       expect terminal_outcome: harness reported no value for "terminal_outcome"
+       expect trace_exists: harness reported no value for "trace_exists"
+       expect trace_has_git_sha: harness reported no value for "trace_has_git_sha"
+       expect trace_id_present: harness reported no value for "trace_id_present"
+FAIL  7-oversized-fetch  (0ms)  0/5 checks
+       expect terminal_outcome: harness reported no value for "terminal_outcome"
+       expect issues_used: harness reported no value for "issues_used"
+       expect truncation_reported: harness reported no value for "truncation_reported"
+       expect truncation_mentions_total: harness reported no value for "truncation_mentions_total"
+       expect slack_posts: harness reported no value for "slack_posts"
+FAIL  8-linear-api-failure  (0ms)  0/6 checks
+       expect terminal_outcome: harness reported no value for "terminal_outcome"
+       expect failure_stage: harness reported no value for "failure_stage"
+       expect approval_pauses: harness reported no value for "approval_pauses"
+       expect slack_posts: harness reported no value for "slack_posts"
+       expect clean_failure_report: harness reported no value for "clean_failure_report"
+       expect json_record_written: harness reported no value for "json_record_written"
+FAIL  9-slack-send-failure  (0ms)  0/6 checks
+       expect terminal_outcome: harness reported no value for "terminal_outcome"
+       expect failure_stage: harness reported no value for "failure_stage"
+       expect distinct_from_declined: harness reported no value for "distinct_from_declined"
+       expect recorded_in_json: harness reported no value for "recorded_in_json"
+       expect recorded_in_trace: harness reported no value for "recorded_in_trace"
+       expect slack_attempts: harness reported no value for "slack_attempts"
+FAIL  10a-malformed-missing-assignee  (0ms)  0/4 checks
+       expect terminal_outcome: harness reported no value for "terminal_outcome"
+       expect renders_unassigned: harness reported no value for "renders_unassigned"
+       expect invented_assignee: harness reported no value for "invented_assignee"
+       expect slack_posts: harness reported no value for "slack_posts"
+FAIL  10b-malformed-missing-title  (0ms)  0/6 checks
+       expect terminal_outcome: harness reported no value for "terminal_outcome"
+       expect failure_stage: harness reported no value for "failure_stage"
+       expect approval_pauses: harness reported no value for "approval_pauses"
+       expect slack_posts: harness reported no value for "slack_posts"
+       expect error_names_field: harness reported no value for "error_names_field"
+       expect json_record_written: harness reported no value for "json_record_written"
+FAIL  11-post-crash-duplicate-check  (0ms)  0/5 checks
+       expect terminal_outcome: harness reported no value for "terminal_outcome"
+       expect resumed: harness reported no value for "resumed"
+       expect check_first_performed: harness reported no value for "check_first_performed"
+       expect slack_posts_total_max: harness reported no value for "slack_posts"
+       expect blind_retry: harness reported no value for "blind_retry"
+
+----------------------------------------------------------------
+PASS 0   FAIL 12   PRIMITIVE-GAP 0   ERROR 0   of 12
+----------------------------------------------------------------
+results -> runs/last-suite.json

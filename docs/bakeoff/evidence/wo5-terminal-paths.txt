@@ -1,0 +1,26 @@
+harness : mastra (leg 1)
+mode    : MOCK FIXTURES
+cases   : 7
+
+PASS  2-decline  (107ms)  6/6 checks
+PASS  3-empty-project  (5ms)  4/4 checks
+PASS  7-oversized-fetch  (49ms)  5/5 checks
+PASS  8-linear-api-failure  (6ms)  6/6 checks
+PASS  9-slack-send-failure  (30ms)  6/6 checks
+PASS  10a-malformed-missing-assignee  (26ms)  4/4 checks
+PASS  10b-malformed-missing-title  (4ms)  6/6 checks
+
+----------------------------------------------------------------
+PASS 7   FAIL 0   PRIMITIVE-GAP 0   ERROR 0   of 7
+----------------------------------------------------------------
+results -> runs/last-suite.json
+WO-5 acceptance — budget-exhausted terminal state (DIGEST_STEP_BUDGET=2)
+
+  PASS  terminal state is budget-exhausted
+  PASS  run was reported, not silent
+  PASS  no Slack post occurred
+  PASS  state left SQL-readable
+  PASS  ceiling recorded
+
+5/5 checks passed
+terminal_outcome=budget-exhausted at step 2

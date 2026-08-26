@@ -1,0 +1,76 @@
+LEG 4 - WHAT PI ACTUALLY OWNS IN THE FLUE STACK
+
+$ npm ls @earendil-works/pi-ai @earendil-works/pi-agent-core @earendil-works/pi-telemetry
+flue@ /Users/haniyahumair/Documents/linear-agent/flue
++-- @earendil-works/pi-ai@0.84.3
+| `-- @earendil-works/pi-telemetry@0.84.3
+`-- @flue/runtime@2.0.3
+  +-- @earendil-works/pi-agent-core@0.83.0
+  | `-- @earendil-works/pi-ai@0.83.0
+  `-- @earendil-works/pi-ai@0.83.0
+
+
+pi-agent-core self-description:
+  General-purpose agent with transport abstraction, state management, and attachment support
+
+pi-agent-core ships a COMPLETE session model of its own (82 exports), including:
+  AgentHarness
+  AgentHarnessError
+  COMPACTION_SUMMARY_PREFIX
+  COMPACTION_SUMMARY_SUFFIX
+  CompactionError
+  DEFAULT_COMPACTION_SETTINGS
+  InMemorySessionRepo
+  InMemorySessionStorage
+  JsonlSessionRepo
+  JsonlSessionStorage
+  Session
+  SessionError
+  agentLoop
+  agentLoopContinue
+  buildSessionContext
+  createBashTool
+  createCompactionSummaryMessage
+  createEditTool
+  createReadTool
+  createSessionId
+  createWriteTool
+  loadJsonlSessionMetadata
+  prepareCompaction
+  runAgentLoop
+  runAgentLoopContinue
+  sessionEntryToContextMessages
+  toSession
+
+But every symbol @flue/runtime imports from pi-agent-core is:
+  Agent
+
+Pi session-model symbols referenced anywhere in @flue/runtime/dist:
+  JsonlSessionRepo -> 0
+  InMemorySessionRepo -> 0
+  JsonlSessionStorage -> 0
+  AgentHarness -> 0
+  runAgentLoop -> 0
+
+Flue's persistence tables are all flue_-prefixed and its own contract:
+flue_agent_submissions                  
+flue_attachment_chunks                  
+flue_attachments                        
+flue_conversation_fold_checkpoint_chunks
+flue_conversation_fold_checkpoints      
+flue_conversation_stream_batch_chunks   
+flue_conversation_stream_batches        
+flue_conversation_streams               
+flue_meta                               
+flue_submission_chunks                  
+
+reference/data-persistence-api states the invariant explicitly:
+  "The stream is the sole authoritative transcript - canonical state is reconstructed
+   by replaying it from the beginning, and an adapter must not model a second
+   transcript in session rows, snapshots, or event streams."
+
+DEPENDENCY SKEW (D-row): two copies of pi-ai in the tree.
+  top-level @earendil-works/pi-ai@0.84.3  (installed for createProvider)
+  @flue/runtime -> @earendil-works/pi-ai@0.83.0  (bundled)
+  The custom provider is constructed with 0.84.3 objects and consumed by a runtime
+  built against 0.83.0. It worked here; it is an untested compatibility surface.

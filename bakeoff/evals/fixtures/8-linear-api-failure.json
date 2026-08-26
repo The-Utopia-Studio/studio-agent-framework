@@ -1,0 +1,26 @@
+{
+  "case": "8-linear-api-failure",
+  "severity": "blocker",
+  "prd": "§2 row 8",
+  "description": "fetch_linear_issues errors or times out -> no approval pause ever offered; clean failure report; 0 posts",
+  "linear": {
+    "mode": "http_error",
+    "status": 503,
+    "body": "service unavailable"
+  },
+  "slack": {
+    "mode": "ok",
+    "status": 200,
+    "body": "ok"
+  },
+  "approval": null,
+  "crash": null,
+  "expect": {
+    "terminal_outcome": "failed",
+    "failure_stage": "fetch",
+    "approval_pauses": 0,
+    "slack_posts": 0,
+    "clean_failure_report": true,
+    "json_record_written": true
+  }
+}

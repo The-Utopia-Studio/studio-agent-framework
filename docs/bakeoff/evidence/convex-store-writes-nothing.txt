@@ -1,0 +1,41 @@
+DECISIVE EXPERIMENT — does Mastra ask ConvexStore to persist/load a workflow snapshot?
+
+Method: wrapped a real ConvexStore in a Proxy logging every method call. Phase A runs
+generate() to suspension on Mastra instance #1 (store A). Phase B constructs a FRESH
+Mastra instance #2 with a FRESH ConvexStore (store B) and calls
+approveToolCallGenerate({runId, toolCallId}) using the runId/toolCallId values captured
+from Phase A's in-process return value.
+
+RESULT: neither store A nor store B ever received a workflow-snapshot write or read call.
+The only method invoked on either was `getStore()`, which returns a logger — never
+`saveWorkflowSnapshot`, `loadWorkflowSnapshot`, `getWorkflowRunById`, or any persistence
+method. All 9 declared mastra_* Convex tables remain empty after every run in this session
+(verified via `npx convex data <table>`).
+
+Phase B's tool nonetheless fired, because the runId and toolCallId were passed in from
+Phase A's IN-MEMORY JavaScript object, inside the SAME PROCESS. This is not evidence of a
+cross-process resume from Convex (or from anywhere) -- the probe script itself was the
+bridge across "instances." A genuine cross-process test needs runId/toolCallId to arrive
+via something durable (a file, our WO-2 log, an env var) with the ORIGINAL process actually
+dead, not two instances alive in one Node process.
+
+Runtime's own diagnostic, printed during resume, corroborates: Mastra's shouldPersistSnapshot
+excludes the "running" status, so it explicitly does NOT persist a snapshot for a run in this
+state -- consistent with zero writes observed.
+
+REVISES: every "Mastra-on-Convex resume succeeded" result recorded earlier in this session
+(crash-resume, post-crash-duplicate-check, and this probe). None of those runs is evidence
+that Mastra reads or writes vendor state through ConvexStore during suspend/resume. The
+`harness_native_resume: succeeded` / `harness_produced_send: True` fields measured only
+"did agent.approveToolCallGenerate() not throw and did a send eventually happen" -- not
+"did state come from the harness's persistence layer." In every one of those runs the
+tool call name, args, and toolCallId were sourced from OUR WO-2 SQLite log
+(`resume_read_from: 'WO-2 SQLite event log'`), which is the same fallback path used when
+harness-native resume fails outright.
+
+CONCLUSION: Mastra-on-Convex, as wired in this leg, does not persist or restore suspended
+tool-approval state through ConvexStore. Whether that is (a) a genuine Mastra/ConvexStore
+gap, (b) a wiring error on our side (e.g. workflow snapshotting needs an explicit workflow
+object rather than a bare Agent.generate() call), or (c) a version mismatch between
+@mastra/core@1.61.0 and @mastra/convex@1.5.4's expectations, is UNRESOLVED. Recorded as
+such -- not as a pass.

@@ -1,0 +1,194 @@
+{
+  "case": "7-oversized-fetch",
+  "severity": "major",
+  "prd": "§2 row 7",
+  "description": ">5 open issues -> truncate to 5; truncation explicitly reported, never silent",
+  "linear": {
+    "mode": "ok",
+    "nodes": [
+      {
+        "id": "uuid-TUS-2650",
+        "identifier": "TUS-2650",
+        "title": "WO-1 · Fixture issue 1",
+        "updatedAt": "2026-08-05T09:00:00.000Z",
+        "state": {
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      },
+      {
+        "id": "uuid-TUS-2651",
+        "identifier": "TUS-2651",
+        "title": "WO-2 · Fixture issue 2",
+        "updatedAt": "2026-08-06T09:00:00.000Z",
+        "state": {
+          "name": "In Progress",
+          "type": "started"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      },
+      {
+        "id": "uuid-TUS-2652",
+        "identifier": "TUS-2652",
+        "title": "WO-3 · Fixture issue 3",
+        "updatedAt": "2026-08-07T09:00:00.000Z",
+        "state": {
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      },
+      {
+        "id": "uuid-TUS-2653",
+        "identifier": "TUS-2653",
+        "title": "WO-4 · Fixture issue 4",
+        "updatedAt": "2026-08-08T09:00:00.000Z",
+        "state": {
+          "name": "In Progress",
+          "type": "started"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      },
+      {
+        "id": "uuid-TUS-2654",
+        "identifier": "TUS-2654",
+        "title": "WO-5 · Fixture issue 5",
+        "updatedAt": "2026-08-09T09:00:00.000Z",
+        "state": {
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      },
+      {
+        "id": "uuid-TUS-2655",
+        "identifier": "TUS-2655",
+        "title": "WO-6 · Fixture issue 6",
+        "updatedAt": "2026-08-10T09:00:00.000Z",
+        "state": {
+          "name": "In Progress",
+          "type": "started"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      },
+      {
+        "id": "uuid-TUS-2656",
+        "identifier": "TUS-2656",
+        "title": "WO-7 · Fixture issue 7",
+        "updatedAt": "2026-08-11T09:00:00.000Z",
+        "state": {
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      },
+      {
+        "id": "uuid-TUS-2657",
+        "identifier": "TUS-2657",
+        "title": "WO-8 · Fixture issue 8",
+        "updatedAt": "2026-08-12T09:00:00.000Z",
+        "state": {
+          "name": "In Progress",
+          "type": "started"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      },
+      {
+        "id": "uuid-TUS-2658",
+        "identifier": "TUS-2658",
+        "title": "WO-9 · Fixture issue 9",
+        "updatedAt": "2026-08-13T09:00:00.000Z",
+        "state": {
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      },
+      {
+        "id": "uuid-TUS-2659",
+        "identifier": "TUS-2659",
+        "title": "WO-10 · Fixture issue 10",
+        "updatedAt": "2026-08-14T09:00:00.000Z",
+        "state": {
+          "name": "In Progress",
+          "type": "started"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      },
+      {
+        "id": "uuid-TUS-2660",
+        "identifier": "TUS-2660",
+        "title": "WO-11 · Fixture issue 11",
+        "updatedAt": "2026-08-15T09:00:00.000Z",
+        "state": {
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      },
+      {
+        "id": "uuid-TUS-2661",
+        "identifier": "TUS-2661",
+        "title": "WO-12 · Fixture issue 12",
+        "updatedAt": "2026-08-16T09:00:00.000Z",
+        "state": {
+          "name": "In Progress",
+          "type": "started"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      },
+      {
+        "id": "uuid-TUS-2662",
+        "identifier": "TUS-2662",
+        "title": "WO-13 · Fixture issue 13",
+        "updatedAt": "2026-08-17T09:00:00.000Z",
+        "state": {
+          "name": "Todo",
+          "type": "unstarted"
+        },
+        "assignee": {
+          "name": "Haniyah Umair"
+        }
+      }
+    ]
+  },
+  "slack": {
+    "mode": "ok",
+    "status": 200,
+    "body": "ok"
+  },
+  "approval": "approve",
+  "crash": null,
+  "expect": {
+    "terminal_outcome": "posted",
+    "issues_used": 5,
+    "truncation_reported": true,
+    "truncation_mentions_total": 13,
+    "slack_posts": 1
+  }
+}

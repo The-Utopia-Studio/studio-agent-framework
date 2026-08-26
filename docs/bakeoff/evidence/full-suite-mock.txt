@@ -1,0 +1,22 @@
+harness : mastra (leg 1)
+mode    : MOCK FIXTURES
+cases   : 12
+
+PASS  1-happy-path  (159ms)  18/18 checks
+PASS  2-decline  (26ms)  15/15 checks
+PASS  3-empty-project  (6ms)  13/13 checks
+PASS  4-crash-resume  (516ms)  17/17 checks
+PASS  5-sql-readable-state  (36ms)  13/13 checks
+BLOCK 6-trace-attribution  (47ms)  13/13 checks
+       BLOCKED on missing credentials: LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY
+PASS  7-oversized-fetch  (36ms)  14/14 checks
+PASS  8-linear-api-failure  (5ms)  15/15 checks
+PASS  9-slack-send-failure  (39ms)  15/15 checks
+PASS  10a-malformed-missing-assignee  (27ms)  13/13 checks
+PASS  10b-malformed-missing-title  (3ms)  15/15 checks
+PASS  11-post-crash-duplicate-check  (517ms)  14/14 checks
+
+----------------------------------------------------------------
+PASS 11   FAIL 0   PRIMITIVE-GAP 0   BLOCKED 1   ERROR 0   of 12
+----------------------------------------------------------------
+results -> runs/last-suite.json

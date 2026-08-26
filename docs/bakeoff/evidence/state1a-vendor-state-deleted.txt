@@ -1,0 +1,89 @@
+STATE-1a PROBE - kill-test WITH VENDOR-LOCAL STATE DELETED
+Rule under test (studio-standard-agent-framework PR #1, STATE-1a):
+  "the kill-test passes WITH VENDOR-LOCAL FILES DELETED - the test is deletion, not shutdown."
+
+$ DIGEST_DELETE_VENDOR_STATE=1 node --env-file=.env evals/runner.js --harness=./<leg>/entry.js \
+      --case=4-crash-resume,11-post-crash-duplicate-check
+
+======== mastra ========
+PASS  4-crash-resume  (3198ms)  17/17 checks
+PASS  11-post-crash-duplicate-check  (3609ms)  14/14 checks
+PASS 2   FAIL 0   PRIMITIVE-GAP 0   BLOCKED 0   ERROR 0   of 2
+  case: 4-crash-resume -> PASS
+    vendor_state_deleted         ['4-crash-resume.db.mastra.db', '4-crash-resume.db.mastra.db-wal', '4-crash-resume.db.mastra.db-shm']
+    harness_native_resume        failed
+    harness_native_resume_error  Error: Agent "linear-digest" resumeGenerate() could not find a suspended run for runId "7eebabe4-1f96-4985-a73e-859f9a2d74b2". The run may have already completed, never suspended, or the runId is invalid. Ensure you are calling resumeGenerate() only with a runId from a currently-suspended run.
+    resume_path                  workaround: replay persisted args through the portable function
+    resume_read_from             WO-2 SQLite event log (not the harness store)
+    args_byte_identical          True
+    tool_selection_events        1
+    slack_posts                  1
+    model_calls_after_resume     0
+    terminal_outcome             posted
+
+  case: 11-post-crash-duplicate-check -> PASS
+    vendor_state_deleted         ['11-post-crash-duplicate-check.db.mastra.db', '11-post-crash-duplicate-check.db.mastra.db-wal', '11-post-crash-duplicate-check.db.mastra.db-shm']
+    harness_native_resume        failed
+    harness_native_resume_error  Error: Agent "linear-digest" resumeGenerate() could not find a suspended run for runId "1c200368-8037-4871-9873-ebffb7491cd6". The run may have already completed, never suspended, or the runId is invalid. Ensure you are calling resumeGenerate() only with a runId from a currently-suspended run.
+    resume_path                  workaround: replay persisted args through the portable function
+    resume_read_from             WO-2 SQLite event log (not the harness store)
+    args_byte_identical          True
+    tool_selection_events        1
+    slack_posts                  1
+    model_calls_after_resume     0
+    terminal_outcome             posted
+
+======== deepagents ========
+PASS  4-crash-resume  (2789ms)  17/17 checks
+PASS  11-post-crash-duplicate-check  (2673ms)  14/14 checks
+PASS 2   FAIL 0   PRIMITIVE-GAP 0   BLOCKED 0   ERROR 0   of 2
+  case: 4-crash-resume -> PASS
+    vendor_state_deleted         ['4-crash-resume.db.langgraph.db', '4-crash-resume.db.langgraph.db-wal', '4-crash-resume.db.langgraph.db-shm']
+    harness_native_resume        succeeded
+    resume_path                  workaround: replay persisted args through the portable function
+    resume_read_from             WO-2 SQLite event log (not the harness checkpoint store)
+    args_byte_identical          True
+    tool_selection_events        1
+    slack_posts                  1
+    model_calls_after_resume     0
+    terminal_outcome             posted
+
+  case: 11-post-crash-duplicate-check -> PASS
+    vendor_state_deleted         ['11-post-crash-duplicate-check.db.langgraph.db', '11-post-crash-duplicate-check.db.langgraph.db-wal', '11-post-crash-duplicate-check.db.langgraph.db-shm']
+    harness_native_resume        succeeded
+    resume_path                  workaround: replay persisted args through the portable function
+    resume_read_from             WO-2 SQLite event log (not the harness checkpoint store)
+    args_byte_identical          True
+    tool_selection_events        1
+    slack_posts                  1
+    model_calls_after_resume     0
+    terminal_outcome             posted
+
+======== flue ========
+PASS  4-crash-resume  (943ms)  17/17 checks
+PASS  11-post-crash-duplicate-check  (446ms)  14/14 checks
+PASS 2   FAIL 0   PRIMITIVE-GAP 0   BLOCKED 0   ERROR 0   of 2
+  case: 4-crash-resume -> PASS
+    vendor_state_deleted         ['4-crash-resume.db.flue.db', '4-crash-resume.db.flue.db-wal', '4-crash-resume.db.flue.db-shm']
+    harness_native_resume        failed
+    harness_native_resume_error  FlueHttpError: Agent instance "digest-4-crash-resume-55718-1787683464908" was not found.
+    resume_path                  workaround: replay persisted args through the portable function
+    resume_read_from             WO-2 SQLite event log (not the harness stream)
+    args_byte_identical          True
+    tool_selection_events        1
+    slack_posts                  1
+    model_calls_after_resume     0
+    terminal_outcome             posted
+
+  case: 11-post-crash-duplicate-check -> PASS
+    vendor_state_deleted         ['11-post-crash-duplicate-check.db.flue.db', '11-post-crash-duplicate-check.db.flue.db-wal', '11-post-crash-duplicate-check.db.flue.db-shm']
+    harness_native_resume        failed
+    harness_native_resume_error  FlueHttpError: Agent instance "digest-11-post-crash-duplicate-check-55718-1787683465853" was not found.
+    resume_path                  workaround: replay persisted args through the portable function
+    resume_read_from             WO-2 SQLite event log (not the harness stream)
+    args_byte_identical          True
+    tool_selection_events        1
+    slack_posts                  1
+    model_calls_after_resume     0
+    terminal_outcome             posted
+
