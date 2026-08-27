@@ -695,7 +695,13 @@ flagged as blocking.
 - [ ] At least three non-goals are listed
 - [ ] The run-sequence table exists, every pause names a person, and the last step produces the Gate 1 output
 - [ ] The run-sequence and systems-map diagrams exist and are rendered images where the environment allows
-- [ ] At least ten eval tasks exist, each with a grader type
+- [ ] The eval contract from stage 3 exists and is met **at its own bar** — 20 golden
+      cases composed ≥6 typical / ≥7 edge / ≥4 adversarial / ≥3 must-refuse, with ≥14
+      tagged `[Fact]`. Do not restate a weaker number here: `eval-first-spec`'s kill
+      line is auto-fail below 20, and a gate that accepts ten would let a build stage 3
+      must reject pass the last gate before work orders. Where no stage-3 contract
+      exists (rungs 1–3, fast-pass), ten tasks with graders is the floor — say which
+      case applies
 - [ ] At least one grader is deterministic
 - [ ] The loop has a verifiable or threshold exit condition, not only a ceiling
 - [ ] A budget or stall condition exists, with a named escalation path
