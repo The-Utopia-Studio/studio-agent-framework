@@ -39,6 +39,12 @@ header {
   z-index: 5;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
 header.compact nav {
   gap: 0;
 }
@@ -649,6 +655,14 @@ fieldset div {
   }
 
   nav {
+    display: none;
+  }
+
+  .header-actions {
+    gap: 14px;
+  }
+
+  .header-actions .link:first-child {
     display: none;
   }
 

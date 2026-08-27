@@ -78,9 +78,18 @@ export default function Home() {
           </button>
           <button>Learnings</button>
         </nav>
-        <button className="link" onClick={() => setRegistry(false)}>
-          I want an agent →
-        </button>
+        <div className="header-actions">
+          <a
+            className="link"
+            href="/api/skills-zip"
+            title="Downloads a zip pinned to the current commit on main — a fixed snapshot, not a moving branch"
+          >
+            ↓ Download the skills
+          </a>
+          <button className="link" onClick={() => setRegistry(false)}>
+            I want an agent →
+          </button>
+        </div>
       </header>
 
       <section className="hero">
