@@ -38,6 +38,19 @@ Six, not five. The orchestrator loads `atelier-learnings` before its first quest
 cites rule IDs when it blocks or waives something — without it installed the chain runs
 with its rules missing and no one is told.
 
+**No git? Grab the whole repo as one zip:**
+
+```bash
+curl -L -o studio-standard-agent-framework.zip \
+  https://github.com/The-Utopia-Studio/studio-standard-agent-framework/archive/refs/heads/main.zip
+unzip studio-standard-agent-framework.zip
+```
+
+Unzips to `studio-standard-agent-framework-main/`, containing all six skill folders above
+plus supporting docs. No auth needed — it's the same archive GitHub's own "Download ZIP"
+button serves. Upload the six folders (or the whole unzipped directory, where the uploader
+supports a folder at a time) into Claude.ai's skill uploader per the step above.
+
 ---
 
 ## "Build" enters the pipeline. "Design" is one stage.
