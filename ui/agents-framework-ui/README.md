@@ -15,4 +15,4 @@ npm run dev
 npm run build
 ```
 
-The Weekly Research Brief is shown as a Claude scheduled-task skill. Managed Surface and Coded Agent examples use Mastra as their standard agent harness.
+The Weekly Research Brief is shown as a Claude scheduled-task skill. Managed Surface and Coded Agent examples use Mastra as their standard agent harness. The production build uses Next.js so it can deploy directly to Vercel.
