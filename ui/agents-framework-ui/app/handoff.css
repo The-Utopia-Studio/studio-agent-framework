@@ -1,0 +1,1105 @@
+/* Build flow — handoff, dispatch, running, diagram */
+
+.brief {
+  position: relative;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 48px 32px 80px;
+}
+
+.brief-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.brief-header > div:first-child {
+  flex: 1;
+}
+
+.brief > label,
+.handoff > label,
+.diagram-wrap > label {
+  color: var(--accent);
+  font: 10px ui-monospace, monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.brief h1 {
+  white-space: pre-line;
+  font-size: clamp(36px, 5vw, 58px);
+  line-height: 0.94;
+  letter-spacing: -0.07em;
+  margin: 12px 0;
+  animation: rise 0.7s both;
+}
+
+.brief > .brief-header p,
+.brief-header p {
+  font-size: 17px;
+  color: var(--muted);
+  line-height: 1.55;
+  max-width: 560px;
+  margin: 0;
+}
+
+.tool-trail {
+  color: var(--accent);
+  font: 10px ui-monospace, monospace;
+  letter-spacing: 0.1em;
+  text-align: right;
+  max-width: 280px;
+  line-height: 1.6;
+  animation: flow 4s infinite ease-in-out;
+}
+
+.brief-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 2px solid var(--accent);
+  margin-bottom: 32px;
+}
+
+.brief-steps article {
+  padding: 20px;
+  border: 1px solid var(--line);
+  min-height: 150px;
+  background: #fff;
+  transition: 0.25s;
+}
+
+.brief-steps article + article {
+  border-left: 0;
+}
+
+.brief-steps article b {
+  color: var(--accent);
+}
+
+.brief-steps h3 {
+  margin: 8px 0 6px;
+  font-size: 18px;
+}
+
+.brief-steps p {
+  color: var(--muted);
+  line-height: 1.5;
+  font-size: 14px;
+  margin: 0;
+}
+
+.brief-actions {
+  display: none;
+}
+
+.solid.compact {
+  padding: 10px 14px;
+  font-size: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.solid:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Handoff section */
+
+.handoff {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  animation: handoff 0.8s both;
+}
+
+.handoff-intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 4px;
+}
+
+.handoff-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 6px 0 0;
+  color: var(--ink);
+}
+
+.handoff h3 {
+  font-size: 16px;
+  letter-spacing: -0.02em;
+  margin: 8px 0 12px;
+}
+
+/* Document cards */
+
+.doc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.doc-grid.visible .doc-card {
+  animation: rise 0.6s both;
+}
+
+.doc-grid.visible .doc-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.doc-card {
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 20px;
+  min-height: 220px;
+}
+
+.doc-type {
+  display: inline-block;
+  color: var(--accent);
+  font: 10px ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.doc-card h4 {
+  margin: 0 0 14px;
+  font-size: 16px;
+}
+
+.doc-card dl div {
+  margin-bottom: 10px;
+}
+
+.doc-card dt {
+  font: 10px ui-monospace, monospace;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.doc-card dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.doc-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.doc-card li {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+  margin-bottom: 10px;
+  padding-left: 0;
+}
+
+.doc-card li strong {
+  color: var(--accent);
+  font: 10px ui-monospace, monospace;
+  margin-right: 6px;
+}
+
+.doc-card li em {
+  display: block;
+  font-style: normal;
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+
+/* Dispatch animation — PRD/WO funnel to build node, then to tool logos */
+
+.handoff-dispatch {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  height: 400px;
+  margin: 0 auto;
+}
+
+.dispatch-docs {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 10%;
+  position: relative;
+  z-index: 2;
+}
+
+.dispatch-doc {
+  position: relative;
+  width: 148px;
+  height: 176px;
+  border: 2px solid var(--accent);
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 14px;
+  box-shadow: 0 12px 28px rgba(59, 52, 55, 0.12);
+  opacity: 0;
+  animation: dispatch-doc-in 0.5s ease forwards;
+}
+
+.dispatch-doc::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  height: 3px;
+  background: var(--line);
+  box-shadow: 0 8px 0 var(--line), 0 16px 0 var(--line);
+}
+
+.dispatch-doc-prd {
+  animation-delay: 0s;
+}
+
+.dispatch-doc-wo {
+  animation-delay: 0.15s;
+}
+
+.dispatch-doc-label {
+  font: 13px ui-monospace, monospace;
+  font-weight: bold;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+}
+
+.dispatch-doc-sub {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.2;
+}
+
+.dispatch-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dispatch-line {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 2;
+  stroke-dasharray: 220;
+  stroke-dashoffset: 220;
+  animation: dispatch-draw 0.9s ease forwards;
+}
+
+.dispatch-line-in.dispatch-line-prd {
+  animation-delay: 0.45s;
+}
+
+.dispatch-line-in.dispatch-line-wo {
+  animation-delay: 0.6s;
+}
+
+.dispatch-line-out {
+  stroke: var(--accent);
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  opacity: 0.7;
+}
+
+.dispatch-line-dot {
+  fill: var(--accent);
+  opacity: 0;
+  animation: dispatch-dot 0.3s ease 1.2s forwards;
+}
+
+.dispatch-node {
+  position: absolute;
+  left: 50%;
+  top: 62%;
+  transform: translate(-50%, -50%) scale(0.6);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  opacity: 0;
+  animation: dispatch-node-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) 1.05s forwards;
+}
+
+.dispatch-node span {
+  font: 9px ui-monospace, monospace;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dispatch-tools {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  z-index: 2;
+}
+
+.dispatch-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  min-width: 72px;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: dispatch-tool-in 0.45s ease forwards;
+}
+
+.dispatch-tool-logo {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.dispatch-tool-logo .tool-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.dispatch-tool span:last-child {
+  font: 9px ui-monospace, monospace;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+@keyframes dispatch-doc-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dispatch-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes dispatch-dot {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dispatch-node-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes dispatch-tool-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Running animation */
+
+.running-stage {
+  margin: 8px 0 28px;
+  animation: rise 0.5s both;
+}
+
+.running-bar {
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.running-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.5s ease;
+}
+
+.running-log {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.running-log li {
+  font: 13px ui-monospace, monospace;
+  color: var(--muted);
+  padding: 4px 0;
+  opacity: 0.35;
+  transition: opacity 0.3s, color 0.3s;
+}
+
+.running-log li.done {
+  opacity: 1;
+  color: var(--ink);
+}
+
+/* Node diagram */
+
+.brief--diagram,
+.brief--full {
+  padding-top: 32px;
+  padding-bottom: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 74px);
+  text-align: center;
+}
+
+.flow-view {
+  animation: rise 0.6s both;
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.flow-view > label {
+  color: var(--accent);
+  font: 10px ui-monospace, monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.flow-view-title {
+  font-size: clamp(22px, 3vw, 32px);
+  letter-spacing: -0.04em;
+  margin: 8px 0 28px;
+  font-weight: 700;
+  max-width: 640px;
+}
+
+.brief--full .diagram-wrap {
+  width: 100%;
+  max-width: 900px;
+}
+
+.brief--full .diagram-desc {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.handoff--diagram {
+  padding-top: 32px;
+  padding-bottom: 48px;
+}
+
+.handoff--diagram {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.diagram-wrap {
+  animation: rise 0.7s both;
+}
+
+.diagram-head {
+  margin-bottom: 20px;
+}
+
+.diagram-head h3 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 6px 0 0;
+  text-transform: none;
+}
+
+.diagram-meta {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.diagram-meta strong {
+  color: var(--accent);
+  font: 10px ui-monospace, monospace;
+  letter-spacing: 0.08em;
+}
+
+.diagram-desc {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 640px;
+}
+
+.agent-graph {
+  position: relative;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 24px 20px 16px;
+  overflow: hidden;
+}
+
+.agent-graph--live {
+  min-height: 340px;
+}
+
+.agent-flow-svg {
+  position: absolute;
+  inset: 24px 20px 60px;
+  width: calc(100% - 40px);
+  height: calc(100% - 84px);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.agent-flow-path {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+  opacity: 0.45;
+  transition: stroke 0.3s ease, opacity 0.3s ease;
+}
+
+.agent-flow-path--done {
+  stroke: #e8c4b8;
+  opacity: 0.7;
+  stroke-dasharray: none;
+}
+
+.agent-flow-path--active {
+  stroke: var(--accent);
+  opacity: 1;
+  stroke-dasharray: 8 4;
+  animation: flow-march 1.2s linear infinite;
+}
+
+.agent-flow-dot circle:first-child {
+  fill: var(--accent);
+}
+
+.agent-flow-dot-ring {
+  fill: none;
+  stroke: var(--accent);
+  opacity: 0.35;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: flow-ring 1.8s ease-out infinite;
+}
+
+.agent-flow-dot {
+  transition: transform 1.85s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.agent-graph-body {
+  position: relative;
+  z-index: 1;
+}
+
+.agent-row {
+  display: grid;
+  gap: 12px;
+  align-items: center;
+}
+
+.agent-row-flow {
+  grid-template-columns: 1fr auto 1.4fr auto 1fr;
+}
+
+.agent-row-files,
+.agent-row-tools {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.agent-connector-v {
+  width: 2px;
+  height: 24px;
+  background: var(--line);
+  justify-self: center;
+  transition: background 0.3s ease;
+}
+
+.agent-connector-v--on {
+  background: var(--accent);
+}
+
+.agent-connector-down {
+  width: 2px;
+  height: 20px;
+  background: var(--line);
+  margin: 4px auto;
+  transition: background 0.3s ease;
+}
+
+.agent-connector-down--on {
+  background: var(--accent);
+  animation: connector-pulse 0.6s ease;
+}
+
+.agent-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-size: 11px;
+  line-height: 1.3;
+  text-align: center;
+  min-height: 52px;
+  opacity: 1;
+  animation: none;
+  position: relative;
+}
+
+.agent-node span:last-child {
+  font-family: ui-monospace, monospace;
+  letter-spacing: -0.01em;
+}
+
+.agent-node--agent {
+  border-color: var(--accent);
+  background: #fff6f2;
+  font-weight: 600;
+  min-height: 60px;
+  overflow: visible;
+}
+
+.agent-harness {
+  position: absolute;
+  inset: -12px;
+  border: 1.5px dashed var(--accent);
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0.85;
+  animation: harness-pulse 2.8s ease-in-out infinite;
+}
+
+.agent-harness-badge {
+  position: absolute;
+  top: -12px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 6px;
+  background: #fff;
+  color: var(--ink);
+  font: 9px ui-monospace, monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.agent-harness-badge img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.agent-harness-detail {
+  position: absolute;
+  bottom: -11px;
+  left: 10px;
+  padding: 0 5px;
+  background: #fff6f2;
+  color: var(--accent);
+  font: 8px ui-monospace, monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.agent-node--file {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.agent-node--tool {
+  background: #fafafa;
+}
+
+.agent-node--active {
+  border-color: var(--accent) !important;
+  background: #fff6f2 !important;
+  box-shadow: 0 0 0 3px rgba(216, 85, 54, 0.14);
+  animation: agent-pulse 1.4s ease;
+  z-index: 3;
+}
+
+.agent-node--visited:not(.agent-node--active) {
+  border-color: #e8c4b8;
+}
+
+.agent-node-logo {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.agent-node-logo .tool-logo-img,
+.agent-node-logo-img {
+  width: 20px !important;
+  height: 20px !important;
+  object-fit: contain;
+  display: block;
+}
+
+.agent-node-tag {
+  font: 9px ui-monospace, monospace;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+}
+
+.agent-graph-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.agent-graph-legend span {
+  font: 9px ui-monospace, monospace;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.diagram-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.diagram-row {
+  display: grid;
+  grid-template-columns: 1fr 24px 1.35fr 24px 1fr;
+  align-items: center;
+  gap: 0;
+}
+
+.diagram-row-sub {
+  grid-template-columns: 1fr 24px 1.35fr 24px 1fr;
+}
+
+.diagram-spacer {
+  visibility: hidden;
+}
+
+.diagram-connector-h {
+  height: 2px;
+  background: var(--line);
+  animation: draw-h 0.5s ease forwards;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.diagram-node {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: center;
+  opacity: 0;
+  animation: node-in 0.45s ease forwards;
+}
+
+.diagram-node span {
+  display: block;
+  font-family: ui-monospace, monospace;
+  letter-spacing: -0.01em;
+}
+
+.diagram-node-primary {
+  border-color: var(--accent);
+  background: #fff6f2;
+  font-weight: 600;
+}
+
+.diagram-node-muted {
+  color: var(--muted);
+  font-size: 11px;
+  border-style: dashed;
+}
+
+.diagram-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.diagram-tools-label {
+  font: 10px ui-monospace, monospace;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.diagram-tool-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.diagram-tool-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font: 10px ui-monospace, monospace;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0;
+  animation: node-in 0.4s ease forwards;
+}
+
+.diagram-tool-chip-logo {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.diagram-tool-chip-logo .tool-logo-img {
+  width: 22px !important;
+  height: 22px !important;
+  object-fit: contain;
+}
+
+@keyframes draw-h {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes node-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes agent-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes flow-march {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+@keyframes flow-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes harness-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+@keyframes connector-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes handoff {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes flow {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(8px);
+  }
+}
+
+@media (max-width: 760px) {
+  .brief {
+    padding: 32px 20px 60px;
+  }
+
+  .brief-header {
+    flex-direction: column;
+  }
+
+  .handoff-intro {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .handoff-dispatch {
+    height: 400px;
+  }
+
+  .dispatch-docs {
+    padding: 0 6%;
+  }
+
+  .dispatch-doc {
+    width: 96px;
+    height: 120px;
+  }
+
+  .dispatch-tools {
+    gap: 6px;
+  }
+
+  .dispatch-tool {
+    min-width: 52px;
+    padding: 6px 6px 4px;
+  }
+
+  .solid.compact {
+    width: 100%;
+    white-space: normal;
+  }
+
+  .tool-trail {
+    text-align: left;
+    max-width: none;
+  }
+
+  .brief-steps,
+  .doc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .brief-steps article + article {
+    border-left: 1px solid var(--line);
+    border-top: 0;
+  }
+
+  .agent-row-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .agent-connector-v {
+    display: none;
+  }
+
+  .agent-row-files,
+  .agent-row-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .diagram-flow {
+    padding: 14px;
+    gap: 6px;
+  }
+
+  .diagram-row,
+  .diagram-row-sub {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .diagram-connector-h,
+  .diagram-spacer {
+    display: none;
+  }
+}
