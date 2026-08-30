@@ -50,13 +50,10 @@ export default function Home() {
   if (started) {
     return (
       <main>
-        <header className="compact">
+        <header>
           <button className="brand" onClick={() => setStarted(false)}>
             <i>///</i> UTOPIA STUDIO
           </button>
-          <nav>
-            <button className="on">Framework</button>
-          </nav>
         </header>
         <BuildFlow rec={rec} answers={a} />
       </main>
@@ -69,11 +66,6 @@ export default function Home() {
         <button className="brand" onClick={() => window.scrollTo(0, 0)}>
           <i>///</i> UTOPIA STUDIO
         </button>
-        <nav>
-          <button className="on" onClick={toIntake}>
-            Framework
-          </button>
-        </nav>
         <div className="header-actions">
           <a
             className="btn-download"

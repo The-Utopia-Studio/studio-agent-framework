@@ -90,13 +90,7 @@ header {
   transform: translateY(2px);
 }
 
-header.compact nav {
-  gap: 0;
-}
-
-.brand,
-nav button,
-.link {
+.brand {
   border: 0;
   background: none;
   font-size: 11px;
@@ -104,32 +98,12 @@ nav button,
   text-transform: uppercase;
 }
 
-.brand:hover,
-.link:hover {
+.brand:hover {
   transform: translateX(3px);
 }
 
-.brand i,
-.link {
+.brand i {
   color: var(--accent);
-}
-
-nav {
-  display: flex;
-  gap: 20px;
-}
-
-nav button {
-  color: var(--muted);
-}
-
-nav button:hover,
-nav .on {
-  color: var(--ink);
-}
-
-nav .on {
-  border-bottom: 2px solid var(--accent);
 }
 
 .hero,
@@ -697,10 +671,6 @@ fieldset div {
 @media (max-width: 760px) {
   header {
     padding: 0 20px;
-  }
-
-  nav {
-    display: none;
   }
 
   .header-actions {
