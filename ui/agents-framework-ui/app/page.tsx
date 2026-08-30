@@ -80,13 +80,19 @@ export default function Home() {
         </nav>
         <div className="header-actions">
           <a
-            className="link"
+            className="btn-download"
             href="/api/skills-zip"
+            aria-label="Download the six skills as a zip"
             title="Downloads a zip pinned to the current commit on main — a fixed snapshot, not a moving branch"
           >
-            ↓ Download the skills
+            <span className="btn-download-arrow" aria-hidden="true">
+              ↓
+            </span>
+            <span>
+              Download<span className="btn-download-tail"> the skills</span>
+            </span>
           </a>
-          <button className="link" onClick={() => setRegistry(false)}>
+          <button className="solid compact" onClick={() => setRegistry(false)}>
             I want an agent →
           </button>
         </div>
