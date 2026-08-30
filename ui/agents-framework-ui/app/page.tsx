@@ -67,19 +67,6 @@ export default function Home() {
           <i>///</i> UTOPIA STUDIO
         </button>
         <div className="header-actions">
-          <a
-            className="btn-download"
-            href="/api/skills-zip"
-            aria-label="Download the six skills as a zip"
-            title="Downloads a zip pinned to the current commit on main — a fixed snapshot, not a moving branch"
-          >
-            <span className="btn-download-arrow" aria-hidden="true">
-              ↓
-            </span>
-            <span>
-              Download<span className="btn-download-tail"> the skills</span>
-            </span>
-          </a>
           <button className="solid compact" onClick={toIntake}>
             I want an agent →
           </button>
@@ -100,6 +87,17 @@ export default function Home() {
             <span className="hero-aside-num">01</span>
             <p className="hero-aside-title">ROUTE BEFORE YOU BUILD</p>
             <p className="hero-aside-sub">autonomy is earned, not assumed</p>
+            <a
+              className="btn-download"
+              href="/api/skills-zip"
+              aria-label="Download the six skills as a zip"
+              title="Downloads a zip pinned to the current commit on main — a fixed snapshot, not a moving branch"
+            >
+              <span className="btn-download-arrow" aria-hidden="true">
+                ↓
+              </span>
+              <span>Download the skills</span>
+            </a>
           </aside>
         </div>
       </section>

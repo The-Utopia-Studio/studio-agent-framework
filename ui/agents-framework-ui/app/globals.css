@@ -186,6 +186,13 @@ header {
   line-height: 1.5;
 }
 
+/* The aside is a stretch-by-default flex column; keep the button at its own
+   width and give it more room than the 10px the column gap allows. */
+.hero-aside .btn-download {
+  align-self: start;
+  margin-top: 6px;
+}
+
 .hero aside b {
   color: var(--accent);
 }
@@ -675,16 +682,6 @@ fieldset div {
 
   .header-actions {
     gap: 8px;
-  }
-
-  /* Shorten the label to "↓ Download" rather than dropping the control —
-     the phone is where people are least likely to have a git client. */
-  .btn-download {
-    padding: 9px 11px;
-  }
-
-  .btn-download-tail {
-    display: none;
   }
 
   /* handoff.css stretches .solid.compact to width:100% for the handoff row.
