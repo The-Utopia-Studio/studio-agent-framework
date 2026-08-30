@@ -15,16 +15,16 @@ const steps = [
   ['05', 'BUILD & REGISTER', 'Live only when evidence is green.'],
 ];
 
-const agents = [
-  ['Website agent', 'Haniyah', 'PILOT'],
-  ['Weekly research brief', 'Studio', 'READY'],
-  ['Founder follow-up', 'Growth', 'DRAFT'],
-];
-
 export default function Home() {
   const [a, setA] = useState<A[]>([]);
-  const [registry, setRegistry] = useState(false);
   const [started, setStarted] = useState(false);
+
+  // Offset by the 74px sticky header, which scrollIntoView would otherwise scroll underneath.
+  const toIntake = () => {
+    const el = document.getElementById('intake');
+    if (!el) return;
+    window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 74);
+  };
 
   const has = (x: A) => a.includes(x);
 
@@ -50,13 +50,10 @@ export default function Home() {
   if (started) {
     return (
       <main>
-        <header className="compact">
+        <header>
           <button className="brand" onClick={() => setStarted(false)}>
             <i>///</i> UTOPIA STUDIO
           </button>
-          <nav>
-            <button className="on">Framework</button>
-          </nav>
         </header>
         <BuildFlow rec={rec} answers={a} />
       </main>
@@ -66,70 +63,63 @@ export default function Home() {
   return (
     <main>
       <header>
-        <button className="brand" onClick={() => setRegistry(false)}>
+        <button className="brand" onClick={() => window.scrollTo(0, 0)}>
           <i>///</i> UTOPIA STUDIO
         </button>
-        <nav>
-          <button className={!registry ? 'on' : ''} onClick={() => setRegistry(false)}>
-            Framework
+        <div className="header-actions">
+          <a
+            className="btn-download"
+            href="/api/skills-zip"
+            aria-label="Download the six skills as a zip"
+            title="Downloads a zip pinned to the current commit on main — a fixed snapshot, not a moving branch"
+          >
+            <span className="btn-download-arrow" aria-hidden="true">
+              ↓
+            </span>
+            <span>
+              Download<span className="btn-download-tail"> the skills</span>
+            </span>
+          </a>
+          <button className="solid compact" onClick={toIntake}>
+            I want an agent →
           </button>
-          <button className={registry ? 'on' : ''} onClick={() => setRegistry(true)}>
-            Agents registry
-          </button>
-          <button>Learnings</button>
-        </nav>
-        <button className="link" onClick={() => setRegistry(false)}>
-          I want an agent →
-        </button>
+        </div>
       </header>
 
       <section className="hero">
         <label>THE UTOPIA STUDIO · AGENTS</label>
         <div>
           <article>
-            <h1>
-              {registry
-                ? 'THE AGENTS ALREADY\nIN THE STUDIO.'
-                : 'YOU WANT AN AGENT.\nSTART WITH THE JOB.'}
-            </h1>
+            <h1>{'YOU WANT AN AGENT.\nSTART WITH THE JOB.'}</h1>
             <p>
-              {registry
-                ? 'Every live agent has an owner, a purpose, an evaluation plan, and a visible record.'
-                : 'You do not need to choose a stack first. Tell us what needs to happen; the framework finds the smallest reliable path.'}
+              You do not need to choose a stack first. Tell us what needs to happen; the framework
+              finds the smallest reliable path.
             </p>
           </article>
           <aside className="hero-aside">
             <span className="hero-aside-num">01</span>
-            <p className="hero-aside-title">{registry ? 'OPERATE WITH EVIDENCE' : 'ROUTE BEFORE YOU BUILD'}</p>
-            <p className="hero-aside-sub">{registry ? 'owned · evaluated · observable' : 'autonomy is earned, not assumed'}</p>
+            <p className="hero-aside-title">ROUTE BEFORE YOU BUILD</p>
+            <p className="hero-aside-sub">autonomy is earned, not assumed</p>
           </aside>
         </div>
       </section>
 
-      {registry ? (
-        <Registry />
-      ) : (
-        <Intake a={a} c={c} choose={choose} rec={rec} start={() => setStarted(true)} ready={ready} has={has} />
-      )}
+      <Intake a={a} c={c} choose={choose} rec={rec} start={() => setStarted(true)} ready={ready} has={has} />
 
-      {!registry && (
-        <>
-          <section className="path">
-            <label>THE BUILD PATH</label>
-            <div className="path-grid">
-              {steps.map((x) => (
-                <article key={x[0]}>
-                  <b>{x[0]}</b>
-                  <h3>{x[1]}</h3>
-                  <p>{x[2]}</p>
-                </article>
-              ))}
-            </div>
-          </section>
+      <section className="path">
+        <label>THE BUILD PATH</label>
+        <div className="path-grid">
+          {steps.map((x) => (
+            <article key={x[0]}>
+              <b>{x[0]}</b>
+              <h3>{x[1]}</h3>
+              <p>{x[2]}</p>
+            </article>
+          ))}
+        </div>
+      </section>
 
-          <ToolsFooter />
-        </>
-      )}
+      <ToolsFooter />
     </main>
   );
 }
@@ -152,7 +142,7 @@ function Intake({
   has: (x: A) => boolean;
 }) {
   return (
-    <section className="section">
+    <section className="section" id="intake">
       <label>START HERE</label>
       <h2>WHAT DO YOU ACTUALLY NEED?</h2>
       <div className="intake">
@@ -209,25 +199,6 @@ function Intake({
             of 3 decisions recorded
           </small>
         </aside>
-      </div>
-    </section>
-  );
-}
-
-function Registry() {
-  return (
-    <section className="section">
-      <label>REGISTRY</label>
-      <h2>BUILT TO BE SEEN.</h2>
-      <div className="list">
-        {agents.map((x) => (
-          <article key={x[0]}>
-            <h3>{x[0]}</h3>
-            <p>{x[1]}</p>
-            <span>{x[2]}</span>
-            <button>→</button>
-          </article>
-        ))}
       </div>
     </section>
   );

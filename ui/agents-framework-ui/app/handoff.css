@@ -125,6 +125,13 @@
   margin-bottom: 4px;
 }
 
+.handoff-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
 .handoff-title {
   font-size: 15px;
   font-weight: 600;
@@ -1030,6 +1037,11 @@
   .handoff-intro {
     flex-direction: column;
     gap: 14px;
+  }
+
+  .handoff-actions {
+    width: 100%;
+    flex-wrap: wrap;
   }
 
   .handoff-dispatch {

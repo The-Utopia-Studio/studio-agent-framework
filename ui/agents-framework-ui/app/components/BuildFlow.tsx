@@ -141,9 +141,22 @@ export default function BuildFlow({ rec, answers }: BuildFlowProps) {
             <label>04 · HANDOFF</label>
             <p className="handoff-title">Two artifacts ready for the builder.</p>
           </div>
-          <button className="solid compact" onClick={generate}>
-            Generate PRD and work orders →
-          </button>
+          <div className="handoff-actions">
+            <a
+              className="btn-download"
+              href="/api/skills-zip"
+              aria-label="Download the six skills as a zip"
+              title="Downloads a zip pinned to the current commit on main — a fixed snapshot, not a moving branch"
+            >
+              <span className="btn-download-arrow" aria-hidden="true">
+                ↓
+              </span>
+              <span>Download the six skills (zip)</span>
+            </a>
+            <button className="solid compact" onClick={generate}>
+              Generate PRD and work orders →
+            </button>
+          </div>
         </div>
       </div>
     </section>

@@ -39,13 +39,58 @@ header {
   z-index: 5;
 }
 
-header.compact nav {
-  gap: 0;
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.brand,
-nav button,
-.link {
+/* Outlined counterpart to .solid — reads as a control, not a label, and gives
+   the download a real hit area instead of 11px of bare text. */
+.btn-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  border: 1px solid var(--accent);
+  background: none;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.btn-download:hover {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 8px 18px rgba(216, 85, 54, 0.26);
+}
+
+.btn-download:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn-download-arrow {
+  font-size: 12px;
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+
+/* The arrow pulls downward on hover — the affordance says "this fetches a file". */
+.btn-download:hover .btn-download-arrow {
+  transform: translateY(2px);
+}
+
+.brand {
   border: 0;
   background: none;
   font-size: 11px;
@@ -53,32 +98,12 @@ nav button,
   text-transform: uppercase;
 }
 
-.brand:hover,
-.link:hover {
+.brand:hover {
   transform: translateX(3px);
 }
 
-.brand i,
-.link {
+.brand i {
   color: var(--accent);
-}
-
-nav {
-  display: flex;
-  gap: 20px;
-}
-
-nav button {
-  color: var(--muted);
-}
-
-nav button:hover,
-nav .on {
-  color: var(--ink);
-}
-
-nav .on {
-  border-bottom: 2px solid var(--accent);
 }
 
 .hero,
@@ -648,8 +673,26 @@ fieldset div {
     padding: 0 20px;
   }
 
-  nav {
+  .header-actions {
+    gap: 8px;
+  }
+
+  /* Shorten the label to "↓ Download" rather than dropping the control —
+     the phone is where people are least likely to have a git client. */
+  .btn-download {
+    padding: 9px 11px;
+  }
+
+  .btn-download-tail {
     display: none;
+  }
+
+  /* handoff.css stretches .solid.compact to width:100% for the handoff row.
+     In the header it sits in a flex row and must stay intrinsically sized. */
+  .header-actions .solid.compact {
+    width: auto;
+    padding: 9px 11px;
+    white-space: nowrap;
   }
 
   .hero,
