@@ -9,6 +9,7 @@ Tier B/C coded agents only. Skills, projects and managed surfaces stay on lighte
 |---|---|
 | [`HARNESS.md`](HARNESS.md) | Which harness, pinned to which versions, and what has actually been proven on it |
 | [`MEMORY.md`](MEMORY.md) | How a long-horizon agent remembers across processes, and what that costs |
+| [`INNGEST.md`](INNGEST.md) | The durable loop, tested — what works, and the five blockers that stop it being usable |
 | [`BEHAVIOR.md`](BEHAVIOR.md) | How agent conduct gets graded, and the plan to wire it in |
 | [`research/`](research/) | Source research behind the above, with dates |
 

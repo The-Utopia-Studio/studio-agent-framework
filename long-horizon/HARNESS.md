@@ -124,8 +124,13 @@ which is not a fault.
 `ConvexStore` · spend guard stops the agent · sleep gaps attributable · `launchd` refires ~2.6
 min after wake.
 
-**Unverified:** `createDurableAgent` / `createEventedAgent` / `createInngestAgent` /
-`untilIdle` — **never exercised here** · HITL snapshot behaviour under load · cancel closing the
+**Tested 1 Sep and NOT yet usable:** `createInngestAgent()` — 6 of 7 steps pass, but a resumed
+run never completes. Inngest itself behaves correctly; Mastra's durable-agent layer is where it
+breaks. Five specific blockers in [`INNGEST.md`](INNGEST.md). The proven path remains
+`generate()` + `approveToolCallGenerate()` + `ConvexStore`.
+
+**Unverified:** `createDurableAgent` / `createEventedAgent` / `untilIdle` — **never exercised
+here** · HITL snapshot behaviour under load · cancel closing the
 span tree (the 1.63.0 fix is in the changelog; not run) · `ConvexNativeVector` (blocked
 upstream — exporting `mastraNativeVectorAction` makes `convex dev` reject the push, because its
 args validator declares a `$or` field and Convex reserves `$`).
