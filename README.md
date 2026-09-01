@@ -221,6 +221,44 @@ waiver is not a waiver.
 
 ---
 
+## Long-horizon agents: the harness in practice
+
+The STATE-1 kill-test and the 26 Aug decision are about surviving **one** interruption. An agent
+that runs for minutes to days raises questions neither answers: what it remembers between runs,
+what happens when the machine sleeps or the network drops mid-run, how you know a week-long run
+is still working without reading logs, and how you grade *how* it behaved rather than only
+whether the output was right.
+
+[**`long-horizon/`**](long-horizon/) answers those, with evidence, and marks clearly where it
+doesn't.
+
+| | |
+|---|---|
+| [`long-horizon/HARNESS.md`](long-horizon/HARNESS.md) | The pinned stack, what a kill-test pass looks like field by field, the five structural pieces to copy, and what running unattended actually does to an agent |
+| [`long-horizon/MEMORY.md`](long-horizon/MEMORY.md) | Memory across processes, how to prove it, and what it costs as it grows |
+| [`long-horizon/BEHAVIOR.md`](long-horizon/BEHAVIOR.md) | Grading conduct separately from output, and the plan to wire it in |
+| [`long-horizon/research/`](long-horizon/research/) | Dated source research behind all three |
+
+**Use it when** you are building or reviewing a Tier B/C coded agent that runs unattended. Start
+with `HARNESS.md` for the pinned versions and the five pieces; add `MEMORY.md` if it needs to
+remember anything across runs; reach for `BEHAVIOR.md` at eval time.
+
+**Three things it will save you.** `@mastra/convex` **1.5.4, not 1.5.5** — 1.5.5 fails the
+kill-test. The Convex workflow table name in
+[`docs/bakeoff/findings-mastra.md`](docs/bakeoff/findings-mastra.md) §4 is **wrong**, and it fails
+only on resume, which is exactly when you need it. And the durable-agent APIs
+(`createInngestAgent`, `untilIdle`) are **not new in 1.63** — they shipped in 1.30.0 and 1.41.0
+and were already present when the 26 Aug decision was made, so "we should adopt them now that
+they exist" is not the argument.
+
+**Why it is a folder and not a decision record.** The 26 Aug decision picked a harness. This is
+the accumulating operational knowledge of running on it — versions that break, environment
+behaviour, costs that scale, and our own measurement errors. It is expected to change, and each
+file separates *verified here* from *unverified* from *false* so a plausible claim never gets
+carried as a fact.
+
+---
+
 ## Feedback
 
 **→ Haniyah.** Failures are wanted more than compliments.
