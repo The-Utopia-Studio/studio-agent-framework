@@ -736,3 +736,358 @@ fieldset div {
     gap: 8px;
   }
 }
+
+/* ============================================================================
+   THE STANDARD HARNESS — home section
+   Consumes the .standard grid that was defined above but had no consumer.
+   ============================================================================ */
+
+.standard-lead label,
+.standard-proof label,
+.learn-group label,
+.learn-hero label {
+  color: var(--accent);
+  font: 10px ui-monospace, monospace;
+  letter-spacing: 0.14em;
+}
+
+.standard-intro {
+  max-width: 46em;
+  margin: 14px 0 24px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.harness-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 2px solid var(--accent);
+}
+
+.harness-steps li {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.harness-steps b {
+  font: 10px ui-monospace, monospace;
+  color: var(--muted);
+  min-width: 14px;
+}
+
+/* The three that broke first are the point of the list, so they are marked rather than
+   left to the caption alone. */
+.harness-steps li.hard-won {
+  background: linear-gradient(90deg, rgba(216, 85, 54, 0.055), transparent 62%);
+}
+
+.harness-steps li.hard-won b {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.harness-steps strong {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.harness-steps span {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-top: 2px;
+}
+
+.harness-note,
+.harness-caveat {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 16px 0 0;
+}
+
+.harness-note em {
+  color: var(--accent);
+  font-style: normal;
+  font-weight: bold;
+}
+
+.standard-proof {
+  border-left: 1px solid var(--line);
+  padding-left: 28px;
+}
+
+.proof-row {
+  border-bottom: 1px solid var(--line);
+  padding: 14px 0;
+}
+
+.proof-row b {
+  display: block;
+  font-size: 26px;
+  letter-spacing: -0.04em;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.proof-row strong {
+  display: block;
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.proof-row span {
+  display: block;
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 3px;
+  line-height: 1.45;
+}
+
+.standard-cta {
+  border: 1px solid var(--line);
+  padding: 22px 20px;
+  min-width: 210px;
+}
+
+/* ============================================================================
+   LEARNINGS
+   ============================================================================ */
+
+.learn-hero,
+.learn-group {
+  max-width: 1160px;
+  margin: auto;
+  padding: 56px 32px;
+}
+
+.learn-group {
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 44px;
+  align-items: start;
+}
+
+.learn-hero h1 {
+  white-space: pre-line;
+  font-size: clamp(38px, 5.4vw, 68px);
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+  margin: 14px 0 0;
+}
+
+.learn-hero > p {
+  max-width: 40em;
+  margin: 20px 0 0;
+  font-size: 15px;
+  line-height: 1.62;
+  color: var(--muted);
+}
+
+.learn-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 26px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.learn-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.learn-group-head {
+  position: sticky;
+  top: 96px;
+}
+
+.learn-group-head p {
+  margin: 12px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.learn-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 2px solid var(--accent);
+}
+
+.learn-item {
+  padding: 16px 0 17px;
+  border-bottom: 1px solid var(--line);
+}
+
+.learn-item-head {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.learn-item h3 {
+  margin: 0;
+  font-size: 15px;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
+}
+
+.learn-item p {
+  margin: 7px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 52em;
+}
+
+/* A corrected claim is the most useful row on the page and must not read like a normal one. */
+.learn-item--false {
+  background: linear-gradient(90deg, rgba(216, 85, 54, 0.05), transparent 70%);
+}
+
+.learn-item--false h3 {
+  text-decoration: line-through;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 1px;
+}
+
+.learn-badge {
+  flex: none;
+  font: 9px ui-monospace, monospace;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  padding: 3px 6px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.learn-badge--proven {
+  color: #3f7d5c;
+  border-color: #b9d3c5;
+  background: #f1f7f3;
+}
+
+.learn-badge--design {
+  color: #8a6a1f;
+  border-color: #e0cfa4;
+  background: #fbf6e9;
+}
+
+.learn-badge--open {
+  color: var(--muted);
+  border-color: var(--line);
+  background: #f4f1ef;
+}
+
+.learn-badge--false {
+  color: var(--accent);
+  border-color: #eec4b8;
+  background: #fdf2ee;
+}
+
+.atelier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--line);
+}
+
+.atelier-cell {
+  padding: 15px 16px 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.atelier-cell b {
+  display: block;
+  font: 10px ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+}
+
+.atelier-cell strong {
+  display: block;
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.atelier-cell span {
+  display: block;
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 3px;
+  line-height: 1.45;
+}
+
+/* header view switcher */
+.nav-tab {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: 10px ui-monospace, monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 2px;
+  border-bottom: 1.5px solid transparent;
+}
+
+.nav-tab:hover {
+  color: var(--ink);
+}
+
+.nav-tab[aria-current='true'] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+@media (max-width: 960px) {
+  .standard,
+  .learn-group {
+    grid-template-columns: 1fr;
+  }
+
+  .standard-proof {
+    border-left: 0;
+    padding-left: 0;
+    border-top: 1px solid var(--line);
+    padding-top: 8px;
+  }
+
+  .learn-group-head {
+    position: static;
+  }
+
+  .atelier-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .learn-hero,
+  .learn-group {
+    padding: 40px 20px;
+  }
+
+  .atelier-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .learn-item-head {
+    flex-direction: column;
+    gap: 7px;
+  }
+}

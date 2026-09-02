@@ -2,22 +2,26 @@
 
 import { useMemo, useState } from 'react';
 import BuildFlow from './components/BuildFlow';
+import Learnings from './components/Learnings';
+import StandardHarness from './components/StandardHarness';
 import ToolsFooter from './components/ToolsFooter';
 import { PATH_EXAMPLES } from './data/tools';
 
 type A = 'person' | 'scheduled' | 'read' | 'write' | 'review' | 'system';
+type View = 'home' | 'learnings';
 
 const steps = [
   ['01', 'INTAKE', 'A short interview routes the request.'],
   ['02', 'DESIGN', 'Role, tools, memory, and boundaries.'],
   ['03', 'PROVE FIRST', 'Golden cases before anything is built.'],
   ['04', 'PRD & WORK ORDERS', 'A gated plan with named checks.'],
-  ['05', 'BUILD & REGISTER', 'Live only when evidence is green.'],
+  ['05', 'BUILD ON THE HARNESS', 'Mastra + Convex. Live only when doctor is green.'],
 ];
 
 export default function Home() {
   const [a, setA] = useState<A[]>([]);
   const [started, setStarted] = useState(false);
+  const [view, setView] = useState<View>('home');
 
   // Offset by the 74px sticky header, which scrollIntoView would otherwise scroll underneath.
   const toIntake = () => {
@@ -63,16 +67,48 @@ export default function Home() {
   return (
     <main>
       <header>
-        <button className="brand" onClick={() => window.scrollTo(0, 0)}>
+        <button
+          className="brand"
+          onClick={() => {
+            setView('home');
+            window.scrollTo(0, 0);
+          }}
+        >
           <i>///</i> UTOPIA STUDIO
         </button>
         <div className="header-actions">
-          <button className="solid compact" onClick={toIntake}>
-            I want an agent →
+          <button
+            className="nav-tab"
+            aria-current={view === 'home'}
+            onClick={() => {
+              setView('home');
+              window.scrollTo(0, 0);
+            }}
+          >
+            Framework
           </button>
+          <button
+            className="nav-tab"
+            aria-current={view === 'learnings'}
+            onClick={() => {
+              setView('learnings');
+              window.scrollTo(0, 0);
+            }}
+          >
+            Learnings
+          </button>
+          {view === 'home' && (
+            <button className="solid compact" onClick={toIntake}>
+              I want an agent →
+            </button>
+          )}
         </div>
       </header>
 
+      {view === 'learnings' && <Learnings />}
+
+      {view === 'home' && (
+        <>
       <section className="hero">
         <label>THE UTOPIA STUDIO · AGENTS</label>
         <div>
@@ -90,8 +126,8 @@ export default function Home() {
             <a
               className="btn-download"
               href="/api/skills-zip"
-              aria-label="Download the six skills as a zip"
-              title="Downloads a zip pinned to the current commit on main — a fixed snapshot, not a moving branch"
+              aria-label="Download the seven skills as a zip"
+              title="All seven skills, including mastra-harness (stage 5). Pinned to the current commit on main — a fixed snapshot, not a moving branch"
             >
               <span className="btn-download-arrow" aria-hidden="true">
                 ↓
@@ -117,7 +153,11 @@ export default function Home() {
         </div>
       </section>
 
+      <StandardHarness />
+
       <ToolsFooter />
+        </>
+      )}
     </main>
   );
 }

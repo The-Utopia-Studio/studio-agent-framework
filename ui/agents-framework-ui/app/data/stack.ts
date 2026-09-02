@@ -86,7 +86,7 @@ export const STACK_FEATURED = {
     'Mastra runs the agent loop — durable execution, tool routing, and the standard harness for coded agents.',
   verified: 'STATE-1A VERIFIED',
   specs: 'live model · hard kill · fresh-process resume · no duplicate send',
-  footnote: 'AUG 2024 · STANDARD SELECTED',
+  footnote: 'AUG 2026 · STANDARD SELECTED',
   footnoteBody:
     'Mastra passed the Studio crash-resume and durable-state gate. Skills, projects, and managed surfaces do not need a coded runtime — this is the standard for the high-autonomy, coded-agent path only.',
 };

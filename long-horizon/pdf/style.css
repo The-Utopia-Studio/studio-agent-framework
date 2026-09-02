@@ -1,0 +1,95 @@
+/* Brand tokens lifted from ui/agents-framework-ui/app/globals.css so the document and the site
+   are the same object. Light ground on purpose: this is a standard people print and mark up. */
+:root{
+  --ink:#3b3437; --muted:#756e70; --line:#ddd8d6; --accent:#d85536; --paper:#fcfbfa;
+  --wash:#f4f1ef; --good:#3f7d5c; --bad:#b3402f;
+}
+@page{ size:A4; margin:19mm 17mm 17mm; }
+*{ box-sizing:border-box; }
+html{ background:var(--paper); }
+body{
+  background:var(--paper); color:var(--ink); margin:0;
+  font:10.2pt/1.62 "Helvetica Neue",Helvetica,Arial,sans-serif;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
+
+/* ---- cover block */
+.eyebrow{
+  font-size:7.6pt; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--accent); margin:0 0 14pt;
+}
+h1{
+  font-size:31pt; line-height:1.04; letter-spacing:-.03em; font-weight:800;
+  text-transform:uppercase; margin:0 0 10pt; color:#241f21;
+}
+h1 + p{ font-size:11.2pt; color:var(--muted); margin:0 0 12pt; max-width:46em; }
+.stamp{
+  display:inline-block; border:1px solid var(--accent); color:var(--accent);
+  font-size:7.6pt; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  padding:5pt 9pt; margin:0 0 16pt;
+}
+.flow{
+  background:var(--wash); border-left:2.5px solid var(--accent); padding:9pt 12pt;
+  font:8.4pt/1.5 "SF Mono",Menlo,Consolas,monospace; color:var(--muted);
+  margin:0 0 20pt; letter-spacing:.01em;
+}
+
+/* ---- section rhythm. h2 carries its SECTION nn marker via a data attribute. */
+/* Each section starts a fresh page. Two reasons, both observed in the first build: the
+   ::before marker orphaned at the bottom of a page while its heading went to the next, and a
+   tall `break-inside: avoid` diagram left a ghost background block in the space it vacated.
+   A section per page fixes both and reads better for a document people print. */
+h2{
+  font-size:16pt; line-height:1.18; letter-spacing:-.02em; font-weight:800;
+  text-transform:uppercase; color:#241f21;
+  margin:0 0 11pt; padding-top:0;
+  break-before:page; break-inside:avoid; break-after:avoid;
+}
+h2:first-of-type{ break-before:auto; padding-top:16pt; border-top:1px solid var(--line); }
+h2::before{
+  content:attr(data-section); display:block;
+  font-size:7.4pt; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:7pt;
+}
+h3{
+  font-size:11pt; margin:17pt 0 6pt; font-weight:700; color:var(--accent);
+  break-after:avoid; break-inside:avoid; letter-spacing:-.005em;
+}
+h4{ font-size:9.6pt; margin:13pt 0 5pt; font-weight:700; color:var(--ink); break-after:avoid; }
+
+p{ margin:0 0 8pt; orphans:2; widows:2; }
+ul,ol{ margin:0 0 10pt; padding-left:15pt; }
+li{ margin-bottom:4.5pt; }
+li::marker{ color:var(--accent); }
+strong{ color:#241f21; font-weight:700; }
+em{ color:var(--muted); }
+a{ color:var(--accent); text-decoration:none; border-bottom:.5px solid #eec4b8; }
+
+code{
+  font:8.9pt/1.35 "SF Mono",Menlo,Consolas,monospace;
+  background:var(--wash); color:#8a3a26; padding:.5px 3.5px; border-radius:2px;
+}
+pre{
+  background:var(--wash); border:1px solid var(--line); border-left:2.5px solid var(--accent);
+  border-radius:3px; padding:10pt 12pt; break-inside:avoid; margin:0 0 12pt;
+}
+pre code{ background:none; padding:0; color:#4a4245; font-size:7.3pt; line-height:1.46; white-space:pre; }
+
+blockquote{
+  margin:12pt 0; padding:10pt 13pt; background:#fdf4f1;
+  border-left:2.5px solid var(--accent); break-inside:avoid;
+}
+blockquote p{ margin:0 0 5pt; color:#241f21; font-size:10.6pt; }
+blockquote p:last-child{ margin:0; }
+
+table{ width:100%; border-collapse:collapse; margin:0 0 13pt; font-size:8.8pt; break-inside:avoid; }
+th{
+  text-align:left; padding:5.5pt 7pt; background:var(--wash); color:#241f21; font-weight:700;
+  border-bottom:1.5px solid var(--accent);
+  font-size:7.4pt; text-transform:uppercase; letter-spacing:.09em;
+}
+td{ padding:5pt 7pt; border-bottom:1px solid var(--line); vertical-align:top; }
+tr:last-child td{ border-bottom:none; }
+td code{ font-size:8.1pt; }
+hr{ border:none; border-top:1px solid var(--line); margin:0; height:0; }
+h2+p,h3+p,h4+p{ margin-top:0; }
