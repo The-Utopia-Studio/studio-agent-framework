@@ -31,7 +31,7 @@ This proposal adds:
 | `conformance` | claim status and proof mechanism | impossible-to-fail “check”; verified-but-unenforced claim | pass booleans, which rot silently |
 | `evidence` | whether proof is rerunnable | hidden external-only evidence | credentials, raw private traces, source data |
 
-The schema validates declarations and checkability, not a running agent. The next layer—TUS-2767’s `harness/run.ts`—validates the manifest, runs its checks, consumes the adapter report, and writes a dated result. It is not included here because a runner must have a defined contract before it can honestly pass.
+The schema validates declarations and checkability, not a running agent. TUS-2767’s `harness/run.js` validates the manifest, runs its selected golden fixtures through an explicitly supplied adapter, consumes the adapter report, and writes a dated result. It never executes command text from a manifest.
 
 ## Placement in the existing lifecycle
 

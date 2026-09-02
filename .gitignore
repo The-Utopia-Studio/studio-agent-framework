@@ -6,3 +6,4 @@ long-horizon/pdf/p*.png
 # Next.js / tsc build artefacts
 *.tsbuildinfo
 .next/
+runs/

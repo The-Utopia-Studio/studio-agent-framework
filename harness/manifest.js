@@ -109,6 +109,40 @@ export function verifyPins(manifest, packagePath, lockfilePath) {
   return issues;
 }
 
+/**
+ * Resolves the fixtures a manifest explicitly names.  Fixture paths are data, not commands:
+ * they must remain inside the shared fixture directory and identify a real golden case.
+ */
+export function resolveFixtureCases(manifest, repositoryRoot = process.cwd()) {
+  const issues = [];
+  const cases = [];
+  const fixtureRoot = path.resolve(repositoryRoot, 'bakeoff/evals/fixtures');
+  const refs = manifest.evaluation?.output_eval?.fixture_refs || [];
+
+  for (const ref of refs) {
+    if (!ref.startsWith('bakeoff/evals/fixtures/')) {
+      issue(issues, 'evaluation.output_eval.fixture_refs', `must name a repository fixture, found ${JSON.stringify(ref)}`);
+      continue;
+    }
+    const fixturePath = path.resolve(repositoryRoot, ref);
+    if (!fixturePath.startsWith(`${fixtureRoot}${path.sep}`) || path.extname(fixturePath) !== '.json') {
+      issue(issues, 'evaluation.output_eval.fixture_refs', `must resolve to a JSON file inside bakeoff/evals/fixtures, found ${JSON.stringify(ref)}`);
+      continue;
+    }
+    try {
+      const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
+      if (!fixture.case || typeof fixture.case !== 'string') {
+        issue(issues, 'evaluation.output_eval.fixture_refs', `${JSON.stringify(ref)} has no fixture case name`);
+      } else {
+        cases.push(fixture.case);
+      }
+    } catch (error) {
+      issue(issues, 'evaluation.output_eval.fixture_refs', `${JSON.stringify(ref)} cannot be read: ${error.message}`);
+    }
+  }
+  return { cases: [...new Set(cases)], issues };
+}
+
 export function loadManifest(manifestPath) {
   return JSON.parse(fs.readFileSync(path.resolve(manifestPath), 'utf8'));
 }
