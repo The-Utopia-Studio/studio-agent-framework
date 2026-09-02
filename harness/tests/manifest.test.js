@@ -74,7 +74,7 @@ test('runner executes manifest-selected cases through an explicit adapter and wr
     `--adapter=${adapterPath}`,
     `--result=${resultPath}`,
   ], { encoding: 'utf8' });
-  assert.equal(run.status, 0, run.stderr);
+  assert.equal(run.status, 0, `${run.stdout}\n${run.stderr}`);
   assert.match(run.stdout, /2 manifest-selected fixture\(s\) passed/);
   const result = JSON.parse(readFileSync(resultPath, 'utf8'));
   assert.equal(result.status, 'passed');
