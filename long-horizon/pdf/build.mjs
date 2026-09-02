@@ -13,17 +13,29 @@ const SRC = path.join(HERE, '..', 'STANDARD.md');
 const OUT = path.join(HERE, 'the-standard-harness.pdf');
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
-// h2 text -> the SECTION marker printed above it. Keyed on a distinctive substring so a
-// reworded heading does not silently lose its marker -- it throws instead.
+// h2 slug prefix -> the SECTION marker printed above it.
+//
+// Keyed on the `id` pandoc generates ("## 4. Long-running background agents" becomes
+// id="4-long-running-background-agents"), not on the heading text. Three reasons, and the
+// first two were both bugs in earlier versions of this script:
+//
+//   - heading TEXT arrives wrapped across newlines, so a substring match silently missed
+//   - matching text meant stripping tags with a regex, which is incomplete by nature
+//     (`<scr<script>ipt>` survives one pass) and reads as sanitisation when it is only a
+//     lookup key -- CodeQL flagged it, correctly, as a pattern worth not having
+//   - the leading number makes the slug prefix unambiguous, so a reworded heading keeps its
+//     marker as long as its number is unchanged
+//
+// A section number that IS changed throws below rather than shipping an unlabelled page.
 const SECTIONS = [
-  ['The shape',                         'SECTION 01 · ARCHITECTURE'],
-  ['Orchestration',                     'SECTION 02 · ORCHESTRATION'],
-  ['Memory — three rules',              'SECTION 03 · MEMORY'],
-  ['Long-running background agents',    'SECTION 04 · RUNTIME'],
-  ['BEHAVIOR.md',                       'SECTION 05 · GRADING'],
-  ['Inngest',                           'SECTION 06 · DURABILITY'],
-  ['Memory across the three module',    'SECTION 07 · MEMORY ARCHITECTURE'],
-  ['The short version',                 'SECTION 08 · REFERENCE'],
+  ['1-', 'SECTION 01 · ARCHITECTURE'],
+  ['2-', 'SECTION 02 · ORCHESTRATION'],
+  ['3-', 'SECTION 03 · MEMORY'],
+  ['4-', 'SECTION 04 · RUNTIME'],
+  ['5-', 'SECTION 05 · GRADING'],
+  ['6-', 'SECTION 06 · DURABILITY'],
+  ['7-', 'SECTION 07 · MEMORY ARCHITECTURE'],
+  ['8-', 'SECTION 08 · REFERENCE'],
 ];
 
 for (const [bin, hint] of [['pandoc', 'brew install pandoc']]) {
@@ -41,12 +53,13 @@ let html = body;
 // shipping a page with a missing label nobody notices.
 const seen = new Set();
 html = html.replace(/<h2([^>]*)>([\s\S]*?)<\/h2>/g, (m, attrs, inner) => {
-  // Markdown wraps long headings, so the extracted text carries newlines. Collapse whitespace
-  // before matching or a wrapped heading silently misses its marker.
-  const plain = inner.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
-  const hit = SECTIONS.find(([needle]) => plain.includes(needle));
-  if (!hit) throw new Error(`no SECTION marker mapped for h2: "${plain.trim()}" — update SECTIONS in build.mjs`);
+  const id = (/\bid="([^"]*)"/.exec(attrs) || [, ''])[1];
+  const hit = SECTIONS.find(([slug]) => id.startsWith(slug));
+  if (!hit) throw new Error(`no SECTION marker mapped for h2 id="${id}" — update SECTIONS in build.mjs`);
   seen.add(hit[1]);
+  // The marker is a literal from SECTIONS, never anything derived from the document, so
+  // nothing document-controlled reaches an attribute here. `inner` is passed through
+  // untouched -- this step only ADDS an attribute, it does not sanitise or rewrite content.
   return `<h2${attrs} data-section="${hit[1]}">${inner}</h2>`;
 });
 const missing = SECTIONS.filter(([, label]) => !seen.has(label));
