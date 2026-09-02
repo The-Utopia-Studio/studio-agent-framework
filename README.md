@@ -8,7 +8,7 @@ never the thing that generated, the rules that stopped us before are loaded befo
 the first question, and a build that isn't ready gets stopped with the reason named
 instead of politely completed.
 
-Install all six. They are a chain, not a menu.
+Install all seven. They are a chain, not a menu.
 
 ```
 atelier-learnings/    the hard rules — load first, cited by ID (CTX-1, LOOP-2, STATE-1 …)
@@ -18,23 +18,31 @@ workflow-design/      stage 1 — fleet or solo, spawn triggers, loop exits
 agent-design/         stage 2 — one agent: role · tools · memory layer · eval pointer
 eval-first-spec/      stage 3 — 20 golden cases, autonomy L0–L4, cost per outcome
 agent-prd/            stage 4 — hard gates → PRD → work orders
+mastra-harness/       stage 5 — implement a work order on Mastra + ConvexStore
 ```
+
+Stage 5 exists because stage 4 ends with *"Stop. Do not begin executing the first order unless
+asked"* — and nothing picked it up from there. It decides, per agent, whether the agent needs a
+Mastra workflow at all and which memory channels it gets (both are real choices with real costs,
+not defaults), then ships the three runtime pieces that are always forgotten and a `doctor`
+command that must exit 0 before an order is called done. Evidence in
+[`long-horizon/`](long-horizon/).
 
 **Credits.** `agent-design`, `workflow-design`, and `eval-first-spec` are from Ollie's
 Icarus pack (modules 09 + 07), bundled here unchanged so the chain is testable in one
-place. `agent-builder`, `agent-prd`, and `atelier-learnings` are Haniyah's.
+place. `agent-builder`, `agent-prd`, `mastra-harness`, and `atelier-learnings` are Haniyah's.
 
 ---
 
 ## Install (~2 min)
 
 Claude.ai → Settings → Capabilities → Skills → Add → upload each folder's `SKILL.md`
-(or the whole folder, where supported). All six go in Personal skills:
+(or the whole folder, where supported). All seven go in Personal skills:
 
 `atelier-learnings` · `agent-builder` · `workflow-design` · `agent-design` ·
-`eval-first-spec` · `agent-prd`
+`eval-first-spec` · `agent-prd` · `mastra-harness`
 
-Six, not five. The orchestrator loads `atelier-learnings` before its first question and
+Seven, not six. The orchestrator loads `atelier-learnings` before its first question and
 cites rule IDs when it blocks or waives something — without it installed the chain runs
 with its rules missing and no one is told.
 
@@ -218,6 +226,44 @@ Convex wasn't used, and the date. The waiver covers a probe — it does not trav
 production build, and it does not suspend the STATE-1 kill-test. The probe still has to
 resume from whatever its canonical log is, with a fresh process, on its own. An undated
 waiver is not a waiver.
+
+---
+
+## Long-horizon agents: the harness in practice
+
+The STATE-1 kill-test and the 26 Aug decision are about surviving **one** interruption. An agent
+that runs for minutes to days raises questions neither answers: what it remembers between runs,
+what happens when the machine sleeps or the network drops mid-run, how you know a week-long run
+is still working without reading logs, and how you grade *how* it behaved rather than only
+whether the output was right.
+
+[**`long-horizon/`**](long-horizon/) answers those, with evidence, and marks clearly where it
+doesn't.
+
+| | |
+|---|---|
+| [`long-horizon/HARNESS.md`](long-horizon/HARNESS.md) | The pinned stack, what a kill-test pass looks like field by field, the five structural pieces to copy, and what running unattended actually does to an agent |
+| [`long-horizon/MEMORY.md`](long-horizon/MEMORY.md) | Memory across processes, how to prove it, and what it costs as it grows |
+| [`long-horizon/BEHAVIOR.md`](long-horizon/BEHAVIOR.md) | Grading conduct separately from output, and the plan to wire it in |
+| [`long-horizon/research/`](long-horizon/research/) | Dated source research behind all three |
+
+**Use it when** you are building or reviewing a Tier B/C coded agent that runs unattended. Start
+with `HARNESS.md` for the pinned versions and the five pieces; add `MEMORY.md` if it needs to
+remember anything across runs; reach for `BEHAVIOR.md` at eval time.
+
+**Three things it will save you.** `@mastra/convex` **1.5.4, not 1.5.5** — 1.5.5 fails the
+kill-test. The Convex workflow table name in
+[`docs/bakeoff/findings-mastra.md`](docs/bakeoff/findings-mastra.md) §4 is **wrong**, and it fails
+only on resume, which is exactly when you need it. And the durable-agent APIs
+(`createInngestAgent`, `untilIdle`) are **not new in 1.63** — they shipped in 1.30.0 and 1.41.0
+and were already present when the 26 Aug decision was made, so "we should adopt them now that
+they exist" is not the argument.
+
+**Why it is a folder and not a decision record.** The 26 Aug decision picked a harness. This is
+the accumulating operational knowledge of running on it — versions that break, environment
+behaviour, costs that scale, and our own measurement errors. It is expected to change, and each
+file separates *verified here* from *unverified* from *false* so a plausible claim never gets
+carried as a fact.
 
 ---
 

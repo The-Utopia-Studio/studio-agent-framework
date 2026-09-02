@@ -7,12 +7,12 @@ description: >-
   agents", "we need an agent that...", "turn this workflow into an agent". Runs a short
   intake, then chains the build-craft skills in order — workflow-design (fleet or solo?) →
   agent-design (role · tools · memory) → eval-first-spec (golden cases · autonomy · cost) →
-  agent-prd (gates → PRD → work orders) — carrying each stage's artefact into the next so
-  nothing gets re-asked. Exits non-builders early on the surface ladder (skill → project →
+  agent-prd (gates → PRD → work orders) → mastra-harness (workflow? memory? → implement,
+  then doctor) — carrying each stage's artefact into the next so nothing gets re-asked. Exits non-builders early on the surface ladder (skill → project →
   managed → coded) with a checklist instead of a codebase. Always load `atelier-learnings` first and check the design against its rule IDs.
   Do NOT fire when a specific
   stage is named ("spec just this one agent" → agent-design, "design the fleet" →
-  workflow-design, "write the PRD" → agent-prd) — this is the router, not a replacement.
+  workflow-design, "write the PRD" → agent-prd, "build the work order" → mastra-harness) — this is the router, not a replacement.
 type: orchestrator
 supersedes: none
 ---
