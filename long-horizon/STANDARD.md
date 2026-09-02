@@ -59,6 +59,85 @@ Mastra's docs. Each one cost a day.
 
 ---
 
+### 1a. How a request reaches the harness — the primary path
+
+Step 1 above starts with a trigger, and for a fellow-initiated run that trigger has a shape worth
+specifying, because a workflow takes **typed input** and a fellow types prose.
+
+```
+   FELLOW                     Slack, or the Agent Inventory UI
+      │                       free text: "20 qualified leads for fintech CFOs, outreach drafted"
+      ▼
+   ROUTER                     one model call, and its only job
+      │   IN   free text
+      │   OUT  { agentId, typed input }        ← validated against that agent's schema
+      │
+      ├── can't fill it confidently ──► asks the fellow. NOTHING STARTS.
+      ▼
+   CONVEX · RUN ROW           runId · tenant · fellow · agent · input · status=queued
+      │                       written BEFORE dispatch
+      ▼
+   MASTER WORKFLOW            the seven steps above
+```
+
+**The router picks the *agent*, and the module follows from it.** "Which module" is not enough to
+run anything — a module holds several agents, and the typed input belongs to the agent, not the
+module. So the router has to resolve to agent level, which is also the only level at which the
+form can be filled.
+
+Three rules, and the first is the one that saves money:
+
+- **Nothing starts until validation passes.** A half-understood request is a *question back to the
+  fellow*, not a guess. An agent started on a bad payload burns budget and returns something
+  plausible and wrong — which is worse than an error, because nobody catches it.
+- **The run row is written before dispatch**, so a request that never started is still visible.
+  Generalises `HORIZON-4`: a precondition that leaves no trace is not auditable.
+- **The router picks and stops.** It never orchestrates. One judgement, handed off — see the
+  division of labour in §2.
+
+#### The return leg, which is where designs usually break
+
+An approval can arrive days later, in a different process, on a different device.
+
+```
+   suspend()  ──►  run row: status=awaiting_human, suspension path stored
+                        │
+                        ▼
+                   NOTIFY the fellow, on the surface they came in on
+                   the message carries the runId and NO state
+                        │
+                        ▼
+                   fellow approves  ──►  resume({ step, resumeData })
+                                          loads the run from Convex by runId
+                                          IDEMPOTENT — approving twice is one approval
+```
+
+Idempotency here is not hygiene. It is the difference between *"we sent the outreach"* and *"we
+sent the outreach twice"* — `LOOP-6`.
+
+#### What exists, and the one thing that blocks this
+
+**The registry exists.** [`schemas/agent-manifest.schema.json`](../schemas/agent-manifest.schema.json)
+requires `agent.id`, `agent.job` (one line, which is what a router picks on), `agent.module`, and
+`agent.non_goals` — so an agent can be chosen from the manifest rather than from a string the
+model invented. `lifecycle.tool_identity` is also required, which forces the *whose identity do
+the tools act as* question per agent instead of leaving it to discovery.
+
+**What is missing is a typed input schema per agent.** The manifest describes an agent well enough
+to *pick*, but carries nothing to *validate a filled payload against*. Until it does, the router's
+`OUT` cannot be checked, and "nothing starts until validation passes" has nothing to check
+against. That is the single blocking gap on this path.
+
+**Also unbuilt:** the router itself, the run row, and the notify/approve leg. What is proven is the
+middle — a workflow suspending, surviving a hard kill, and resuming from Convex with the runId as
+its only input.
+
+**And one case with no answer:** a request that spans modules. *"Is this segment worth building
+for"* is Product discovery **and** GTM validation. The router picks the closest single agent, and
+should say plainly what it is not covering rather than quietly doing half the job.
+
+---
+
 ## 2. Orchestration — a Mastra workflow, where one is warranted
 
 ### First: does this agent need a workflow at all?
@@ -137,6 +216,23 @@ this project kept hitting.
 The Master Agent for a harness is a **workflow**, not an agent. The agents live *inside* its
 steps, each scoped to one decision, with skills as their tools.
 
+**A workflow does not "decide" anything, and the phrasing matters.** Saying *"the workflow decides
+which sub-module"* invites the obvious question — how? — and the honest answer is the whole
+architecture:
+
+> The workflow runs a **step** that asks the model, and **the model's answer is written down as a
+> value.** Code then acts on that value.
+
+That is not a pedantic distinction. It is the difference between:
+
+| | What the state is | Kill the process |
+|---|---|---|
+| a step returning a value | a typed row in Convex | resume reads the value back. **Same answer, guaranteed** |
+| a model reasoning in a loop | the conversation | nothing to resume from. It may decide **differently** next time |
+
+And deciding differently is not merely untidy — it re-runs the paid lookup, or sends the outreach
+again, because *"I already did that"* was in the conversation that died.
+
 ### The primitives worth knowing
 
 | | |
@@ -150,6 +246,50 @@ steps, each scoped to one decision, with skills as their tools.
 | **a workflow as a step** | nesting — this is how sub-modules compose |
 | `suspend()` / `resume()` | human-in-the-loop, snapshot-backed |
 | `watch()` | observe progress without changing behaviour |
+
+### Type every step, and the run becomes resumable for free
+
+The reason a kill at any point is survivable is not the framework being clever. It is that each
+step declares what it takes and what it returns, so Convex has something to write down.
+
+```
+   FELLOW'S PROBLEM        OUT  { segment, count, deadline }
+        ▼
+   step: assess            IN   { segment, count, deadline }              ← MODEL
+        │                  OUT  PLAN = ["lead-enrichment","outreach-drafting"]
+        │                       ↖ a VALUE, snapshotted — not a conversation
+        ▼
+   .foreach(PLAN)          code iterates the plan. It cannot add to it.   ← CODE
+        │
+        ├─ nested: lead-enrichment     IN  { segment, count }
+        │                              OUT { accounts[], scores[] } ──┐
+        │                                                             │
+        └─ nested: outreach-drafting   IN  { accounts[] }             │ typed output
+                                       OUT { drafts[], approvedBy } ──┤ flows back up
+                                       suspend() waits for a human    │
+        ▼                                                             │
+   step: synthesise        IN   results[]  ◄─────────────────────────┘   ← MODEL
+        │                  OUT  { summary, artefacts[] }
+        ▼
+   BACK TO THE FELLOW
+```
+
+**Every step's `IN` and `OUT` is written to Convex as the step completes.** Kill the process at any
+arrow and resume reads the last recorded `OUT` and carries on with the same values. The model
+appears twice here and both times produces a *value* — a plan, or a synthesis. It never holds the
+route.
+
+Note what the model **cannot** do in this shape: it cannot name a sub-module that isn't registered,
+and it cannot change its mind except at a step someone deliberately placed. Re-planning is a
+**location in the code**, not a setting — so per module, decide where the agent is allowed to
+reconsider, and record it. For GTM that is probably after enrichment returns and before drafting;
+almost certainly not mid-draft.
+
+**Status: untested by us.** `.foreach()` over a model-produced plan, nested workflows returning
+typed output upward, and a suspend surviving a kill in the middle — each primitive exists and is
+documented, and we have run **none of that combination**. What is proven is the simpler shape:
+`.branch()` into one nested workflow with a `suspend()` inside it, hard-killed and resumed. Worth
+an hour's test before three modules depend on it.
 
 ### How the modules, the workflow, the memory and the harness fit together
 
@@ -229,6 +369,12 @@ nothing breaks — but declare the singular name so the real table gets a valida
 **Still unverified by us:** `.foreach()` · `.parallel()` · `.dowhile()` / `.dountil()` ·
 `.agent()` as a step · `watch()` streaming · nesting deeper than two levels. The primitives exist
 and are documented upstream; we have not run them, and this folder does not claim otherwise.
+
+**And the entry path in §1a is design, not evidence.** The router, the run row, and the
+notify/approve leg are unbuilt. The manifest that would give the router something to validate
+against exists but carries no per-agent input schema yet — see §1a. So the *middle* of the picture
+is proven and both *ends* are proposed, which is worth saying out loud before anyone demos it as a
+working front door.
 
 ---
 
@@ -581,6 +727,8 @@ The same shape as the harness tests, because they're the ones that caught real p
 | Harness | **Mastra + ConvexStore.** Proven: 12/12 kill-test, 41 hours unattended, three sleep boundaries |
 | Orchestration | **Mastra workflows — where warranted.** A per-agent call (§2): a workflow only if losing work mid-flight costs something. Our reference agent used none and ran 41 hours |
 | Who decides | **stage 5, `mastra-harness`.** Workflow yes/no and which memory channels, recorded with reasons. An empty cell fails the gate |
+| How a fellow gets in | **a router picks the *agent*** (the module follows), fills its typed input, and stops. Nothing starts until validation passes; the run row is written before dispatch. **Design, not built** — §1a |
+| What a "decision" is | a **step returns a value**, never a model reasoning in a loop. The value is snapshotted, so resume gets the same answer; a conversation is lost and may decide differently |
 | Agents | inside workflow steps, one decision each, skills as tools |
 | Sub-modules | **nested workflows** — independently runnable, independently gradeable |
 | Human approval | `suspend()` / `resume()`, snapshot-backed |
