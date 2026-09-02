@@ -7,6 +7,7 @@ Tier B/C coded agents only. Skills, projects and managed surfaces stay on lighte
 
 | File | What it answers |
 |---|---|
+| [`STANDARD.md`](STANDARD.md) | **Start here.** The recipe — how to build an agent on this framework, and what to use for orchestration, memory and grading |
 | [`HARNESS.md`](HARNESS.md) | Which harness, pinned to which versions, and what has actually been proven on it |
 | [`MEMORY.md`](MEMORY.md) | How a long-horizon agent remembers across processes, and what that costs |
 | [`INNGEST.md`](INNGEST.md) | The durable loop, tested — what works, and the five blockers that stop it being usable |

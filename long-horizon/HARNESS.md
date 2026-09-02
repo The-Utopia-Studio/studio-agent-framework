@@ -76,6 +76,12 @@ genuinely stopped.
 
 ## Running unattended: what the environment does
 
+> **A schedule was the test method, not the recommendation.** A recurring `launchd` job is the
+> harshest durability test available on a laptop — days unattended, across sleep, lid closes and
+> network loss, with nobody watching. In production the OS dispatches the agent (a fellow request
+> via Agent Inventory, or a signal). See [`STANDARD.md`](STANDARD.md#1-the-shape) — only what
+> calls step 1 changes.
+
 Two agents on a `launchd` schedule, 31 Aug 16:41 → 2 Sep 09:38 local (**41 hours**), across three
 genuine sleep/wake boundaries. The third was the harshest: laptop shut in a bag, out of the house,
 no network for **10.9 hours**.
