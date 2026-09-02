@@ -76,7 +76,35 @@ genuinely stopped.
 
 ## Running unattended: what the environment does
 
-Findings from a real scheduled run on a laptop. These bite any scheduled agent, not just ours.
+Two agents on a `launchd` schedule, 31 Aug 16:41 → 2 Sep 09:38 local (**41 hours**), across three
+genuine sleep/wake boundaries. The third was the harshest: laptop shut in a bag, out of the house,
+no network for **10.9 hours**.
+
+| | Plain agent | Mastra agent |
+|---|---|---|
+| Runs / cycles | **71** | **46** |
+| `ok` | 70 | 43 |
+| `offline` (correctly classified) | 0 | 2 |
+| `failed` / `degraded` | 1 `degraded` | 1 `failed` |
+| Interval | ~20 min | ~30 min |
+
+Sleep gaps survived, and what each resume caught:
+
+| Gap | Duration | New stories on resume |
+|---|---|---|
+| 31 Aug 18:41 → 22:28 | 3.8h | 48 |
+| 31 Aug 23:12 → 1 Sep 10:01 | 10.8h | 37 |
+| **1 Sep 22:22 → 2 Sep 09:17** | **10.9h** | **50** |
+
+Work is **deferred, never dropped** — the backlog is caught on the next tick, and on the last gap
+`launchd` fired *at* the moment of real wake (09:17), not on a later retry. Total spend for the
+41 hours: **$0.19** of a $3 cap, 240,602 tokens across 125 model calls.
+
+The single `failed` Mastra cycle is the most instructive row in the table: it hung for **44.6
+minutes** on a DarkWake with no network, which is what the preflight below now prevents. The two
+`offline` cycles are that fix working.
+
+These findings bite any scheduled agent, not just ours.
 
 **A closed lid is not a clean pause.** Mostly it is — across four long sleeps (53 / 33 / 207 /
 636 min) zero cycles fired in three of them. But macOS takes brief **DarkWake** maintenance
