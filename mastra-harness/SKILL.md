@@ -28,6 +28,13 @@ across three sleep/wake boundaries, a 12-case kill-test, a nested-workflow kill-
 memory failure that nine green signals missed. [`long-horizon/STANDARD.md`](../long-horizon/STANDARD.md)
 is the why. This is the how.
 
+> **The rules come first, and not from here.** `learnings` carries them as `STATE-1` / `STATE-1a`
+> and `HORIZON-1`–`7`, and the orchestrator loads it before the first design question — so the
+> workflow-or-not call, the memory-channel call, the cost budget and the background-agent scope
+> are all settled *during design*, in the PRD, not discovered at build time. Five of the seven
+> HORIZON rules are design decisions. This skill **implements** them and cites the IDs; if
+> anything below disagrees with `learnings`, `learnings` wins.
+
 ---
 
 ## 1. Decide what this agent needs — before writing anything
@@ -224,6 +231,35 @@ blockers, all in Mastra's durable-agent layer:
 **Also, because it circulates:** durable agents are not new in 1.62/1.63. `createInngestAgent`
 shipped in 1.30.0 and `untilIdle` in 1.41.0.
 
+## 7a. If it runs unattended, four more pieces are not optional
+
+A background agent fails differently from a request-shaped one, and these are the four the
+reference run needed that nothing in Mastra provides. Rules: `HORIZON-4`–`7` in `learnings`.
+
+**Four statuses, not two** — `ok` · `degraded` · `offline` · `failed`. The distinction that earns
+its keep is `offline`: the *environment* failed and there is nothing to debug in the agent.
+Collapsing it into `failed` produces nightly false alarms, and an alarm that cries wolf gets
+ignored — worse than no alarm. `classifyRun()` in
+[`scaffold/status.js`](scaffold/status.js). *(`HORIZON-4`)*
+
+**Gap attribution** — a gap is not a miss until it is **unexplained**. Cross-check every gap
+against the machine's own sleep log and classify it `asleep` · `jitter` ·
+`partly-unexplained` · `unexplained`; only the last should page anyone. And measure coverage
+against **awake** time — wall-clock scored a healthy agent at 18% for having been switched off.
+`classifyGap()` and `coverage()` in the same file. *(`HORIZON-5`)*
+
+**A cap the agent enforces on itself** — a soft warning stops nothing at 3am. The guard unloads
+its own scheduled job at the cap, and it reports when it **could not** stop itself rather than
+claiming success. Budget from the **late** token figure: memory grew input +61% against +25% for a
+memoryless control. [`scaffold/budget.js`](scaffold/budget.js). *(`HORIZON-6`)*
+
+**Per-cycle grading** — a background agent's trace has no start and no end, so predicates are
+graded over a **window of N cycles**, not per run. *(`HORIZON-7`)*
+
+> **And cross-run state is not a workflow snapshot.** A snapshot resumes an *interrupted run*;
+> continuity *across* runs is memory plus the domain store. Reaching for snapshots to carry
+> day-to-day state looks like it works until the first clean run boundary.
+
 ## 8. Grade conduct, not just output
 
 Ship a `BEHAVIOR.md` **next to the agent**, versioned with its code. **The agent never reads it.**
@@ -261,8 +297,16 @@ flags from the §1 decisions — an agent with no memory must not be failed for 
       process with the runId as the only input
 
 *If §1b said memory:*
-- [ ] The write is **deterministic**, not the model's choice
-- [ ] Freshness check wired into `doctor`, failing past N cycles
+- [ ] The write is **deterministic**, not the model's choice (`HORIZON-3`)
+- [ ] Freshness check wired into `doctor`, failing past N cycles (`HORIZON-3`)
+- [ ] No out-of-band write to any framework memory table (`HORIZON-3a`)
+
+*If it runs unattended:*
+- [ ] Four statuses emitted, `offline` distinct from `failed` (`HORIZON-4`)
+- [ ] Every tick **idempotent** and able to no-op cleanly (`HORIZON-4`)
+- [ ] Gaps attributed against the sleep log; coverage against **awake** time (`HORIZON-5`)
+- [ ] A hard cap the agent can enforce **on itself** (`HORIZON-6`)
+- [ ] Conduct graded per **cycle** over a window (`HORIZON-7`)
 
 ## 10. What to refuse
 
@@ -278,3 +322,7 @@ flags from the §1 decisions — an agent with no memory must not be failed for 
 | `createInngestAgent()` | Resumed runs don't complete. Five blockers |
 | `BEHAVIOR.md` in the system prompt | It's a grading standard, not a prompt |
 | "We'll add the preflight later" | The failure mode is a 44-minute hang, not an error |
+| `ok`/`failed` only, on an unattended agent | `offline` is the environment, not the agent. Two statuses cry wolf nightly |
+| A spend cap the agent can't act on | A warning stops nothing at 3am. It must unload its own job |
+| Coverage measured on wall-clock | Punishes a machine for being switched off. Measure awake time |
+| A snapshot used to carry state between runs | Snapshots resume a run. Across runs is memory |

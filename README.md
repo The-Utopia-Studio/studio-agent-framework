@@ -11,7 +11,7 @@ instead of politely completed.
 Install all seven. They are a chain, not a menu.
 
 ```
-atelier-learnings/    the hard rules — load first, cited by ID (CTX-1, LOOP-2, STATE-1 …)
+learnings/            the hard rules — load first, cited by ID (CTX-1, MEM-8, STATE-1a, HORIZON-4 …)
 agent-builder/        the front door — intake, then chains the four stages
   hermes/             the eval harness around agent-builder (rubric + cases + judge log)
 workflow-design/      stage 1 — fleet or solo, spawn triggers, loop exits
@@ -30,7 +30,7 @@ command that must exit 0 before an order is called done. Evidence in
 
 **Credits.** `agent-design`, `workflow-design`, and `eval-first-spec` are from Ollie's
 Icarus pack (modules 09 + 07), bundled here unchanged so the chain is testable in one
-place. `agent-builder`, `agent-prd`, `mastra-harness`, and `atelier-learnings` are Haniyah's.
+place. `agent-builder`, `agent-prd`, `mastra-harness`, and `learnings` are Haniyah's.
 
 ---
 
@@ -39,12 +39,19 @@ place. `agent-builder`, `agent-prd`, `mastra-harness`, and `atelier-learnings` a
 Claude.ai → Settings → Capabilities → Skills → Add → upload each folder's `SKILL.md`
 (or the whole folder, where supported). All seven go in Personal skills:
 
-`atelier-learnings` · `agent-builder` · `workflow-design` · `agent-design` ·
+`learnings` · `agent-builder` · `workflow-design` · `agent-design` ·
 `eval-first-spec` · `agent-prd` · `mastra-harness`
 
-Seven, not six. The orchestrator loads `atelier-learnings` before its first question and
+Seven, not six. The orchestrator loads `learnings` before its first question and
 cites rule IDs when it blocks or waives something — without it installed the chain runs
 with its rules missing and no one is told.
+
+> **If you installed `atelier-learnings` before Sep 2026, remove it.** It was renamed to
+> `learnings` — the rules were never only Atelier's, and the long-horizon `HORIZON-*` family came
+> from the Mastra harness run instead. **Every rule ID is unchanged**, so nothing that cites
+> `CTX-1` or `STATE-1a` breaks. But leaving both installed is worse than either alone: the
+> orchestrator may load the stale copy, which has no `HORIZON-*` rules and no real definition of
+> `STATE-1a`, and you will not be told which one it read.
 
 **No git? Grab the whole repo as one zip:**
 
@@ -125,7 +132,7 @@ Each row in a **fresh chat**. A loaded sibling skill changes routing behaviour (
 | S3 | "Design the fleet for \<a multi-step job\>" | `workflow-design` | Fleet-or-solo gate, spawn triggers with observable conditions |
 | S4 | "Spec the build — how do we know it works?" | `eval-first-spec` | Golden cases + autonomy + cost, refuses to spec from nothing |
 | S5 | "Write the agent PRD for \<X\>" | `agent-prd` | Asks for stages 1–3 artefacts first, offers to fill gaps |
-| S6 | Any of the above | `atelier-learnings` also loaded | Rule IDs cited when something is blocked or waived |
+| S6 | Any of the above | `learnings` also loaded | Rule IDs cited when something is blocked or waived |
 | S7 | "Build an agent that writes haikus about our roadmap" | `agent-builder`, then **stops** | Wedge blocker fires before any config — nobody asked for this |
 
 S7 is the important one. A chain that always finishes is broken.
@@ -276,5 +283,5 @@ fired and didn't · a fast-pass run that finished without the five REPORT-1 rows
 that felt finished and wasn't.
 
 Each one becomes a case in `agent-builder/hermes/cases/adversarial.md` and, if it was a
-production miss, a dated rule in `atelier-learnings` — never a Slack anecdote. That loop
+production miss, a dated rule in `learnings` — never a Slack anecdote. That loop
 is the difference between a framework and a folder of documents.

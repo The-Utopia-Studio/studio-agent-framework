@@ -5,7 +5,7 @@
 **Runtime:** Node v26.3.0, macOS (darwin 25.5.0)
 **Commit at time of suite run:** `9b6dfcb7d2144339af2ef389d215681b9414e8ac`
 **PRD:** `linear-digest-PRD.md` (Draft, 2026-08-25) · **Work orders:** `linear-digest-WORKORDERS.md`
-**Rules cited from:** `atelier-learnings` skill (`.claude/skills/atelier-learnings/SKILL.md`)
+**Rules cited from:** `learnings` skill (`.claude/skills/learnings/SKILL.md`)
 
 Reproduce:
 
@@ -336,7 +336,7 @@ Every item here was raised before or during the build. Nothing was deviated sile
 | **D-15** | Provider switched from Anthropic to OpenAI | — | Operator instruction 2026-08-25: *"we dot have any antrjopic api only open ai"*. The supplied `sk-ant-api0…` key returns HTTP 401 from both the raw REST API and the router. Model is now `openai/gpt-5.6-terra` (`create-mastra`'s own template default; see D-07), overridable via `DIGEST_MODEL`. This **restores** cross-leg comparability risk in the opposite direction from D-00: leg 2 (Claude Agent SDK) is Anthropic-only, so leg 1 and leg 4 now run on OpenAI while leg 2 cannot. The deterministic graders are model-independent; tool-selection behaviour is not. |
 | **D-16** | Mastra's OpenAI provider uses the **Responses API**, not Chat Completions | — | Discovered by pointing `OPENAI_BASE_URL` at a logging stub: `POST /responses` with `{model, input[], tools[{type:'function',name,description,parameters}], tool_choice}`. The mock model had to grow a second wire format — `output[{type:'function_call', call_id, name, arguments}]` — because an Anthropic-shaped reply is simply not understood. Anyone assuming Chat Completions will build the wrong stub. |
 | **D-17** | `OPENAI_BASE_URL` is honoured, same as `ANTHROPIC_BASE_URL` | — | Confirmed: the mock endpoint intercepts before any network call, so the entire 12-case deterministic suite runs with **no real model credential**. Verified the wire format actually served: `openai-responses /responses \| model: gpt-5.6-terra`, 2 calls per completed run. D-14's per-process provider caching applies identically. |
-| **DEVIATION-NO-RULE-ID** | *(none outstanding)* | — | The `atelier-learnings` skill was eventually supplied as `atelier-learnings.skill` (a zip) and extracted to `.claude/skills/atelier-learnings/SKILL.md`, so all deviations above carry real rule IDs where a rule applies. |
+| **DEVIATION-NO-RULE-ID** | *(none outstanding)* | — | The `learnings` skill was eventually supplied as `learnings.skill` (a zip) and extracted to `.claude/skills/learnings/SKILL.md`, so all deviations above carry real rule IDs where a rule applies. |
 
 ---
 

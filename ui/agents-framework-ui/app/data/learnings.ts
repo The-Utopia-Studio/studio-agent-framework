@@ -347,7 +347,7 @@ export const LEARNING_GROUPS: {
 // purpose — the skill is the source, this is the pointer.
 export const ATELIER = {
   lede:
-    'The hard rules every agent build here must obey, distilled from the Atelier post-mortem. Each one is traceable to a real production failure, and each is cited by ID when something gets blocked or waived.',
+    'The hard rules every agent build here must obey — loaded before the first design question and cited by ID when something gets blocked or waived. Each one is traceable to a real production failure, never to best practice; that traceability is the whole authority of the document. Renamed from `atelier-learnings` in Sep 2026, because the rules were never only Atelier\u2019s: the HORIZON family below came out of the 41-hour harness run on this page.',
   families: [
     { id: 'CTX', label: 'Context discipline', note: 'what enters the window, and when it is pulled' },
     { id: 'LOOP', label: 'Loop ownership', note: 'who owns the loop and how it exits' },
@@ -355,7 +355,8 @@ export const ATELIER = {
     { id: 'EVAL', label: 'Evaluator separation', note: 'the thing being judged never writes the judgement' },
     { id: 'STATE', label: 'State and stack', note: 'STATE-1 / STATE-1a — the kill-test this harness passes' },
     { id: 'TOOL', label: 'Tool boundaries', note: 'writes need an owner; a graph needs a written why' },
+    { id: 'HORIZON', label: 'Long-horizon runtime', note: 'seven rules from the 41 hours — new, and the reason for the rename' },
   ],
   punchline:
-    'STATE-1a is the rule this entire harness exists to satisfy: vendor runtime state is a cache, not the source of truth, and a fresh process must recover from a canonical log. Load atelier-learnings before the first design question — without it the chain runs with its rules missing and nobody is told.',
+    'STATE-1a is the rule this entire harness exists to satisfy: vendor runtime state is a cache, not the source of truth, and a fresh process must recover from a canonical log. Load learnings before the first design question — without it the chain runs with its rules missing and nobody is told.',
 };

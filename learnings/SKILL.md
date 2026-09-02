@@ -1,27 +1,50 @@
 ---
-name: atelier-learnings
-description: The hard rules every agent build at Utopia Studio must obey, distilled from the Atelier post-mortem — context discipline, loop ownership, memory tiers, evaluator separation, exit conditions, and stack decisions, each traceable to a real production failure. Load this BEFORE designing, coding, reviewing, or modifying ANY agent, harness, loop, pipeline, memory layer, evaluator, or agent-adjacent system at the Studio — whenever the task mentions building an agent, writing a system prompt, designing a loop or critic, choosing an agent stack, adding memory, or reviewing agent architecture, even if "Atelier" is never mentioned. Also load it when grading or auditing an existing agent against Studio standards.
+name: learnings
+description: The hard rules every agent build at Utopia Studio must obey — context discipline, loop ownership, memory tiers, evaluator separation, exit conditions, stack decisions, and long-horizon runtime — each one traceable to a specific failure that actually happened, not to best practice. Load this BEFORE designing, coding, reviewing, or modifying ANY agent, harness, loop, pipeline, memory layer, evaluator, or agent-adjacent system at the Studio — whenever the task mentions building an agent, writing a system prompt, designing a loop or critic, choosing an agent stack, adding memory, running something unattended or in the background, or reviewing agent architecture. Also load it when grading or auditing an existing agent against Studio standards. Rules carry IDs (CTX-1, LOOP-3, MEM-8, STATE-1a, HORIZON-4 …) so reviews, evals and the agents registry can cite them; cite the ID when you block or waive something.
 ---
 
-# Atelier Learnings — Rules for Building Agents
+# Learnings — Rules for Building Agents
 
 ## What this is
 
-Atelier was the Studio's autonomous website generator. Six months of building it produced a set of expensive lessons. This skill is those lessons converted from prose into rules a building agent loads and cannot silently skip. Every rule below is traceable to a specific failure that actually happened — none of it is theoretical best practice.
+Rules a building agent loads and cannot silently skip. **Every rule here is traceable to a
+specific failure that actually happened** — none of it is theoretical best practice. That
+traceability is the whole authority of this document; a rule with no failure behind it does not
+belong in it.
+
+Two sources so far, and the file is named for the practice rather than either one because there
+will be more:
+
+| Where it came from | What it produced |
+|---|---|
+| **Atelier**, the Studio's autonomous website generator — six months of building it | `CTX-*` · `LOOP-*` · `MEM-*` · `EVAL-*` · `TOOL-*` and the three root causes below |
+| **The Mastra harness run**, Aug–Sep 2026 — a re-test of the harness decision plus 41 hours unattended across three sleep/wake boundaries | `STATE-1` / `STATE-1a` · `HORIZON-*` |
+
+Evidence for the second sits in [`long-horizon/`](../long-horizon/), which separates *verified
+here* from *unverified* from *false*. Where a rule below says something is proven, that folder is
+where the run is.
 
 **How to use this skill:** before proposing or writing any agent design or code, check it against the rules below. When your work violates a rule, either fix it or state explicitly which rule you are breaking and why the exception is justified — never violate silently. When reviewing someone else's agent, cite rule IDs in your findings. Finish every build or review with the pre-flight checklist at the end.
 
-The rules carry IDs (CTX-1, LOOP-3, …) so evals, reviews, and the agents registry can reference them.
+The rules carry IDs (CTX-1, LOOP-3, HORIZON-4, …) so evals, reviews, and the agents registry can
+reference them.
 
 ## The three root causes
 
-Everything that went wrong in Atelier was a symptom of one of these:
+Everything that went wrong in **Atelier** was a symptom of one of these. They remain the sharpest
+diagnostic in the file for a request-shaped agent:
 
 1. **Context was pushed in, not pulled.** A 50KB system prompt held across all eight loop iterations until the 64MB action ceiling was hit; knowledge injected wholesale into every stage, growing monotonically.
 2. **The loop ran inside a request-scoped function with no durable log.** No crash-resume; a run that died mid-generation restarted from scratch; state transitions buried in imperative code.
 3. **Nothing external judged the output, so nothing improved.** The critic shared the generator's framing and read code instead of the rendered page; loop exit was a round cap; zero evals.
 
 If a design decision feels ambiguous, ask which of these three it drifts toward.
+
+**A fourth appeared later, and only shows up in agents that run unattended:** *nothing was
+watching the part that quietly stopped.* Nine consecutive cycles of a background agent reported
+`ok`, its recall check passed on all nine, its memory read a plausible size — and it had not
+written that memory once. Every available signal was green. See `HORIZON-3` and `HORIZON-7`; the
+generalisation is that **a metric you can satisfy by doing nothing is not a metric.**
 
 ---
 
@@ -120,6 +143,85 @@ If a design decision feels ambiguous, ask which of these three it drifts toward.
 ---
 
 
+## Long-horizon rules (agents that run unattended)
+
+Everything above assumes a **request-shaped** run: someone asks, the agent answers, the run ends.
+An agent that runs for hours or days with nobody watching fails differently, and these seven are
+what 41 hours of it produced. Load them at **design** time — five of the seven are decisions the
+PRD has to carry, not implementation details discovered at build time.
+
+**HORIZON-1 · A workflow only where losing work mid-flight costs something.** The question is not
+whether the agent matters. It is what one lost run costs. One model call with no state, or
+independent cycles that are cheap to redo, need **no workflow** — a lost cycle costs one interval
+and the next tick catches up. A human approval gate, state accumulating across steps, or
+sub-modules that must be durable on their own each need one. A workflow "because it is the
+standard", with no answer to that question, buys a snapshot write per step and nothing else.
+*Observed:* the reference agent ran 46 cycles over 41 hours through three sleep/wake boundaries
+with no workflow at all.
+
+**HORIZON-2 · Give it the fewest recall channels that answer its question — they compete.** Working
+memory, recent messages and semantic recall all answer *"what have I already covered?"*, and each
+one added makes the model less likely to maintain the ones that cost it effort. Switching
+everything on "to be safe" is the failure mode, not the safe option.
+*Violation looked like:* with semantic recall available, the model stopped calling the
+memory-write tool entirely — reproduced A/B on one agent, same instructions, same model.
+
+**HORIZON-3 · Memory maintenance is deterministic, never the model's choice. Grade freshness, never
+size.** Ask the model for the memory *content* as ordinary output, then write it yourself through
+the vendor API — it still does the synthesis, it just cannot skip the write. And judge the state by
+whether the **write timestamp advanced**, not by how big it is: a frozen size and a healthy size are
+the same number. Beware the inverse too — *unchanged* state is **correct** when the input was
+already covered, so a clause reading "memory must change" fails a well-behaved agent (it did, for
+seven consecutive cycles).
+*Violation looked like:* nine overnight cycles reporting `ok` with memory never written once,
+while the agent's own replies said "Updating memory."
+
+**HORIZON-3a · Never write a framework's memory tables out of band.** Raw *reads* for verification
+are essential and are what MEM-8 demands. A raw *write* silently removed the agent's ability to
+maintain its own memory — the framework stopped offering the write tool at all. And a framework's
+memory feature may be **all-or-nothing**: Mastra's injects "you MUST call updateWorkingMemory"
+*after* your instructions, so an agent told to write memory itself receives contradictory orders and
+satisfies neither. Own both sides or neither.
+
+**HORIZON-4 · Assume the trigger is hostile. Probe before you work, and `offline` is not `failed`.**
+A scheduled job fires during a two-second maintenance wake inside a long sleep, with the network
+stack still initialising. Probe every dependency *before* starting real work — one host answering
+does not prove the network — and classify a network-shaped error as **`offline`**, meaning the
+environment failed and there is nothing to debug in the agent. Four statuses, not two:
+`ok` · `degraded` · `offline` · `failed`. Every tick must be **idempotent** and able to no-op
+cleanly; an agent that can only succeed will hang.
+*Violation looked like:* a 44.6-minute hang, recorded as `failed`, leaving orphaned `pending`
+snapshot rows that each read as a genuine fault.
+
+**HORIZON-5 · A gap is not a miss until it is unexplained. Measure coverage against awake time.**
+Cross-check every gap against the machine's own sleep log and classify it — `asleep` · `jitter` ·
+`partly-unexplained` · `unexplained` — and only the last should page anyone. Judging on wall-clock
+punishes a machine for being switched off, which is not a fault.
+*Violation looked like:* a healthy agent scored at 18% coverage for having been asleep.
+
+**HORIZON-6 · An unattended agent must be able to stop itself.** A soft warning stops nothing at
+3am because nobody is awake to read it; the guard has to unload its own scheduled job at the cap. An
+agent that cannot stop itself is instrumented, not capped. And **budget from the late token figure,
+never the first cycle** — memory makes input grow, measured at +61% for a memory-carrying agent
+against +25% for a memoryless control, with the curve not yet flat.
+
+**HORIZON-7 · For a run with no end, the unit of grading is the cycle.** `BEHAVIOR.md`-style
+predicates assume a trace with a start and a finish; a background agent has neither. Grade
+mechanical predicates over a **window of N cycles** instead. A request-shaped run has a human at the
+end who notices a bad answer — a background agent has nobody, so a predicate over its *behaviour* is
+the only thing standing between "working" and "quietly stopped".
+*The predicate that would have caught HORIZON-3 on cycle one:* the memory-write tool must be
+**offered on the provider request and called**, graded from the request itself, never from the
+resulting state.
+
+**Cross-run state is not a workflow snapshot.** Worth stating plainly because it is the most common
+confusion here: a snapshot resumes an *interrupted run*. Continuity *across* runs is memory plus the
+domain store. Reaching for snapshots to carry day-to-day state looks like it works until the first
+clean run boundary.
+
+---
+
+
 ## Home, identity, and state (Studio 2026-08 adds)
 
 **HOME-1 · Runtime and talk surface are two decisions.** Runtime is where the loop executes: Utopia OS (default for studio-operated functions), standalone Vercel (library *links* it when it cannot live in the OS), or local Claude / Codex / Cursor (scheduled internal work, or a machine-shaped job). Talk surface is where a person or trigger speaks to it: OS UI, Slack, schedule, CLI. Ask both. The same agent can run locally and be talked to on a schedule.
@@ -132,6 +234,14 @@ If a design decision feels ambiguous, ask which of these three it drifts toward.
 **ID-1 · Who the tools act as is a required field.** Studio or a named internal team → shared Composio (or first-party API with a service account for GitHub / Linear / Convex). A fellow → their own Composio `user_id` + Connect Link, later on the OS. Never the studio Slack acting as a fellow. Writes on a shared connection need a named owner and a kill switch.
 
 **STATE-1 · Vendor runtime state is a cache, not the source of truth.** For the Studio standard, Mastra uses **ConvexStore**: Mastra runs the loop, while Convex is the only canonical source of truth for run-state and business data. A local/vendor state file is never canonical. Kill the process, start a fresh one, and it must resume from Convex alone. If resume needs a vendor-local file, the design fails LOOP-2 and STACK-1. This is verified for Mastra + Convex by the STATE-1a hard-kill, fresh-process test; every qualifying build must still run its own test.
+
+**STATE-1a · The hard-kill, fresh-process test — the gate STATE-1 is verified by.** Start a run, let it reach real state, then `kill -9` it — not a graceful shutdown, no cleanup hook, no chance to flush. Delete every vendor-local state file. Start a **new process** whose only input is the runId, and it must resume and complete. If it needs anything the killed process left on disk, the design fails STATE-1.
+
+*Verified for the Studio standard*, `@mastra/core@1.63.2` + `@mastra/convex@`**`1.5.4`**: `PASS 12 · FAIL 0 · BLOCKED 0` across 12 golden cases, live model, real Convex. Also verified for the shape module harnesses need — a `suspend()` **inside a nested workflow**, hard-killed while suspended and resumed from Convex alone. A nested workflow gets its own snapshot row sharing the parent's runId, so a sub-module is independently resumable.
+
+**Pin `@mastra/convex` at 1.5.4.** 1.5.5 **fails this test** — bisected with everything else held constant. A caret range here is a live hazard, not a style preference.
+
+*This supersedes the 24–25 Aug STATE-1 entry*, which recorded the test as designed but not run against real infrastructure. Every qualifying build still runs its own.
 
 **CTX-2b · Prefetch exception.** Retrieve on demand (CTX-2, MEM-2) except when you already know you will need a payload this run — fetch it once, write it to the log, do not spend a later loop step finding it again. That is the only exception.
 
@@ -158,6 +268,19 @@ Run before calling any agent build or review done. Each unchecked item is either
 - [ ] Tool identity named: studio / team / fellow / service API (ID-1)
 - [ ] Kill-and-resume from Convex log only — no vendor state file required (STATE-1, LOOP-2)
 - [ ] Context pulled on demand, or prefetched into the log on purpose (CTX-2, CTX-2b)
+
+**If the agent runs unattended — scheduled, event-driven, or in the background — also:**
+
+- [ ] Workflow-or-not decided against what one lost run costs, and the answer recorded (HORIZON-1)
+- [ ] Recall channels chosen as the *fewest* that answer the question, not all of them (HORIZON-2)
+- [ ] Memory written deterministically by code, not left to the model (HORIZON-3)
+- [ ] Durable state judged on **write freshness**, never on size; no clause reading "memory must change" (HORIZON-3)
+- [ ] No out-of-band writes to any framework memory table (HORIZON-3a, MEM-8)
+- [ ] Dependencies probed before real work starts; every tick idempotent and able to no-op (HORIZON-4)
+- [ ] Four statuses emitted, with `offline` distinct from `failed` (HORIZON-4)
+- [ ] Gaps attributed against the machine's sleep log; coverage measured against **awake** time (HORIZON-5)
+- [ ] A hard cost cap the agent can enforce **on itself**, budgeted from late-run token figures (HORIZON-6)
+- [ ] Conduct graded per **cycle** over a window, not per run (HORIZON-7)
 
 ## The compounding loop
 

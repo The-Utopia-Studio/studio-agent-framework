@@ -228,7 +228,7 @@ at the last step, after all the work.
 **Record:** tier, topology, implementation surface, runtime home, talk surface, tool identity, one-sentence job, and the reason for
 each choice.
 
-After the rung is named, apply `atelier-learnings` and Appendix C. Do not invent a stack.
+After the rung is named, apply `learnings` and Appendix C. Do not invent a stack.
 Authoring (Cursor / Claude Code) is not the runtime. Ask runtime home and talk surface separately (HOME-1).
 Ladder defaults down (HOME-2). Fast-pass still reports (REPORT-1).
 
@@ -717,7 +717,7 @@ flagged as blocking.
 - [ ] **CTX-2 / CTX-2b:** Context route named (pull on demand; prefetch-into-log only if already known)
 - [ ] **REPORT-1:** Fast-pass still contains home, surface, identity, and any blocker — not a silent complete
 - [ ] **Ship-out:** GitHub path (or OS library id) for code/skills/prompts
-- [ ] Load `atelier-learnings` and cite any waived rule IDs in Open Questions
+- [ ] Load `learnings` and cite any waived rule IDs in Open Questions
 
 ---
 
@@ -1419,7 +1419,7 @@ After delivering work orders:
 
 ## Appendix C — Studio defaults and use (do not re-decide per PRD)
 
-Load `atelier-learnings`. Rule IDs win over this table if they conflict.
+Load `learnings`. Rule IDs win over this table if they conflict.
 
 **Authoring ≠ runtime.** Cursor / Claude Code write files. They do not run production.
 

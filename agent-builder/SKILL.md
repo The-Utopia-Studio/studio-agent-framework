@@ -9,7 +9,7 @@ description: >-
   agent-design (role · tools · memory) → eval-first-spec (golden cases · autonomy · cost) →
   agent-prd (gates → PRD → work orders) → mastra-harness (workflow? memory? → implement,
   then doctor) — carrying each stage's artefact into the next so nothing gets re-asked. Exits non-builders early on the surface ladder (skill → project →
-  managed → coded) with a checklist instead of a codebase. Always load `atelier-learnings` first and check the design against its rule IDs.
+  managed → coded) with a checklist instead of a codebase. Always load `learnings` first and check the design against its rule IDs.
   Do NOT fire when a specific
   stage is named ("spec just this one agent" → agent-design, "design the fleet" →
   workflow-design, "write the PRD" → agent-prd, "build the work order" → mastra-harness) — this is the router, not a replacement.
@@ -66,7 +66,7 @@ Copy this checklist:
 
 ```
 Agent-builder progress:
-- [ ] Step 0: Load atelier-learnings; intake — 5 questions, then pick the entry point
+- [ ] Step 0: Load learnings; intake — 5 questions, then pick the entry point
 - [ ] Step 0b: Use — runtime home, talk surface, tool identity, context route
 - [ ] Step 1: Run workflow-design → fleet map (or solo verdict)
 - [ ] Step 2: Run agent-design per agent → agent spec(s)
@@ -79,7 +79,7 @@ Agent-builder progress:
 
 ### Step 0 — Load learnings, then intake (5 questions)
 
-**Before the first question, load `atelier-learnings`.** Cite rule IDs when you block or waive. Silent violation is forbidden.
+**Before the first question, load `learnings`.** Cite rule IDs when you block or waive. Silent violation is forbidden.
 
 Ask the five, 2–3 at a time. Then run Step 0b. Do not skip 0b on the beginner path (REPORT-1).
 
@@ -219,7 +219,7 @@ once and cites it three times.
   ceilings, an event schema not just an architecture diagram. A document that reads
   finished but fails these is flagged as a strategy doc, in the document itself.
 
-**4 · Learnings loaded.** `atelier-learnings` was applied. New production misses become a rule ID + eval case, not a Slack anecdote.
+**4 · Learnings loaded.** `learnings` was applied. New production misses become a rule ID + eval case, not a Slack anecdote.
 
 **5 · Home, identity, one store.** Runtime home and talk surface are both named (HOME-1). Tool identity is named (ID-1). For rung 4 / Tier B–C, Mastra + ConvexStore is the Studio standard: Mastra runs the agent loop and Convex is the only source of truth. A kill-and-fresh-process resume from Convex is required (STATE-1, LOOP-2); any vendor-local state is cache. An alternative harness requires a dated, evidence-backed waiver and the same tests.
 
@@ -251,7 +251,7 @@ once. Anything missing → name it, stop, smallest next step.
 
 ## Related skills
 
-`atelier-learnings` — load first; rule IDs are law.
+`learnings` — load first; rule IDs are law.
 `workflow-design` (stage 1), `agent-design` (stage 2), `eval-first-spec` (stage 3),
 `agent-prd` (stage 4) — the pipeline runs them; it never restates their internals.
 `refine-flywheel` — where the shipped agent goes next; out of scope here.

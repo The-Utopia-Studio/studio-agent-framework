@@ -5,7 +5,7 @@
 **Model:** live **Kimi K2.6** (`moonshotai/kimi-k2.6`, Anthropic-compatible endpoint at `api.moonshot.ai`)
 **Store under test:** `ConvexStore` — deployment `secret-dolphin-407`, schema in `mastra/convex/schema.ts`
 **Suite:** `evals/runner.js` — 12 golden cases, harness-agnostic, `run(fixture, ctx) -> report` contract
-**Skill cited:** `atelier-learnings` — rule IDs below trace to it
+**Skill cited:** `learnings` — rule IDs below trace to it
 
 Reproduce:
 

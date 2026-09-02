@@ -87,12 +87,12 @@ Not a competing standard — a persona/scaffolding layer that generates a differ
 |---|---|---|
 | `SOUL.md` | personality, voice, signature phrases | none — pure persona |
 | `AGENTS.md` | operating manual: triggers, permissions, escalation | this is runtime instruction content, the exact thing a `BEHAVIOR.md` is **not** |
-| `MEMORY.md` | durable cross-session knowledge | adjacent to our `atelier-learnings` / lessons pattern |
+| `MEMORY.md` | durable cross-session knowledge | adjacent to our `learnings` / lessons pattern |
 | `BOOTSTRAP.md` | one-time first-run orientation | no equivalent here |
 
 Worth borrowing: their "specific over generic" quality bar when authoring spec bodies, which is
 structurally the same complaint the standard's own quality criteria make about vague specs.
-Not worth adopting: a parallel Q&A flow — `agent-prd`, `agent-design` and `atelier-learnings`
+Not worth adopting: a parallel Q&A flow — `agent-prd`, `agent-design` and `learnings`
 already cover this ground.
 
 `BOOTSTRAP.md` — a first-run-only orientation file, archived once the agent is configured — is a
