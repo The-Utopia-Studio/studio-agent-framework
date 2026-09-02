@@ -130,13 +130,13 @@ export default function Home() {
             <a
               className="btn-download"
               href="/api/skills-zip"
-              aria-label="Download the Claude-ready skills bundle"
-              title="A Claude-ready ZIP: the seven skills, plus their linked long-horizon evidence. No UI, tests, docs, or other repository files."
+              aria-label="Download the Claude-ready framework skill"
+              title="One Claude-uploadable skill ZIP: one top-level folder and one SKILL.md, with the seven stage instructions and linked evidence inside."
             >
               <span className="btn-download-arrow" aria-hidden="true">
                 ↓
               </span>
-              <span>Download Claude-ready skills</span>
+              <span>Download for Claude</span>
             </a>
           </aside>
         </div>
