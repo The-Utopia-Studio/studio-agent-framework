@@ -858,6 +858,183 @@ fieldset div {
   min-width: 210px;
 }
 
+/* A harness is hard to understand as an architecture list. This turns the section into a
+   small, replayable story: let someone see both the normal path and the moments it intervenes. */
+.standard {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.45fr) minmax(190px, 0.55fr);
+  gap: 28px;
+}
+
+.standard-heading h2 {
+  max-width: 9em;
+}
+
+.standard-heading .standard-intro {
+  margin-bottom: 0;
+}
+
+.harness-playground {
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 20px;
+  box-shadow: 0 16px 34px rgba(59, 52, 55, 0.06);
+}
+
+.harness-playground-head {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.harness-kicker {
+  color: var(--accent);
+  font: 9px ui-monospace, monospace;
+  font-weight: bold;
+  letter-spacing: 0.12em;
+}
+
+.harness-playground h3 {
+  margin: 6px 0 0;
+  max-width: 33ch;
+  font-size: 16px;
+  line-height: 1.35;
+  letter-spacing: -0.025em;
+}
+
+.harness-replay,
+.scenario-button,
+.step-copy {
+  border: 0;
+  background: none;
+}
+
+.harness-replay {
+  color: var(--muted);
+  font: 10px ui-monospace, monospace;
+  white-space: nowrap;
+  padding: 5px 0;
+}
+
+.harness-replay:hover { color: var(--accent); transform: rotate(-8deg); }
+.harness-replay:focus-visible,
+.scenario-button:focus-visible,
+.step-copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.harness-scenarios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 17px 0;
+}
+
+.scenario-button {
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  padding: 7px 9px;
+}
+
+.scenario-button:hover,
+.scenario-button.is-selected {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: #fff6f2;
+}
+
+.harness-playground .harness-steps {
+  border-top: 1px solid var(--line);
+}
+
+.harness-playground .harness-steps li {
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+  background: none;
+  transition: background 220ms cubic-bezier(0.25, 1, 0.5, 1), transform 220ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.step-dot {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--muted);
+  font: 9px ui-monospace, monospace;
+  transition: background 180ms ease, color 180ms ease, border-color 180ms ease, transform 180ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.harness-playground .harness-steps li.is-done .step-dot {
+  border-color: #719d7d;
+  background: #719d7d;
+  color: white;
+}
+
+.harness-playground .harness-steps li.is-active {
+  background: linear-gradient(90deg, #fff1ec, transparent 88%);
+  transform: translateX(4px);
+}
+
+.harness-playground .harness-steps li.is-active .step-dot {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: scale(1.12);
+  animation: step-pulse 1.2s ease-in-out infinite;
+}
+
+.harness-playground .harness-steps li.is-caught .step-dot {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+  animation: caught 360ms cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+.step-copy {
+  display: block;
+  width: 100%;
+  padding: 0;
+  text-align: left;
+}
+
+.harness-playground .step-copy strong { font-size: 11px; letter-spacing: 0.06em; }
+.harness-playground .step-copy span { margin-top: 1px; font-size: 12px; line-height: 1.35; }
+.step-copy em { display: block; margin-top: 5px; color: var(--accent); font-size: 11px; font-style: normal; line-height: 1.4; animation: rise 220ms both; }
+
+.harness-result {
+  display: grid;
+  gap: 3px;
+  margin: 16px 0 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: #fcfbfa;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.harness-result b { color: var(--ink); }
+.harness-result.is-success { border-color: #b9d3c5; background: #f1f7f3; }
+.harness-result.is-success b { color: #3f7d5c; }
+.harness-result.is-caught { border-color: #eec4b8; background: #fdf2ee; }
+.harness-result.is-caught b { color: var(--accent); }
+
+.proof-intro { margin: 10px 0 10px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.standard-proof .btn-download { margin-top: 18px; }
+
+@keyframes step-pulse { 50% { box-shadow: 0 0 0 5px rgba(216, 85, 54, 0.12); } }
+@keyframes caught { from { transform: scale(0.6); } to { transform: scale(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .harness-playground *, .harness-playground *::before, .harness-playground *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ============================================================================
    LEARNINGS
    ============================================================================ */

@@ -1,86 +1,95 @@
-// The home-page section for the standard harness.
-//
-// Uses the .standard grid that already existed in globals.css but had no consumer — three
-// columns: what it is, what is proven, and the way in.
-const STEPS = [
-  ['1', 'PREFLIGHT', 'Reachable? No → clean offline, exit 0.'],
-  ['2', 'WORKFLOW', 'Deterministic. Sub-modules are nested workflows.'],
-  ['3', 'AGENT', 'One owned decision. Skills are its tools.'],
-  ['4', 'DURABLE STATE', 'ConvexStore. Convex is the system of record.'],
-  ['5', 'MEMORY WRITE', 'Deterministic. Not the model’s choice.'],
-  ['6', 'FRESHNESS', 'Did the write land? Timestamp, never size.'],
-  ['7', 'GRADE', 'BEHAVIOR.md, out of band, after the fact.'],
-];
+'use client';
 
-// Numbers, not adjectives. Every one of these is in long-horizon/ with the run behind it.
+import { useEffect, useState } from 'react';
+
+type ScenarioId = 'normal' | 'offline' | 'memory';
+
+const STEPS = [
+  ['1', 'CHECK THE WEATHER', 'Before it works, the agent checks that the services it needs are reachable.', 'A bad connection becomes “offline”, not a mysterious failure.'],
+  ['2', 'KEEP THE PLAN', 'For work that cannot be safely lost, a workflow holds the known sequence.', 'Only needed when losing work mid-flight would matter.'],
+  ['3', 'MAKE ONE JUDGEMENT', 'The AI decides one bounded thing, such as what to do next.', 'The model is not allowed to invent the whole control flow.'],
+  ['4', 'WRITE DOWN WHAT HAPPENED', 'Important events go into durable storage, outside the running process.', 'A fresh process can understand what happened before it started.'],
+  ['5', 'UPDATE ITS NOTES', 'If the agent needs memory, code saves the useful update after the work.', 'The agent cannot merely say that it remembered something.'],
+  ['6', 'CHECK THE NOTES CHANGED', 'The harness checks the timestamp, not the amount of text.', 'A note can look healthy while quietly becoming stale.'],
+  ['7', 'REVIEW THE RUN', 'Afterward, a separate check grades what the agent did.', 'The agent does not mark its own homework.'],
+] as const;
+
+const SCENARIOS: Record<ScenarioId, { label: string; lead: string; start: number; stopAt?: number; result: string }> = {
+  normal: { label: 'Watch a normal run', lead: 'A scheduled agent wakes up, does its job, and leaves evidence behind.', start: 0, result: 'Done — the run is recorded and can be checked later.' },
+  offline: { label: 'No internet', lead: 'It wakes up during a laptop sleep, before the network is ready.', start: 0, stopAt: 0, result: 'Stopped safely — recorded as offline. No half-started work and no false alarm.' },
+  memory: { label: 'Memory goes stale', lead: 'Everything looks fine, but the agent has quietly stopped updating its notes.', start: 4, stopAt: 5, result: 'Caught — freshness sees an old timestamp, even if the notes still look full.' },
+};
+
 const PROVEN = [
-  ['12 / 12', 'STATE-1 kill-test on 1.63.2', 'live model · real Convex · fresh-process resume'],
-  ['41 h', 'unattended, three sleep boundaries', 'one shut in a bag with no network'],
-  ['117', 'runs and cycles, 2 non-ok', 'both explained · work deferred, never dropped'],
-  ['$0.19', 'against a $3 cap', '240,602 tokens · the guard stops itself'],
+  ['12 / 12', 'recovery tests passed', 'A killed process resumed without repeating its action.'],
+  ['41 h', 'ran unattended', 'Across three real laptop sleep boundaries.'],
+  ['$0.19', 'spent under a $3 cap', 'The guard can stop the agent by itself.'],
 ];
 
 export default function StandardHarness() {
+  const [scenario, setScenario] = useState<ScenarioId>('normal');
+  const [activeStep, setActiveStep] = useState(0);
+  const [running, setRunning] = useState(false);
+  const current = SCENARIOS[scenario];
+  const finalStep = current.stopAt ?? STEPS.length - 1;
+  const complete = activeStep === finalStep && !running;
+
+  const play = (next: ScenarioId = scenario) => {
+    const nextScenario = SCENARIOS[next];
+    const nextFinalStep = nextScenario.stopAt ?? STEPS.length - 1;
+    setScenario(next);
+    setActiveStep(nextScenario.start);
+    setRunning(nextScenario.start < nextFinalStep);
+  };
+
+  useEffect(() => {
+    if (!running || activeStep >= finalStep) return;
+    const timer = window.setTimeout(() => {
+      const nextStep = activeStep + 1;
+      setActiveStep(nextStep);
+      if (nextStep >= finalStep) setRunning(false);
+    }, 720);
+    return () => window.clearTimeout(timer);
+  }, [activeStep, finalStep, running]);
+
   return (
     <section className="standard" id="harness">
-      <div className="standard-lead">
+      <div className="standard-heading">
         <label>03 · THE STANDARD HARNESS</label>
-        <h2>WHAT A CODED AGENT RUNS ON.</h2>
-        <p className="standard-intro">
-          Mastra runs the loop, Convex holds the truth. Seven steps, in this order — and steps 1, 5
-          and 6 exist only because they broke in production. None of the three are obvious and none
-          are documented upstream.
-        </p>
+        <h2>THE SAFETY SYSTEM UNDER AN AGENT.</h2>
+        <p className="standard-intro">An agent makes a judgement. A harness is everything around it that makes that judgement safe to run while nobody is watching.</p>
+      </div>
 
-        <ol className="harness-steps">
-          {STEPS.map(([n, name, note]) => (
-            <li key={n} className={n === '1' || n === '5' || n === '6' ? 'hard-won' : undefined}>
-              <b>{n}</b>
-              <div>
-                <strong>{name}</strong>
-                <span>{note}</span>
-              </div>
-            </li>
-          ))}
+      <div className="harness-playground">
+        <div className="harness-playground-head">
+          <div><span className="harness-kicker">FOLLOW ONE RUN</span><h3>{current.lead}</h3></div>
+          <button className="harness-replay" onClick={() => play()} aria-label="Replay this run">↻ Replay</button>
+        </div>
+        <div className="harness-scenarios" role="group" aria-label="Choose a harness scenario">
+          {(Object.keys(SCENARIOS) as ScenarioId[]).map((id) => <button key={id} className={scenario === id ? 'scenario-button is-selected' : 'scenario-button'} onClick={() => play(id)} aria-pressed={scenario === id}>{SCENARIOS[id].label}</button>)}
+        </div>
+        <ol className="harness-steps" aria-label="Seven harness steps">
+          {STEPS.map(([n, name, plainEnglish, why], index) => {
+            const state = index < activeStep ? 'is-done' : index === activeStep ? 'is-active' : '';
+            const isStopped = complete && scenario !== 'normal' && index === finalStep;
+            return <li key={n} className={`${state} ${isStopped ? 'is-caught' : ''}`}>
+              <span className="step-dot" aria-hidden="true">{index < activeStep ? '✓' : n}</span>
+              <button className="step-copy" onClick={() => setActiveStep(index)} aria-current={index === activeStep ? 'step' : undefined}>
+                <strong>{name}</strong><span>{plainEnglish}</span>{index === activeStep && <em>{why}</em>}
+              </button>
+            </li>;
+          })}
         </ol>
-        <p className="harness-note">
-          <em>Marked steps broke first.</em> The trigger is whatever the OS dispatches — a fellow
-          request, a signal, a schedule. Only what calls step 1 changes.
+        <p className={complete ? `harness-result ${scenario === 'normal' ? 'is-success' : 'is-caught'}` : 'harness-result'} aria-live="polite">
+          <b>{running ? 'Running…' : complete ? scenario === 'normal' ? '✓ Safe finish' : '✓ Problem caught' : 'Ready'}</b>
+          <span>{running ? `Step ${activeStep + 1} is doing its job.` : complete ? current.result : 'Choose a story above to see what the harness protects.'}</span>
         </p>
       </div>
 
-      <div className="standard-proof">
-        <label>WHAT IS ACTUALLY PROVEN</label>
-        {PROVEN.map(([fig, what, how]) => (
-          <article key={what} className="proof-row">
-            <b>{fig}</b>
-            <strong>{what}</strong>
-            <span>{how}</span>
-          </article>
-        ))}
-        <p className="harness-caveat">
-          The environment turned out to be the easy part. What is hard is noticing an agent that
-          looks perfect from the outside has quietly stopped doing part of its job — which is what
-          happened, for nine hours, with every signal green.
-        </p>
-      </div>
-
-      <aside className="standard-cta">
-        <span className="hero-aside-num">07</span>
-        <p className="hero-aside-title">SEVEN STEPS, TWO DECISIONS</p>
-        <p className="hero-aside-sub">a workflow only if losing work costs something</p>
-        <a
-          className="btn-download"
-          href="https://github.com/The-Utopia-Studio/studio-agent-framework/tree/main/long-horizon"
-          target="_blank"
-          rel="noreferrer"
-          title="long-horizon/ — the harness, memory, the Inngest result, and conduct grading, each separating proven from unproven"
-        >
-          <span className="btn-download-arrow" aria-hidden="true">
-            →
-          </span>
-          <span>Read the standard</span>
-        </a>
+      <aside className="standard-proof">
+        <label>NOT JUST A DIAGRAM</label><p className="proof-intro">This setup has been tested against real failures, not only happy paths.</p>
+        {PROVEN.map(([fig, what, how]) => <article key={what} className="proof-row"><b>{fig}</b><strong>{what}</strong><span>{how}</span></article>)}
+        <a className="btn-download" href="https://github.com/The-Utopia-Studio/studio-agent-framework/tree/main/long-horizon" target="_blank" rel="noreferrer"><span aria-hidden="true">→</span><span>See the evidence</span></a>
       </aside>
     </section>
   );
