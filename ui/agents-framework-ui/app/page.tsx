@@ -126,13 +126,13 @@ export default function Home() {
             <a
               className="btn-download"
               href="/api/skills-zip"
-              aria-label="Download the seven skills as a zip"
-              title="All seven skills, including mastra-harness (stage 5). Pinned to the current commit on main — a fixed snapshot, not a moving branch"
+              aria-label="Download the Claude-ready skills bundle"
+              title="A Claude-ready ZIP: the seven skills, plus their linked long-horizon evidence. No UI, tests, docs, or other repository files."
             >
               <span className="btn-download-arrow" aria-hidden="true">
                 ↓
               </span>
-              <span>Download the skills</span>
+              <span>Download Claude-ready skills</span>
             </a>
           </aside>
         </div>

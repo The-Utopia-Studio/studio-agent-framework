@@ -145,13 +145,13 @@ export default function BuildFlow({ rec, answers }: BuildFlowProps) {
             <a
               className="btn-download"
               href="/api/skills-zip"
-              aria-label="Download the six skills as a zip"
-              title="Downloads a zip pinned to the current commit on main — a fixed snapshot, not a moving branch"
+              aria-label="Download the Claude-ready skills bundle"
+              title="A Claude-ready ZIP: the seven skills, plus their linked long-horizon evidence. No UI, tests, docs, or other repository files."
             >
               <span className="btn-download-arrow" aria-hidden="true">
                 ↓
               </span>
-              <span>Download the six skills (zip)</span>
+              <span>Download Claude-ready skills</span>
             </a>
             <button className="solid compact" onClick={generate}>
               Generate PRD and work orders →
