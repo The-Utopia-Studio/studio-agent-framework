@@ -144,7 +144,7 @@ export default function BuildFlow({ rec, answers }: BuildFlowProps) {
           <div className="handoff-actions">
             <a
               className="btn-download"
-              href="/api/skills-zip"
+              href="/api/skills-zip?bundle=claude-single-skill-v2"
               aria-label="Download the Claude-ready skills bundle"
               title="A Claude-ready ZIP: the seven skills, plus their linked long-horizon evidence. No UI, tests, docs, or other repository files."
             >

@@ -90,7 +90,9 @@ export async function GET() {
       headers: {
         'Content-Type': 'application/zip',
         'Content-Disposition': 'attachment; filename="studio-agent-framework-claude-skills.zip"',
-        'Cache-Control': 'public, max-age=300',
+        // A stale bundle is structurally invalid to Claude's uploader. Never let a browser
+        // or CDN hand out a previous archive after this format changes.
+        'Cache-Control': 'no-store, max-age=0',
       },
     });
   } catch {
