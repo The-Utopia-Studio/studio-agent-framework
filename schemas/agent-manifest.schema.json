@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/The-Utopia-Studio/studio-agent-framework/schemas/agent-manifest.schema.json",
+  "title": "Studio Agent Manifest",
+  "description": "The checkable hand-off from an agent PRD to a runtime harness. This schema validates declared intent and the checks required to prove it; it does not itself prove runtime behaviour.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "agent", "lifecycle", "runtime", "tools", "state", "operations", "evaluation", "conformance", "evidence"],
+  "$defs": {
+    "exactVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$" },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "enforcement", "failure_condition"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "enforcement": { "enum": ["runtime", "repository-ci", "manual", "none"] },
+        "command": { "type": "string", "minLength": 1 },
+        "failure_condition": { "type": "string", "minLength": 12 },
+        "evidence_ref": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        { "if": { "properties": { "enforcement": { "const": "none" } } }, "then": { "not": { "required": ["command"] } }, "else": { "required": ["command"] } }
+      ]
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "check"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "status": { "enum": ["verified", "unverified", "corrected", "unenforced", "not-applicable"] },
+        "check": { "$ref": "#/$defs/check" },
+        "note": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "verified" } } },
+          "then": {
+            "properties": {
+              "check": {
+                "properties": { "enforcement": { "not": { "const": "none" } } }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "status": { "const": "unenforced" } } },
+          "then": {
+            "properties": {
+              "check": {
+                "properties": { "enforcement": { "const": "none" } }
+              }
+            },
+            "required": ["note"]
+          }
+        }
+      ]
+    }
+  },
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "agent": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "name", "job", "owner", "module"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{2,63}$" },
+        "name": { "type": "string", "minLength": 3, "maxLength": 128 },
+        "job": { "type": "string", "minLength": 12, "maxLength": 280 },
+        "owner": { "type": "string", "minLength": 2 },
+        "module": { "type": "string", "minLength": 2 },
+        "non_goals": { "type": "array", "items": { "type": "string", "minLength": 4 }, "minItems": 1, "uniqueItems": true }
+      }
+    },
+    "lifecycle": {
+      "type": "object", "additionalProperties": false,
+      "required": ["rung", "runtime_home", "talk_surface", "trigger", "tool_identity"],
+      "properties": {
+        "rung": { "enum": [1, 2, 3, 4] },
+        "runtime_home": { "type": "string", "minLength": 2 },
+        "talk_surface": { "type": "string", "minLength": 2 },
+        "trigger": { "enum": ["human", "schedule", "event", "api"] },
+        "tool_identity": { "type": "string", "minLength": 3 }
+      }
+    },
+    "runtime": {
+      "type": "object", "additionalProperties": false,
+      "required": ["harness", "packages", "workflow"],
+      "properties": {
+        "harness": { "enum": ["mastra-convex", "alternative-with-waiver", "managed-surface", "none"] },
+        "packages": {
+          "type": "array", "items": {
+            "type": "object", "additionalProperties": false, "required": ["name", "version"],
+            "properties": { "name": { "type": "string", "pattern": "^@?[a-z0-9][a-z0-9._/-]*$" }, "version": { "$ref": "#/$defs/exactVersion" } }
+          }, "uniqueItems": true
+        },
+        "workflow": {
+          "type": "object", "additionalProperties": false, "required": ["required", "rationale"],
+          "properties": { "required": { "type": "boolean" }, "rationale": { "type": "string", "minLength": 12 }, "approval": { "type": "boolean" } }
+        },
+        "waiver": { "type": "object", "additionalProperties": false, "required": ["id", "date", "evidence_ref"], "properties": { "id": { "const": "W-01" }, "date": { "type": "string", "format": "date" }, "evidence_ref": { "type": "string", "minLength": 1 } } }
+      },
+      "allOf": [
+        { "if": { "properties": { "harness": { "const": "alternative-with-waiver" } } }, "then": { "required": ["waiver"] } }
+      ]
+    },
+    "tools": {
+      "type": "array", "minItems": 1, "items": {
+        "type": "object", "additionalProperties": false, "required": ["name", "effect", "identity", "idempotency"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "effect": { "enum": ["read", "write", "external-write"] },
+          "identity": { "type": "string", "minLength": 3 },
+          "idempotency": { "enum": ["not-needed", "check-first", "idempotency-key"] },
+          "approval_required": { "type": "boolean" }
+        },
+        "allOf": [
+          { "if": { "properties": { "effect": { "const": "external-write" } } }, "then": { "properties": { "idempotency": { "not": { "const": "not-needed" } } }, "required": ["approval_required"] } }
+        ]
+      }
+    },
+    "state": {
+      "type": "object", "additionalProperties": false,
+      "required": ["canonical_store", "tenant_key", "event_log", "memory"],
+      "properties": {
+        "canonical_store": { "type": "string", "minLength": 3 },
+        "tenant_key": { "type": "string", "minLength": 2 },
+        "event_log": { "type": "object", "additionalProperties": false, "required": ["append_only", "external_read_check"], "properties": { "append_only": { "const": true }, "external_read_check": { "$ref": "#/$defs/check" } } },
+        "memory": {
+          "type": "object", "additionalProperties": false, "required": ["channels"],
+          "properties": {
+            "channels": { "type": "array", "items": { "enum": ["none", "working", "semantic-recall", "module"] }, "uniqueItems": true, "minItems": 1 },
+            "deterministic_write": { "type": "boolean" },
+            "freshness_check": { "$ref": "#/$defs/check" },
+            "write_behavior_check": { "$ref": "#/$defs/check" }
+          },
+          "allOf": [
+            { "if": { "properties": { "channels": { "contains": { "const": "working" } } } }, "then": { "required": ["deterministic_write", "freshness_check", "write_behavior_check"], "properties": { "deterministic_write": { "const": true } } } }
+          ]
+        }
+      }
+    },
+    "operations": {
+      "type": "object", "additionalProperties": false,
+      "required": ["preflight", "statuses", "budget"],
+      "properties": {
+        "preflight": { "type": "object", "additionalProperties": false, "required": ["required", "dependencies", "record_check"], "properties": { "required": { "type": "boolean" }, "dependencies": { "type": "array", "items": { "type": "string", "minLength": 2 }, "minItems": 1 }, "record_check": { "$ref": "#/$defs/check" } } },
+        "statuses": { "type": "array", "items": { "enum": ["ok", "degraded", "offline", "failed"] }, "uniqueItems": true, "minItems": 4, "maxItems": 4 },
+        "budget": { "type": "object", "additionalProperties": false, "required": ["currency", "max_per_period", "period", "enforcement_check"], "properties": { "currency": { "const": "USD" }, "max_per_period": { "type": "number", "exclusiveMinimum": 0 }, "period": { "enum": ["run", "day", "month"] }, "enforcement_check": { "$ref": "#/$defs/check" } } }
+      }
+    },
+    "evaluation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["adapter_contract", "output_eval", "behavior_eval"],
+      "properties": {
+        "adapter_contract": { "const": "run(fixture, ctx) -> report" },
+        "output_eval": { "type": "object", "additionalProperties": false, "required": ["fixture_refs", "check"], "properties": { "fixture_refs": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }, "check": { "$ref": "#/$defs/check" } } },
+        "behavior_eval": { "type": "object", "additionalProperties": false, "required": ["enabled", "check"], "properties": { "enabled": { "type": "boolean" }, "check": { "$ref": "#/$defs/check" } } }
+      }
+    },
+    "conformance": { "type": "array", "items": { "$ref": "#/$defs/claim" }, "minItems": 1 },
+    "evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["reproducibility", "references"],
+      "properties": {
+        "reproducibility": { "enum": ["third-party-rerunnable", "internal-rerunnable", "external-only", "not-run"] },
+        "references": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "lifecycle": { "properties": { "trigger": { "const": "schedule" } } }
+        }
+      },
+      "then": {
+        "properties": {
+          "operations": {
+            "properties": {
+              "preflight": { "properties": { "required": { "const": true } } }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "runtime": {
+            "properties": {
+              "workflow": {
+                "required": ["approval"],
+                "properties": { "approval": { "const": true } }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "runtime": {
+            "properties": {
+              "workflow": { "properties": { "required": { "const": true } } }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

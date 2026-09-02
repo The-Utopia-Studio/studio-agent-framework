@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "agent": {
+    "id": "tech-news-reference",
+    "name": "Tech-news reference agent",
+    "job": "Periodically collect and summarize new technology stories while preserving bounded cross-cycle memory.",
+    "owner": "Studio", "module": "studio-internal",
+    "non_goals": ["Resume a partially completed workflow", "Make external writes", "Use a workflow solely because it is standard"]
+  },
+  "lifecycle": { "rung": 4, "runtime_home": "local scheduled process", "talk_surface": "schedule", "trigger": "schedule", "tool_identity": "agent service identity" },
+  "runtime": {
+    "harness": "mastra-convex",
+    "packages": [
+      { "name": "@mastra/core", "version": "1.63.2" }, { "name": "@mastra/convex", "version": "1.5.4" },
+      { "name": "@mastra/memory", "version": "1.27.0" }, { "name": "@mastra/langfuse", "version": "1.5.3" }
+    ],
+    "workflow": { "required": false, "approval": false, "rationale": "Cycles are independent; losing one cycle costs one interval and the next cycle catches up." }
+  },
+  "tools": [ { "name": "fetch_news", "effect": "read", "identity": "agent service identity", "idempotency": "not-needed" } ],
+  "state": {
+    "canonical_store": "Convex", "tenant_key": "studio",
+    "event_log": { "append_only": true, "external_read_check": { "id": "raw-state-read", "enforcement": "manual", "command": "reference harness raw HTTP read", "failure_condition": "The expected tenant-scoped durable record cannot be read without a vendor SDK.", "evidence_ref": "long-horizon/HARNESS.md" } },
+    "memory": {
+      "channels": ["working"], "deterministic_write": true,
+      "freshness_check": { "id": "memory-freshness", "enforcement": "none", "failure_condition": "A successful cycle is older than the allowed number of cycles without advancing the durable-memory timestamp.", "evidence_ref": "long-horizon/BEHAVIOR.md" },
+      "write_behavior_check": { "id": "memory-write-offered-and-called", "enforcement": "none", "failure_condition": "updateWorkingMemory was not both offered and called at least once in the configured cycle window.", "evidence_ref": "long-horizon/BEHAVIOR.md" }
+    }
+  },
+  "operations": {
+    "preflight": { "required": true, "dependencies": ["news source", "model host"], "record_check": { "id": "preflight-recorded", "enforcement": "manual", "command": "reference harness behavior evaluator", "failure_condition": "A cycle begins work without a precondition_checked event, or a network failure is classified as failed rather than offline.", "evidence_ref": "bakeoff/evals/behavior.js" } },
+    "statuses": ["ok", "degraded", "offline", "failed"],
+    "budget": { "currency": "USD", "max_per_period": 3, "period": "run", "enforcement_check": { "id": "self-enforced-budget", "enforcement": "manual", "command": "reference harness budget test", "failure_condition": "The agent continues scheduling work after recorded spend reaches its configured cap.", "evidence_ref": "long-horizon/HARNESS.md" } }
+  },
+  "evaluation": {
+    "adapter_contract": "run(fixture, ctx) -> report",
+    "output_eval": { "fixture_refs": ["not packaged: reference agent external to this repository"], "check": { "id": "reference-output-eval", "enforcement": "none", "failure_condition": "No fixture result exists for the declared agent output contract.", "evidence_ref": "long-horizon/HARNESS.md" } },
+    "behavior_eval": { "enabled": true, "check": { "id": "behavior-compiler", "enforcement": "repository-ci", "command": "node --test bakeoff/evals/behavior.test.js", "failure_condition": "Any required portable behavior predicate fails.", "evidence_ref": "bakeoff/evals/behavior.js" } }
+  },
+  "conformance": [
+    { "id": "workflow-not-required", "status": "verified", "check": { "id": "independent-cycle-rationale", "enforcement": "manual", "command": "review manifest workflow rationale against run design", "failure_condition": "The agent has approval or costly inter-step state but declares workflow.required=false.", "evidence_ref": "long-horizon/STANDARD.md" } },
+    { "id": "state-1a", "status": "not-applicable", "check": { "id": "state-1a-scope", "enforcement": "manual", "command": "review workflow.required", "failure_condition": "A workflow-bearing agent omits the fresh-process recovery check.", "evidence_ref": "README.md" }, "note": "This agent has no workflow or mid-flight approval state to resume." },
+    { "id": "memory-maintenance", "status": "unenforced", "check": { "id": "memory-maintenance-runner", "enforcement": "none", "failure_condition": "No runner evaluates timestamp freshness and offered-and-called memory writes for this agent.", "evidence_ref": "long-horizon/BEHAVIOR.md" }, "note": "The observed reference run is documented, but its agent implementation and nine-cycle evidence are not in this repository." }
+  ],
+  "evidence": { "reproducibility": "external-only", "references": ["long-horizon/HARNESS.md", "long-horizon/BEHAVIOR.md"] }
+}

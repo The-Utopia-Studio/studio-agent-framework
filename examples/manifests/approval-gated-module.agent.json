@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0.0",
+  "agent": {
+    "id": "approval-gated-module", "name": "Approval-gated module agent",
+    "job": "Prepare a tenant-scoped external action and execute it only after a named human approves the persisted action.",
+    "owner": "Product Operations", "module": "product",
+    "non_goals": ["Execute an external write before approval", "Use vendor-local state as the source of truth", "Retry a completed external action"]
+  },
+  "lifecycle": { "rung": 4, "runtime_home": "Utopia OS worker", "talk_surface": "approval queue", "trigger": "event", "tool_identity": "named-team service account" },
+  "runtime": {
+    "harness": "mastra-convex",
+    "packages": [ { "name": "@mastra/core", "version": "1.63.2" }, { "name": "@mastra/convex", "version": "1.5.4" } ],
+    "workflow": { "required": true, "approval": true, "rationale": "A human approval must survive process loss and guard an externally visible action." }
+  },
+  "tools": [
+    { "name": "read_request", "effect": "read", "identity": "named-team service account", "idempotency": "not-needed" },
+    { "name": "perform_external_action", "effect": "external-write", "identity": "named-team service account", "idempotency": "check-first", "approval_required": true }
+  ],
+  "state": {
+    "canonical_store": "Convex", "tenant_key": "tenant_id",
+    "event_log": { "append_only": true, "external_read_check": { "id": "canonical-log-readable", "enforcement": "none", "failure_condition": "A fresh process cannot query a tenant-scoped action record without a harness SDK.", "evidence_ref": "mastra-harness/SKILL.md" } },
+    "memory": { "channels": ["none"] }
+  },
+  "operations": {
+    "preflight": { "required": true, "dependencies": ["Convex", "action API", "model host"], "record_check": { "id": "preflight-before-work", "enforcement": "none", "failure_condition": "A dependency-shaped outage starts a workflow or produces failed instead of offline.", "evidence_ref": "mastra-harness/scaffold/preflight.js" } },
+    "statuses": ["ok", "degraded", "offline", "failed"],
+    "budget": { "currency": "USD", "max_per_period": 1, "period": "run", "enforcement_check": { "id": "per-run-budget", "enforcement": "none", "failure_condition": "The agent invokes the model after its recorded per-run spend cap.", "evidence_ref": "long-horizon/HARNESS.md" } }
+  },
+  "evaluation": {
+    "adapter_contract": "run(fixture, ctx) -> report",
+    "output_eval": { "fixture_refs": ["bakeoff/evals/fixtures/4-crash-resume.json", "bakeoff/evals/fixtures/11-post-crash-duplicate-check.json"], "check": { "id": "approval-module-conformance", "enforcement": "none", "failure_condition": "The fixture reports an extra model call after resume, a duplicate external action, or missing durable state.", "evidence_ref": "bakeoff/evals/runner.js" } },
+    "behavior_eval": { "enabled": true, "check": { "id": "behavior-compiler", "enforcement": "repository-ci", "command": "node --test bakeoff/evals/behavior.test.js", "failure_condition": "Any required portable behavior predicate fails.", "evidence_ref": "bakeoff/evals/behavior.js" } }
+  },
+  "conformance": [
+    { "id": "state-1a", "status": "unverified", "check": { "id": "fresh-process-recovery", "enforcement": "manual", "command": "run harness kill-test with a fresh process and persisted run id", "failure_condition": "A fresh process repeats model selection, cannot resume, or emits a duplicate external action.", "evidence_ref": "README.md" }, "note": "This is a proposed agent; the existing bake-off fixture is analogous evidence, not proof for this module." },
+    { "id": "approval-before-effect", "status": "unverified", "check": { "id": "approval-gate", "enforcement": "none", "failure_condition": "perform_external_action occurs without a preceding persisted approval event.", "evidence_ref": "docs/bakeoff/findings-mastra.md" }, "note": "Requires an adapter event normalizer before it can be automated." }
+  ],
+  "evidence": { "reproducibility": "not-run", "references": ["docs/bakeoff/findings-mastra.md", "bakeoff/evals/fixtures/4-crash-resume.json"] }
+}
