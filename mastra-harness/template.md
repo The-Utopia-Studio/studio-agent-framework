@@ -88,6 +88,7 @@ thing:
 | freshness check | if Decision 2 has any durable memory | `scaffold/freshness.js` |
 | doctor | **always** | `scaffold/doctor.js` |
 | `BEHAVIOR.md` | **always** | beside the agent |
+| behaviour compiler + CI gate | **always** | canonical event-log evaluator |
 
 ```js
 // doctor config, from the decisions above
@@ -113,6 +114,7 @@ Not "it ran once". Each line needs a result, not a tick.
 | *If memory:* write timestamp **advances** across cycles | |
 | *If memory:* `updateWorkingMemory` **offered and called** — from the provider request | |
 | *If memory:* recall tested with the **other channels disabled** | |
+| Behaviour compiler passes on a trace containing duration, blocked-action, and preflight events | |
 
 > The last row is the one people skip. Test recall with everything else off, or you are measuring
 > semantic recall and calling it working memory — a mistake that cost this project two days.

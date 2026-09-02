@@ -106,12 +106,11 @@ export async function resumeRun(fixture, ctx, report, h) {
       storage: makeStore(dbPath).store,
     });
     const agent = mastra.getAgent('linear-digest');
-    // Attempt to resume WITHOUT a concluding model call (PRD case 4: "LLM not
-    // re-invoked"). The loop accepts `stopWhen`, but @mastra/core@1.61.0 exports no
-    // condition helper (stepCountIs et al are internal), so we pass a bare predicate.
+    // Resume through the native API, but do not permit a concluding model turn after the
+    // approved side effect. This is an execution ceiling, not a prompt instruction.
     await agent.approveToolCallGenerate({
       runId: h.mastraRunId, toolCallId: h.toolCallId,
-      stopWhen: () => true,
+      maxSteps: 1,
     });
     harnessResumeOk = true;
   } catch (err) {

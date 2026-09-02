@@ -4,10 +4,13 @@
   "description": "A general-purpose Mastra agent with a local workspace, shell tools, memory, task tracking, web access, and recurring schedules.",
   "main": "index.js",
   "private": true,
+  "packageManager": "npm@11.16.0",
   "scripts": {
     "dev": "mastra dev",
     "build": "mastra build",
-    "start": "mastra start"
+    "start": "mastra start",
+    "suite:mock": "cd .. && node evals/runner.js --harness=./mastra/entry.js --all",
+    "test:behavior": "node --test ../evals/behavior.test.js"
   },
   "keywords": [],
   "author": "",
@@ -17,19 +20,19 @@
     "node": ">=22.13.0"
   },
   "dependencies": {
-    "@mastra/convex": "^1.5.4",
-    "@mastra/core": "1.61.0",
+    "@mastra/convex": "1.5.4",
+    "@mastra/core": "1.63.2",
     "@mastra/duckdb": "1.6.2",
-    "@mastra/langfuse": "^1.5.0",
+    "@mastra/langfuse": "1.5.3",
     "@mastra/libsql": "1.21.1",
     "@mastra/memory": "1.27.0",
     "@mastra/observability": "1.17.1",
-    "convex": "^1.45.0",
-    "zod": "^4.4.3"
+    "convex": "1.45.0",
+    "zod": "4.4.3"
   },
   "devDependencies": {
-    "@types/node": "latest",
+    "@types/node": "22.19.19",
     "mastra": "1.26.0",
-    "typescript": "^6.0.3"
+    "typescript": "6.0.3"
   }
 }

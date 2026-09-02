@@ -459,6 +459,8 @@ Skip for Tier A. Mandatory for Tier B and C.
 4. Which steps are automatic and which require a person?
 5. What is the timeout budget, step by step, with a worst-case total?
 6. Does any step mutate an earlier record?
+7. For an unattended run, which event records `duration_ms`, a prevented action
+   (`blocked`, `blocked_by`), and the preflight verdict before work starts?
 
 **Enforce these:**
 
@@ -490,7 +492,9 @@ path**, or runs get stuck in "running" forever.
 platform ceiling, the run must be split across invocations.
 
 **Record:** event schema, save points, resume behaviour per stage, timeout table with
-worst case, auto vs human map, idempotency notes.
+worst case, auto vs human map, idempotency notes. For background work, include
+`duration_ms`, `blocked`, `blocked_by`, and a `precondition_checked` event; those facts cannot
+be reconstructed honestly from an error string after the run.
 
 ---
 
@@ -714,6 +718,8 @@ flagged as blocking.
 - [ ] **HOME-1:** Runtime home (OS / Vercel / local) AND talk surface (OS UI / Slack / schedule / CLI) both named
 - [ ] **ID-1:** Tool identity named (studio shared Composio / team shared / fellow / service API)
 - [ ] **STATE-1 / LOOP-2:** For Tier B/C, kill-and-fresh-process resume from Convex log only — vendor state file is not required
+- [ ] **HORIZON-7:** For unattended Tier B/C, the event contract contains duration, blocked-action,
+      and preflight facts so behaviour can be graded from the canonical trajectory
 - [ ] **CTX-2 / CTX-2b:** Context route named (pull on demand; prefetch-into-log only if already known)
 - [ ] **REPORT-1:** Fast-pass still contains home, surface, identity, and any blocker — not a silent complete
 - [ ] **Ship-out:** GitHub path (or OS library id) for code/skills/prompts
@@ -1105,8 +1111,8 @@ Adapt the contents, keep the sequence and the exits.
 |---|---|---|
 | **M0** | Contracts and evals | The suite runs and **fails honestly**. Input/output types exist. Event schema defined. |
 | **M1** | Naked baseline | One model call, minimal prompt, no scaffolding, best model. A recorded score everything later must beat. |
-| **M2** | Durability | Process killed mid-run; it resumes rather than restarting. Artifact survives. |
-| **M3** | Evaluator | Agrees with a human on 8 of 10 graded samples. Thresholds enforced; no unconditional pass. |
+| **M2** | Durability | Process killed mid-run; it resumes rather than restarting. Artifact survives. Exact harness pins and the lockfile are committed. |
+| **M3** | Evaluator | Output and behaviour evaluators run over the canonical event stream; thresholds enforced; no unconditional pass. |
 | **M4** | Memory | Tiers live, retrieval budgeted, tenancy tested adversarially. |
 | **M5** | Learning loop | Outcomes feed the playbook. Only after M0–M4 hold. |
 

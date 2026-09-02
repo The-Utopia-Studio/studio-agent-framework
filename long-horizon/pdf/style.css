@@ -34,6 +34,49 @@ h1 + p{ font-size:11.2pt; color:var(--muted); margin:0 0 12pt; max-width:46em; }
   margin:0 0 20pt; letter-spacing:.01em;
 }
 
+/* ---- visual orientation aids ------------------------------------------------------- */
+.reading-map,.module-row,.memory-row,.module-memory-row{ display:grid; gap:7pt; }
+.reading-map{ grid-template-columns:repeat(4,1fr); margin:12pt 0 20pt; }
+.reading-map div,.module-row div{ background:var(--wash); border-top:2px solid var(--accent); padding:8pt; }
+.reading-map strong,.reading-map span,.harness-map strong,.harness-map span,
+.memory-architecture strong,.memory-architecture span{ display:block; }
+.reading-map strong{ font-size:8.5pt; color:#241f21; }
+.reading-map span{ margin-top:2pt; font-size:7.5pt; color:var(--muted); }
+
+.harness-map,.memory-architecture{
+  margin:13pt 0 15pt; padding:12pt; background:#faf7f5; border:1px solid var(--line);
+  break-inside:avoid; page-break-inside:avoid;
+}
+.map-top{ text-align:center; padding:5pt 8pt 9pt; color:#241f21; }
+.map-top strong{ font-size:10pt; }
+.map-top span{ color:var(--muted); font-size:8pt; margin-top:2pt; }
+.module-row{ grid-template-columns:repeat(3,1fr); margin-bottom:8pt; }
+.module-row div{ font-size:8.1pt; font-weight:700; text-align:center; color:#241f21; }
+.workflow-card{ background:#fdf0eb; border-left:3px solid var(--accent); padding:9pt 10pt; }
+.workflow-card strong{ color:#241f21; font-size:9.2pt; }
+.workflow-card span{ color:var(--muted); font-size:8pt; margin-top:2pt; }
+.memory-row{ grid-template-columns:repeat(3,1fr); margin-top:8pt; }
+.memory-row div{ background:#fff; border:1px solid var(--line); padding:8pt; min-height:75pt; }
+.memory-row strong{ color:#241f21; font-size:8.5pt; }
+.memory-row span{ color:var(--accent); font-size:7.3pt; font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin:3pt 0 5pt; }
+.memory-row em{ display:block; color:var(--muted); font-size:7.7pt; line-height:1.35; }
+.map-foot{ font-size:7.6pt; color:var(--muted); margin:8pt 0 0; }
+
+.convex-card{ background:#312a2d; color:#fff; padding:10pt 11pt; border-radius:2pt; }
+.convex-card strong{ font-size:10pt; color:#fff; }
+.convex-card span{ margin-top:3pt; font-size:8pt; color:#f3e8e4; }
+.convex-card em{ display:block; margin-top:5pt; color:#f0b9a9; font-size:7.8pt; }
+.module-memory-row{ grid-template-columns:repeat(3,1fr); margin:8pt 0; }
+.module-memory-row div{ background:#fff; border:1px solid var(--line); border-top:3px solid var(--good); padding:8pt; min-height:128pt; }
+.module-memory-row strong{ color:#241f21; font-size:8.5pt; }
+.module-memory-row span{ color:var(--good); font-size:7.1pt; text-transform:uppercase; letter-spacing:.05em; font-weight:700; margin:3pt 0 4pt; }
+.module-memory-row p{ margin:0; font-size:7.8pt; line-height:1.4; color:var(--muted); }
+.agent-memory-card{ background:#fff; border:1px solid var(--line); border-top:3px solid var(--accent); padding:9pt 10pt; }
+.agent-memory-card strong{ color:#241f21; font-size:9pt; }
+.agent-memory-card span{ color:var(--accent); font-size:7.3pt; text-transform:uppercase; letter-spacing:.05em; font-weight:700; margin:3pt 0; }
+.agent-memory-card em{ color:var(--muted); font-size:8pt; }
+.memory-caption{ margin:8pt 0 0; color:var(--muted); font-size:7.8pt; line-height:1.4; }
+
 /* ---- section rhythm. h2 carries its SECTION nn marker via a data attribute. */
 /* Each section starts a fresh page. Two reasons, both observed in the first build: the
    ::before marker orphaned at the bottom of a page while its heading went to the next, and a

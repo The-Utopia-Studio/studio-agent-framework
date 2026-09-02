@@ -10,7 +10,9 @@ import path from 'node:path';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const SRC = path.join(HERE, '..', 'STANDARD.md');
-const OUT = path.join(HERE, 'the-standard-harness.pdf');
+const OUT = process.env.STANDARD_HARNESS_OUT
+  ? path.resolve(process.env.STANDARD_HARNESS_OUT)
+  : path.join(HERE, 'the-standard-harness.pdf');
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 // h2 slug prefix -> the SECTION marker printed above it.
@@ -84,6 +86,7 @@ const page = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 
 const tmp = path.join(HERE, '.build.html');
 fs.writeFileSync(tmp, page);
+fs.mkdirSync(path.dirname(OUT), { recursive: true });
 execFileSync(CHROME, [
   '--headless', '--disable-gpu', '--no-sandbox', '--no-pdf-header-footer',
   '--virtual-time-budget=5000', `--print-to-pdf=${OUT}`, `file://${tmp}`,

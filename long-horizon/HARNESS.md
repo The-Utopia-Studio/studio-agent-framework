@@ -182,14 +182,14 @@ args validator declares a `$or` field and Convex reserves `$`).
 
 ## Two errors in our own 26 Aug material
 
-**The Convex schema declares the wrong workflow table — and an earlier revision of this file
-had the correction backwards.** Settled by resolving the constant out of the package and reading
-both tables (2 Sep):
+**The Convex schema previously declared the wrong workflow table — and an earlier revision of this
+file had the correction backwards.** Settled by resolving the constant out of the package and reading
+both tables (2 Sep). The checked-in schema now uses the runtime name:
 
 ```
 @mastra/convex  TABLE_WORKFLOW_SNAPSHOT = "mastra_workflow_snapshot"   ← SINGULAR. reads AND writes
-our convex/schema.ts declares             "mastra_workflow_snapshots"  ← PLURAL. 0 rows, inert
-row counts on the live deployment:        singular 13 · plural 0
+old convex/schema.ts declared             "mastra_workflow_snapshots"  ← PLURAL. 0 rows, inert
+current convex/schema.ts declares         "mastra_workflow_snapshot"  ← SINGULAR
 ```
 
 [`findings-mastra.md`](../docs/bakeoff/findings-mastra.md) §4 had this **right**, and was more
@@ -198,14 +198,15 @@ reference doc* (which names the table plural — an upstream documentation bug) 
 constant* (singular). Following the reference doc is how we came to declare a table nothing writes
 to.
 
-**It is latent, not active.** The runtime is self-consistent — singular for reads and writes — so
+**It was latent, not active.** The runtime is self-consistent — singular for reads and writes — so
 `resume()`, `listWorkflowRuns()`, `listActiveWorkflowRuns()` and `getWorkflowRunById()` all
 succeed against it (verified). The cost of the mismatch is that **the table holding the real data
 is undeclared**: no schema validator, no declared indexes. Convex permits that, which is exactly
 why it went unnoticed.
 
-**Fix:** declare `mastra_workflow_snapshot` (singular) in `convex/schema.ts`. Not yet pushed —
-the deployment currently has a live agent on it, and a schema push is the user's call.
+**Fix applied in this repository:** `convex/schema.ts` declares `mastra_workflow_snapshot`
+(singular). A deployment schema migration remains an operator action and must be run under the
+target deployment's change controls.
 
 **`model_calls_after_resume` was a flaky assertion, and ours not Mastra's.** The decline path
 used `declineToolCall()`, which resolves *before* the model's concluding turn finishes, leaving

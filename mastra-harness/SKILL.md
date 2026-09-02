@@ -284,11 +284,12 @@ A work order is not done until `doctor` exits 0. Copy
 flags from the §1 decisions — an agent with no memory must not be failed for having none.
 
 - [ ] **[`template.md`](template.md) filled in** — the §1 decisions recorded, with reasons
-- [ ] `@mastra/convex` pinned to **1.5.4**, not `^1.5.4`
+- [ ] `@mastra/core` pinned to **1.63.2** and `@mastra/convex` to **1.5.4** — exact versions, lockfile committed
 - [ ] Preflight runs **before** any work; a network failure records `offline` and exits 0
 - [ ] Durable state read back **over raw HTTP with zero SDK** — if verification needs the
       vendor's client, you proved a cache, not a store
 - [ ] `BEHAVIOR.md` beside the agent with at least one mechanical predicate
+- [ ] Canonical events record `duration_ms`, `blocked` / `blocked_by`, and `precondition_checked`; the behaviour compiler runs in CI
 - [ ] Langfuse traces carry the git sha
 
 *If §1a said workflow:*

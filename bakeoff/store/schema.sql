@@ -34,6 +34,11 @@ CREATE TABLE IF NOT EXISTS events (
   -- `outcome` would be exactly the silent default CTX-3 forbids.
   failure_stage   TEXT,             -- fetch | validation | post | NULL
   error_message   TEXT,
+  -- BEHAVIOR.md Phase 1: trajectory facts a deterministic judge cannot recover later.
+  -- `blocked` means a guard prevented work; it is evidence of a control working, never a fault.
+  duration_ms     INTEGER,
+  blocked         INTEGER NOT NULL DEFAULT 0,
+  blocked_by      TEXT,
   -- SCHEMA-MAPPING FRICTION (Open Question 1 predicted this; WO-9 records it).
   -- Mastra mints its own runId for a suspended run and `approveToolCall({runId})` is the
   -- only way to resume one. To resume in a FRESH process after a crash we must persist that
@@ -44,7 +49,10 @@ CREATE TABLE IF NOT EXISTS events (
 
   CHECK (decision IS NULL OR decision IN ('approved','declined')),
   CHECK (outcome  IS NULL OR outcome  IN ('posted','declined','nothing-to-digest','budget-exhausted','failed')),
-  CHECK (failure_stage IS NULL OR failure_stage IN ('fetch','validation','post'))
+  CHECK (failure_stage IS NULL OR failure_stage IN ('fetch','validation','post')),
+  CHECK (duration_ms IS NULL OR duration_ms >= 0),
+  CHECK (blocked IN (0, 1)),
+  CHECK (blocked_by IS NULL OR blocked = 1)
 );
 
 -- One row per (run, step). Makes a re-append of the same step a loud failure, not a silent

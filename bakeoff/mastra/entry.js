@@ -352,7 +352,9 @@ export async function run(fixture, ctx) {
     appendEvent(runId, { step_name: 'approval_decision', decision, approver }, { dbPath });
 
     if (decision === 'declined') {
-      await agent.declineToolCall({ runId: out.runId, toolCallId: presented.toolCallId, reason: 'declined by operator' })
+      // Await the full decline turn. The streaming variant resolves before its concluding
+      // request settles, which can leak that request into the next case's call counter.
+      await agent.declineToolCallGenerate({ runId: out.runId, toolCallId: presented.toolCallId, reason: 'declined by operator' })
         .catch(() => {});
       writeTerminal(rc, report, 'declined', { approver, digest_text: presented.args.digest_text });
       report.slack_posts = 0;

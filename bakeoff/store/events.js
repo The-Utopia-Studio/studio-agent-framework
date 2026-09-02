@@ -59,6 +59,7 @@ const COLUMNS = [
   'run_id', 'step_index', 'step_name', 'timestamp', 'tool_selected', 'tool_args',
   'approver', 'decision', 'slack_response', 'outcome', 'git_sha',
   'resource', 'thread', 'failure_stage', 'error_message', 'harness_run_id',
+  'duration_ms', 'blocked', 'blocked_by',
 ];
 
 /**
@@ -95,10 +96,19 @@ function appendEvent(runId, event, opts = {}) {
       failure_stage: event.failure_stage ?? null,
       error_message: event.error_message ?? null,
       harness_run_id: event.harness_run_id ?? null,
+      duration_ms: event.duration_ms ?? null,
+      blocked: event.blocked ? 1 : 0,
+      blocked_by: event.blocked_by ?? null,
     };
 
     if (row.outcome !== null && !TERMINAL_OUTCOMES.includes(row.outcome)) {
       throw new Error(`unknown terminal outcome "${row.outcome}"`);
+    }
+    if (row.duration_ms !== null && (!Number.isInteger(row.duration_ms) || row.duration_ms < 0)) {
+      throw new Error('duration_ms must be a non-negative integer when recorded');
+    }
+    if (row.blocked_by !== null && row.blocked !== 1) {
+      throw new Error('blocked_by requires blocked=true');
     }
 
     db.prepare(

@@ -5,7 +5,9 @@ right. Based on the [Agent Behavior](https://github.com/braintrustdata/agentbeha
 standard (Braintrust + Basis, ~29 Jul 2026) and the M1 research in
 [`research/`](research/agent-behavior-m1.md).
 
-Status: **research complete, not yet wired in.** The plan is §4.
+Status: **reference compiler implemented; production-harness wiring remains required.**
+[`bakeoff/evals/behavior.js`](../bakeoff/evals/behavior.js) now grades the portable
+deterministic predicates. The plan below describes the remaining per-agent adoption work.
 
 ---
 
@@ -86,7 +88,8 @@ Two additive fields close it. Both are cheap now and a migration later.
 **Phase 0 — no code.** Link the M1 research, confirm the six decision outputs, move M1 to
 review. This unblocks spec authoring.
 
-**Phase 1 — make the trajectory gradeable.** Three additive changes:
+**Phase 1 — make the trajectory gradeable.** The reference event schema and deterministic
+compiler now implement these three additive changes; every production harness must adopt them:
 
 1. `durationMs` per event.
 2. `blocked: boolean` + `blockedBy`, **written at block time**. A judge cannot recover this
@@ -95,9 +98,10 @@ review. This unblocks spec authoring.
    network blip reads as an agent violation.
 3. A `precondition_checked` event — `{ gate, satisfied, reason }`.
 
-**Phase 2 — a thin compiler**, in the existing evaluator rather than a separate package, so the
-output score and behaviour score emit a comparable shape for the combined gate. Five predicates
-over the event array, then a semantic path for what they cannot express.
+**Phase 2 — a thin compiler.** The reference implementation is
+[`bakeoff/evals/behavior.js`](../bakeoff/evals/behavior.js), deliberately in the existing evaluator
+rather than a separate package. It grades the portable event-array predicates first; add a
+calibrated semantic path only for clauses those predicates cannot express.
 
 Recommendation on `behavior-judge` (the upstream reference implementation): **adopt the
 vocabulary, not the dependency.** It is a single-developer project built the week of the
@@ -189,11 +193,12 @@ asserting a working feature was broken. Generalised:
 > verified. Where an empty result and a failure look alike, the step must throw, or name which
 > it was.
 
-## 8. Open question with no owner
+## 8. Integration decision required
 
 A single run currently produces **more than one** trajectory: the canonical append-only log, and
 the harness's own state in the durable store. A judge needs **one**. Someone has to decide
 whether the harness's event stream is normalised into the canonical log, or the canonical log
 becomes the only format and the harness adapter writes into it.
 
-This blocks the compiler, and nothing else can settle it.
+This blocks full production integration, not the reference compiler. The owner of each agent
+must choose and document the normalisation adapter before that agent's M3 evaluator gate can pass.

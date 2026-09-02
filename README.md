@@ -259,9 +259,8 @@ with `HARNESS.md` for the pinned versions and the five pieces; add `MEMORY.md` i
 remember anything across runs; reach for `BEHAVIOR.md` at eval time.
 
 **Three things it will save you.** `@mastra/convex` **1.5.4, not 1.5.5** — 1.5.5 fails the
-kill-test. The Convex workflow table name in
-[`docs/bakeoff/findings-mastra.md`](docs/bakeoff/findings-mastra.md) §4 is **wrong**, and it fails
-only on resume, which is exactly when you need it. And the durable-agent APIs
+kill-test. The bundled package reference calls the Convex workflow table plural, but the runtime
+uses `mastra_workflow_snapshot` (singular); the checked-in schema follows the runtime. And the durable-agent APIs
 (`createInngestAgent`, `untilIdle`) are **not new in 1.63** — they shipped in 1.30.0 and 1.41.0
 and were already present when the 26 Aug decision was made, so "we should adopt them now that
 they exist" is not the argument.

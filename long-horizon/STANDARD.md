@@ -46,6 +46,17 @@ The seven steps below are identical either way; only what calls step 1 changes.
 **Steps 1, 5 and 6 exist only because they broke.** They are not obvious, and none of them are in
 Mastra's docs. Each one cost a day.
 
+> **Plain-English version:** a trigger starts a run; code checks whether it is safe to begin;
+> a workflow owns the known sequence; an agent makes the one judgement that needs a model; and
+> the system writes down enough evidence to resume, explain, and grade the result later.
+
+<div class="reading-map">
+  <div><strong>1. Start safely</strong><span>trigger + preflight</span></div>
+  <div><strong>2. Do the work</strong><span>workflow + agent</span></div>
+  <div><strong>3. Keep evidence</strong><span>Convex + event log</span></div>
+  <div><strong>4. Improve over time</strong><span>memory + grading</span></div>
+</div>
+
 ---
 
 ## 2. Orchestration — a Mastra workflow, where one is warranted
@@ -145,43 +156,25 @@ steps, each scoped to one decision, with skills as their tools.
 One picture, because these four are usually drawn separately and the seams are where things go
 wrong.
 
-```
-   FELLOW ──► AGENT INVENTORY ──► one of three module harnesses
-                                            │
-        ┌───────────────────────────────────┼───────────────────────────────────┐
-        ▼                                   ▼                                   ▼
-    GTM HARNESS                      PRODUCT HARNESS                  INVESTMENTS HARNESS
-        └───────────────────────────────────┬───────────────────────────────────┘
-                                            │  (each one has this same interior)
-   ┌────────────────────────────────────────────────────────────────────────────────┐
-   │  MASTER AGENT  =  a Mastra workflow            deterministic orchestration     │
-   │      │                                                                         │
-   │      ├─ PREFLIGHT ............ reachable? no → clean `offline`, exit 0         │
-   │      │                                                                         │
-   │      ├─ SUB-MODULE = a NESTED workflow ...... own snapshot row · resumable     │
-   │      │     ├─ step ──► Agent.generate() ..... one owned decision               │
-   │      │     │              └── skills = its tools                              │
-   │      │     └─ step ──► suspend() ──► human approves ──► resume()               │
-   │      │                                                                         │
-   │      ├─ SUB-MODULE = a NESTED workflow                                         │
-   │      │                                                                         │
-   │      ├─ MEMORY WRITE ......... deterministic, after the step                   │
-   │      └─ FRESHNESS CHECK ...... the timestamp, never the size                   │
-   └────────────────────────────────────────────────────────────────────────────────┘
-           │                        │                             │
-           ▼                        ▼                             ▼
-   AGENT WORKING MEMORY      MODULE MEMORY                 CONVEX · system of record
-   Mastra + ConvexVector     GTM · Product → Supermemory   identity (Clerk) · tenancy
-   per agent · bounded       Investments   → Activeloop    runs · approvals · snapshots
-   ───────────────────       ────────────────────────      ─────────────────────────
-   "what have I done        "what is true about           "who is this, what ran,
-    and decided?"            the world?"                    what was approved?"
+<div class="harness-map">
+  <div class="map-top"><strong>Fellow request or signal</strong><span>Agent Inventory chooses one module harness</span></div>
+  <div class="module-row">
+    <div>GTM harness</div><div>Product harness</div><div>Investments harness</div>
+  </div>
+  <div class="workflow-card">
+    <strong>Inside every harness: deterministic workflow</strong>
+    <span>preflight -> named steps -> agent judgement -> approval when needed -> durable evidence</span>
+  </div>
+  <div class="memory-row">
+    <div><strong>Agent memory</strong><span>small, per agent</span><em>"What have I done and decided?"</em></div>
+    <div><strong>Module memory</strong><span>shared domain knowledge</span><em>"What is true about this market, account, or venture?"</em></div>
+    <div><strong>Convex fellow graph</strong><span>system of record</span><em>"Who is this, what ran, what is allowed and approved?"</em></div>
+  </div>
+  <p class="map-foot">BEHAVIOR.md grades the trace afterwards. <code>doctor</code> proves the required pieces are present.</p>
+</div>
 
-   BEHAVIOR.md  ── beside each agent. graded out of band. the agent never reads it.
-   doctor       ── exits 0, or the work order is not done.
-```
-
-**Read the bottom row as the load-bearing part.** Three memory layers, three different questions,
+**Read the bottom row as the load-bearing part.** The three boxes sit side by side as an
+**ownership map**, not as three databases that all remember the same thing. Each has one question,
 and the rule that keeps them apart:
 
 > **One question, one owner.** If two layers can answer the same question, the agent stops
@@ -495,29 +488,24 @@ system that answers the same question and you get the same failure, larger and h
 
 Which gives three layers with three genuinely different jobs:
 
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│  TENANT / FELLOW LAYER          "who is this, what ran, what's approved" │
-│  CONVEX — the system of record                                          │
-│  identity (Clerk-bound) · tenancy · runs · events · approvals           │
-└──────────────────────────────────────────────────────────────────────────┘
-        ▲                        ▲                          ▲
-┌───────┴─────────┐   ┌──────────┴────────┐   ┌─────────────┴───────────┐
-│  GTM MODULE     │   │  PRODUCT MODULE   │   │  INVESTMENTS MODULE     │
-│  MEMORY         │   │  MEMORY           │   │  MEMORY                 │
-│                 │   │                   │   │                         │
-│  accounts       │   │  interviews       │   │  diligence packs        │
-│  calls, emails  │   │  feedback         │   │  models, filings        │
-│  sequences      │   │  specs, decisions │   │  provenance trail       │
-│                 │   │                   │   │                         │
-│  → Supermemory  │   │  → Supermemory    │   │  → Activeloop           │
-└─────────────────┘   └───────────────────┘   └─────────────────────────┘
-        ▲                        ▲                          ▲
-┌───────┴──────────────────────────────────────────────────────┴──────────┐
-│  AGENT WORKING MEMORY           "what have I done and decided?"         │
-│  Mastra + Convex · per agent, per resource · small, bounded, template   │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+<div class="memory-architecture">
+  <div class="convex-card">
+    <strong>Convex: fellow graph and knowledge map</strong>
+    <span>Identity, tenancy, permissions, durable runs, approvals, domain records, and pointers to knowledge.</span>
+    <em>Convex decides whose data this is and what the agent is allowed to use.</em>
+  </div>
+  <div class="module-memory-row">
+    <div><strong>GTM module memory</strong><span>Supermemory active loop</span><p>Accounts, calls, email, and sequences. Ingest, retrieve, curate, and keep the module's knowledge current.</p></div>
+    <div><strong>Product module memory</strong><span>Supermemory active loop</span><p>Interviews, feedback, specs, and decisions. Shared product knowledge, not one agent's scratchpad.</p></div>
+    <div><strong>Investments module memory</strong><span>Activeloop active loop</span><p>Diligence packs, models, filings, and provenance. Versioned evidence for work that must be defensible.</p></div>
+  </div>
+  <div class="agent-memory-card">
+    <strong>Agent memory: bounded working context</strong>
+    <span>Mastra memory + ConvexVector, per agent and per resource.</span>
+    <em>It remembers the agent's current task decisions. It does not become the team's knowledge base.</em>
+  </div>
+  <p class="memory-caption">Flow: the agent asks Convex who and what it may access; it retrieves module knowledge when needed; it writes only its own bounded working memory. The layers do not mirror one another.</p>
+</div>
 
 Read the three questions carefully, because the whole design is in them:
 
@@ -525,7 +513,7 @@ Read the three questions carefully, because the whole design is in them:
 |---|---|---|
 | Module memory | *what is true about the world?* — the account, the venture, the market | *have I already done this?* |
 | Agent working memory | *what have I done and decided on this task?* | *what is true about the account?* |
-| Convex | *who is this, what ran, what was approved?* | either of the above |
+| Convex fellow graph | *who is this, what ran, what is allowed, and which knowledge belongs to them?* | the full module corpus or an agent's scratchpad |
 
 **Do not adopt a memory vendor to replace `ConvexVector` in the harness.** Our vectors work — 83
 of them, local 384-dim embedder, index created unprompted, retrieval verified. The argument for a
@@ -598,7 +586,7 @@ The same shape as the harness tests, because they're the ones that caught real p
 | Human approval | `suspend()` / `resume()`, snapshot-backed |
 | Agent memory | `@mastra/memory` + `ConvexVector`, **written deterministically**, freshness-checked. Fewest channels that answer the question — they compete |
 | Module memory | Supermemory (GTM, Product) · Activeloop (Investments) — **untested, architecture only** |
-| System of record | **Convex.** Identity, tenancy, runs, approvals |
+| System of record | **Convex fellow graph.** Identity, tenancy, permissions, runs, approvals, and the knowledge map |
 | Conduct grading | `BEHAVIOR.md`, out of band, next to the agent, never in context |
 | Background agents | schedule- and event-driven **proven** (§4). Cross-run state is *memory*, not snapshots. Four honest statuses; gaps attributed against the sleep log; a spend guard that stops itself |
 | Grading a run with no end | **the unit is the cycle, not the run** — mechanical predicates over a window of N cycles |
