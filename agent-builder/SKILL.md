@@ -67,7 +67,7 @@ Copy this checklist:
 ```
 Agent-builder progress:
 - [ ] Step 0: Load learnings; intake — 5 questions, then pick the entry point
-- [ ] Step 0b: Use — runtime home, talk surface, tool identity, context route
+- [ ] Step 0b: Classification and use — audience/data profile, runtime home, talk surface, tool identity, context route
 - [ ] Step 1: Run workflow-design → fleet map (or solo verdict)
 - [ ] Step 2: Run agent-design per agent → agent spec(s)
 - [ ]   Step 2a: Surface-ladder gate — lowest rung; beginner path still reports
@@ -100,21 +100,22 @@ Ask the five, 2–3 at a time. Then run Step 0b. Do not skip 0b on the beginner 
 Record the answers in one intake block. Every stage reads from it; no stage re-asks it.
 
 
-### Step 0b — Use: home, surface, tools, context
+### Step 0b — Classification and use: audience, home, surface, tools, context
 
 Second beat. Cannot skip. Fast-pass still answers these and *reports* them (REPORT-1, HOME-2).
 
 Ask 2 at a time:
 
-6. **Runtime home (HOME-1).** Where does the loop execute *this week*?
+6. **Audience and data profile.** Who is this for: **internal team**, **fellow-facing**, **public**, or an exceptional **privileged-admin** operation? This is independent from where it runs. Record the permitted data classes and the source of its identity. Fellow-facing agents must use an authenticated fellow context and earn tenant-isolation tests; internal-team agents must not declare fellow-private data; public agents may only use public data; privileged-admin access requires a break-glass approval and dedicated audit test.
+7. **Runtime home (HOME-1).** Where does the loop execute *this week*?
    - **Utopia OS** — default if the studio operates this as a function. Library row now; OS runs it later.
    - **Standalone** — own Vercel app. OS library only *links* it, because it cannot live in the OS yet.
    - **Local** — Claude / Codex / Cursor on a machine. Real home when the machine is the point (schedule, repo, internal team). Not a waiting room.
-7. **Talk surface (HOME-1).** Where do people or triggers speak to it? OS UI, Slack, schedule, CLI. This is *not* the same answer as 6.
-8. **Who do the tools act as (ID-1)?** Studio shared Composio · named-team shared Composio · fellow (their Composio user, later) · first-party API / service account. Writes on a shared connection need a named owner.
-9. **Context route.** Invariant core preloaded; everything else pulled (CTX-2). Prefetch into the Convex log only when you already know you will need it (CTX-2b).
+8. **Talk surface (HOME-1).** Where do people or triggers speak to it? OS UI, Slack, schedule, CLI. This is *not* the same answer as 7.
+9. **Who do the tools act as (ID-1)?** Studio shared Composio · named-team shared Composio · fellow (their Composio user, later) · first-party API / service account. Writes on a shared connection need a named owner.
+10. **Context route.** Invariant core preloaded; everything else pulled (CTX-2). Prefetch into the Convex log only when you already know you will need it (CTX-2b).
 
-Record on the carrier. Stages do not re-ask. Default destination of the *record* is always the OS library, even when runtime is local or Vercel.
+Record on the carrier. Stages do not re-ask. Default destination of the *record* is always the OS library, even when runtime is local or Vercel. The carrier must include the profile-specific security evals: all profiles test undeclared-tool refusal, out-of-scope-data refusal, secret-free output, and audit logging; fellow-scoped profiles additionally test cross-tenant denial; privileged-admin profiles additionally test elevated-access approval.
 
 ### Step 1 — workflow-design → fleet map
 
