@@ -250,6 +250,14 @@ and are documented upstream; we have not run them, and this folder does not clai
    already answers *"what have I covered?"*. **Memory maintenance decays as the corpus grows** —
    backwards for a long-horizon agent. Write it deterministically after the step.
 
+   **And you cannot bolt that on top of the feature.** With `workingMemory: { enabled: true }`,
+   Mastra appends *"IMPORTANT: You MUST call updateWorkingMemory in every response…"* to the
+   system prompt **after** your instructions; the model gets contradictory orders and satisfies
+   neither. Use **two `Memory` instances** — the agent's with `workingMemory: false`, plus a
+   storage-only one never attached to an Agent for `get`/`update`. Then reading is your job too,
+   which is an improvement: the memory sits in a prompt you wrote. Full account in
+   [`MEMORY.md`](MEMORY.md#fixing-it-and-the-trap-inside-the-fix).
+
 3. **Check the write timestamp, never the size.** A frozen memory and a healthy memory are the
    same number. Nine cycles reported `ok`, recall passed on all nine, memory read a plausible
    1,742 chars — and it hadn't been written once.

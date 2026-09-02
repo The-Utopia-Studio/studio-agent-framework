@@ -133,6 +133,24 @@ export const LEARNING_GROUPS: {
         state: 'proven',
       },
       {
+        claim: 'The write is deterministic now — the model decides what, the code decides that',
+        detail:
+          'Fixed on the reference agent 2 Sep. The model emits the updated memory as ordinary output; the code writes it through the vendor API. Verified on a fresh resource: cycle 1 wrote +472 chars from nothing, cycles 2–3 correctly left it unchanged on an already-covered batch.',
+        state: 'proven',
+      },
+      {
+        claim: 'Mastra’s working memory is all-or-nothing',
+        detail:
+          'You cannot keep its context injection and own the write. With enabled:true it appends "IMPORTANT: You MUST call updateWorkingMemory in every response" to the system prompt AFTER your instructions — so the model gets contradictory orders and satisfies neither, saying "Updating memory." and moving on. Two rounds of strengthening our instruction changed nothing; the instruction was never the problem. The fix is two Memory instances: the agent’s with workingMemory false, plus a storage-only one never attached to an agent.',
+        state: 'proven',
+      },
+      {
+        claim: 'updatedAt advances on every write, even a byte-identical one',
+        detail:
+          'Which is what makes freshness the right signal rather than a variant of "memory must change": it measures whether the write path ran, not whether content happened to differ. Unchanged memory on already-covered input is correct.',
+        state: 'proven',
+      },
+      {
         claim: 'Memory is the cost, and it grows',
         detail:
           'The memory-carrying agent cost 3.8× the memoryless one, and its per-call input grew +61% (1,043 → 1,678 avg) against +25%. Budget from the late figure — the first cycle understates the steady state by roughly 60%, and the curve had not plateaued.',
@@ -235,6 +253,18 @@ export const LEARNING_GROUPS: {
         state: 'proven',
       },
       {
+        claim: 'A check that cannot tell "did not run" from "ran somewhere else" is not a check',
+        detail:
+          'The freshness check counted every cycle regardless of which resource it targeted, so three throwaway cycles on a test resource reported a healthy agent as stale. Cycles now record their resource. This is the fourth variant of the same bug on this project — and it appeared inside the fix for the third.',
+        state: 'proven',
+      },
+      {
+        claim: 'Do not iterate on a prompt before instrumenting the request',
+        detail:
+          'Two rounds of strengthening the memory instruction had no effect, because a framework-injected instruction was contradicting it 1,700 chars later. Intercepting the provider request found it in one run. When a model appears to ignore a clear instruction, read what it was actually sent.',
+        state: 'proven',
+      },
+      {
         claim: 'Do not leave the memory write to the model',
         detail:
           'It stops doing it as the corpus grows. Ask the model for the memory content as ordinary output, then write it yourself through the vendor API. The model still does the synthesis; it just cannot skip the write.',
@@ -270,14 +300,9 @@ export const LEARNING_GROUPS: {
     id: 'next',
     num: '05',
     title: 'NEXT',
-    lede: 'Named, not vague. Each of these is a thing someone can pick up.',
+    lede:
+      'Named, not vague. Each of these is a thing someone can pick up. The deterministic memory write that used to head this list is done — it is under 02 · MEMORY now.',
     items: [
-      {
-        claim: 'Make memory maintenance deterministic in a real agent',
-        detail:
-          'The scaffold ships a deterministic write, but it has only been exercised in isolation. The reference agent still leaves the write to the model, which is how the failure happened.',
-        state: 'open',
-      },
       {
         claim: 'Emit tool-offering in traces',
         detail:

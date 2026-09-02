@@ -169,6 +169,23 @@ memory.
 *content* as ordinary output, then write it yourself through the vendor API. The model still does
 the synthesis; it just can't skip the write. [`scaffold/memory.js`](scaffold/memory.js).
 
+> **Mastra's working memory is all-or-nothing, and this is the part that will cost you an hour.**
+> You cannot keep `workingMemory: { enabled: true }` and own the write. With the feature on,
+> Mastra appends *"IMPORTANT: You MUST call updateWorkingMemory in every response…"* to the system
+> prompt **after** your instructions. That contradicts "emit it as output, there is no tool", and
+> the model resolves the conflict by doing **neither** — it says "Updating memory." and moves on.
+> Strengthening your own instruction does not help; the instruction was never the problem.
+>
+> The working pattern is **two Memory instances**: the agent's, with `workingMemory: false`, and a
+> storage-only one — never attached to an Agent, so it contributes no system prompt — with the
+> feature on purely for `get`/`updateWorkingMemory`. Two, because those methods throw unless the
+> feature is enabled, but enabling it is what injects the contradiction.
+>
+> With the feature off, Mastra no longer injects the stored memory either, so **reading becomes
+> your job too**. That is a feature: the memory sits in a prompt you wrote, rather than appended
+> by the framework where you cannot see it — which is exactly how the contradiction went
+> unnoticed.
+
 **Check the timestamp, never the size.** Nine cycles reported `ok`, recall passed on all nine,
 memory read a plausible 1,742 chars — and had not been written once.
 

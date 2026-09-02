@@ -155,6 +155,69 @@ This is also the cleanest argument for [`BEHAVIOR.md`](BEHAVIOR.md) existing at 
 `required: updateWorkingMemory` predicate per cycle would have failed on cycle one. No status
 field, log line or trace would have — and none did.
 
+## Fixing it, and the trap inside the fix
+
+The fix is to move the write into code: the model decides *what* to remember, the code decides
+*that* it is written. Done on the reference agent 2 Sep. It took three attempts, and the first
+two failed for a reason worth knowing.
+
+**Attempt 1 — instruct the model to emit the memory instead of calling the tool.** It ignored the
+instruction and ended its reply with *"One continuation. Updating memory."* — the same phantom
+claim as during the failure.
+
+**Attempt 2 — make the block a required output format**, with an explicit *"there is no tool that
+saves memory, do not call one"*. Identical result. At that point the obvious read is that the model
+is being careless, which is the wrong conclusion and the reason to instrument rather than iterate.
+
+**Attempt 3 — intercept the provider request**, and the cause was immediate. With
+`workingMemory: { enabled: true }`, Mastra appends its own guidance to the system prompt **after**
+the agent's instructions:
+
+> `REMEMBER: the way you update your working memory is by calling the updateWorkingMemory tool`
+> `with the entire Markdown content.`
+>
+> `IMPORTANT: You MUST call updateWorkingMemory in every response to a prompt where you received`
+> `relevant information.`
+
+Ours said *"emit it as output, there is no tool"* at char 550. Mastra's said *"you MUST call the
+tool"* at char 2287, marked IMPORTANT. **The model was given contradictory orders and satisfied
+neither.** The instruction was never the problem.
+
+> **Mastra's working memory is all-or-nothing.** You cannot keep its context injection and own the
+> write. The feature couples a storage API to a prompt-injection behaviour.
+
+The working shape is **two `Memory` instances**:
+
+| Instance | `workingMemory` | Attached to an Agent? | Job |
+|---|---|---|---|
+| agent memory | **`false`** | yes | semantic recall + recent messages |
+| storage memory | `{ enabled: true, template }` | **never** | `get`/`updateWorkingMemory` only |
+
+Two, because `getWorkingMemory` throws *"Working memory is not enabled for this memory instance"*
+unless the feature is on — but turning it on is what injects the contradiction. An instance never
+passed to an Agent contributes no system prompt, so it gives the storage API without the prompt
+behaviour.
+
+With the feature off the agent no longer gets the memory injected either, so **reading becomes the
+application's job**. That is an improvement: the memory now sits in a prompt we wrote, instead of
+being appended by the framework somewhere we could not see — which is precisely how this went
+unnoticed for nine hours.
+
+**Verified on a fresh resource:** cycle 1 wrote **+472 chars** from nothing; cycles 2–3 correctly
+left it **unchanged** on an already-covered batch. And `updatedAt` **advances on every write even
+when the content is byte-identical** — which is what makes freshness the right signal: it measures
+whether the write *path ran*, not whether the content happened to change.
+
+### And a false positive inside the fix
+
+The three throwaway cycles run against a test resource made the freshness check report the healthy
+agent as **stale** — it counted every cycle regardless of which resource it targeted. Cycles now
+record their `resource` and the check only counts matching ones.
+
+Same family as the original failure, which is the point: **a check that cannot distinguish "did
+not run" from "ran somewhere else" is not a check.** It is the fourth variant of this bug on this
+project, and it appeared *inside the fix for the third*.
+
 ## The trap that cost a day
 
 For seven consecutive cycles memory sat frozen and cost flatlined. Both looked like findings

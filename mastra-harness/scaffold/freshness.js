@@ -11,7 +11,12 @@ const STALE_AFTER = Number(process.env.MEMORY_STALE_AFTER ?? 3);
 
 /**
  * @param updatedAt ISO timestamp of the last real write to the durable state
- * @param cycles    [{ startedAt, status }] -- the agent's own cycle log
+ * @param cycles    [{ startedAt, status }] -- the agent's own cycle log, ALREADY FILTERED to
+ *                  the resource being judged. A cycle that wrote to a different resource is
+ *                  not evidence that this one went unwritten; counting all of them reported a
+ *                  healthy agent as stale after three throwaway test runs. Same bug family as
+ *                  the failure this check exists to catch: it could not tell "did not run"
+ *                  from "ran somewhere else".
  * @returns {{ stale: boolean|null, cyclesSince: number|null, staleAfter: number, reason: string }}
  */
 export function freshness(updatedAt, cycles = []) {
