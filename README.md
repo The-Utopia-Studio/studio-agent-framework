@@ -28,6 +28,11 @@ not defaults), then ships the three runtime pieces that are always forgotten and
 command that must exit 0 before an order is called done. Evidence in
 [`long-horizon/`](long-horizon/).
 
+For rung-4 coded agents, [`AgentManifest`](docs/agent-manifest/DESIGN.md) is the checkable hand-off
+from PRD to harness. Its runner validates the selected contract, package pins, manifest-declared
+golden cases, and portable behaviour rules in CI. That CI is intentionally mock-only: it protects
+regressions, while the long-running/live claims remain labeled with their actual provenance.
+
 **Credits.** `agent-design`, `workflow-design`, and `eval-first-spec` are from Ollie's
 Icarus pack (modules 09 + 07), bundled here unchanged so the chain is testable in one
 place. `agent-builder`, `agent-prd`, `mastra-harness`, and `learnings` are Haniyah's.

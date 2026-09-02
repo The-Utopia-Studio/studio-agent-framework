@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import test from 'node:test';
-import { loadManifest, validateManifest, verifyPins } from '../manifest.js';
+import { loadManifest, resolveFixtureCases, validateManifest, verifyPins } from '../manifest.js';
 
 const approval = loadManifest('examples/manifests/approval-gated-module.agent.json');
 const techNews = loadManifest('examples/manifests/tech-news-reference.agent.json');
@@ -35,4 +39,62 @@ test('compares pins against both package manifest and lockfile', () => {
   const bad = structuredClone(approval);
   bad.runtime.packages[0].version = '1.61.0';
   assert.ok(verifyPins(bad, 'bakeoff/mastra/package.json', 'bakeoff/mastra/package-lock.json').length > 0);
+});
+
+test('resolves only repository-owned fixture references', () => {
+  assert.deepEqual(resolveFixtureCases(approval).cases, ['4-crash-resume', '11-post-crash-duplicate-check']);
+  const bad = structuredClone(approval);
+  bad.evaluation.output_eval.fixture_refs = ['../../package.json'];
+  assert.equal(resolveFixtureCases(bad).issues.length, 1);
+});
+
+test('runner executes manifest-selected cases through an explicit adapter and writes a result', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'agent-manifest-runner-'));
+  const adapterPath = join(dir, 'adapter.cjs');
+  const resultPath = join(dir, 'result.json');
+  // This adapter only exercises runner plumbing. The real Mastra adapter is exercised in CI.
+  writeFileSync(adapterPath, `
+    const { DatabaseSync } = require('node:sqlite');
+    module.exports = {
+      name: 'fixture-echo',
+      run: async (fixture, ctx) => {
+        const db = new DatabaseSync(ctx.dbPath);
+        db.exec('CREATE TABLE events (run_id TEXT, step_index INTEGER, step_name TEXT, tool_selected TEXT, tool_args TEXT, outcome TEXT, failure_stage TEXT, error_message TEXT, resource TEXT, thread TEXT)');
+        const add = db.prepare('INSERT INTO events VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        add.run(ctx.runId, 0, 'llm_tool_selection', null, null, null, null, null, 'utopia-studio', 'digest-test');
+        add.run(ctx.runId, 1, 'terminal', null, null, 'posted', null, null, 'utopia-studio', 'digest-test');
+        db.close();
+        return { ...fixture.expect, slack_posts: 0 };
+      },
+    };
+  `);
+  const run = spawnSync(process.execPath, [
+    'harness/run.js',
+    '--manifest=examples/manifests/approval-gated-module.agent.json',
+    `--adapter=${adapterPath}`,
+    `--result=${resultPath}`,
+  ], { encoding: 'utf8' });
+  assert.equal(run.status, 0, run.stderr);
+  assert.match(run.stdout, /2 manifest-selected fixture\(s\) passed/);
+  const result = JSON.parse(readFileSync(resultPath, 'utf8'));
+  assert.equal(result.status, 'passed');
+  assert.deepEqual(result.observations.find((item) => item.id === 'golden-cases').cases, ['4-crash-resume', '11-post-crash-duplicate-check']);
+});
+
+test('runner fails when the shared evaluator reports a non-passing verdict', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'agent-manifest-runner-'));
+  const adapterPath = join(dir, 'adapter.cjs');
+  const resultPath = join(dir, 'result.json');
+  writeFileSync(adapterPath, "module.exports = { run: async (fixture) => ({ ...fixture.expect, slack_posts: 0 }) };\n");
+  const run = spawnSync(process.execPath, [
+    'harness/run.js',
+    '--manifest=examples/manifests/approval-gated-module.agent.json',
+    `--adapter=${adapterPath}`,
+    `--result=${resultPath}`,
+  ], { encoding: 'utf8' });
+  assert.equal(run.status, 1);
+  assert.match(run.stdout, /FAIL\s+golden-cases/);
+  const result = JSON.parse(readFileSync(resultPath, 'utf8'));
+  assert.equal(result.status, 'failed');
+  assert.equal(result.failures[0].id, 'golden-cases');
 });

@@ -1,0 +1,54 @@
+name: Agent manifest conformance
+
+on:
+  pull_request:
+    paths:
+      - 'schemas/agent-manifest.schema.json'
+      - 'examples/manifests/**'
+      - 'harness/**'
+      - 'bakeoff/**'
+      - '.github/workflows/agent-manifest.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'schemas/agent-manifest.schema.json'
+      - 'examples/manifests/**'
+      - 'harness/**'
+      - 'bakeoff/**'
+      - '.github/workflows/agent-manifest.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: bakeoff/mastra/package-lock.json
+      - name: Install the deterministic Mastra fixture harness
+        run: npm ci --prefix bakeoff/mastra
+      - name: Validate runner guardrails
+        run: node --test harness/tests/manifest.test.js
+      - name: Run manifest-selected golden cases
+        run: >-
+          node harness/run.js
+          --manifest=examples/manifests/approval-gated-module.agent.json
+          --package=bakeoff/mastra/package.json
+          --lockfile=bakeoff/mastra/package-lock.json
+          --adapter=bakeoff/mastra/entry.js
+          --behavior
+          --result="$RUNNER_TEMP/agent-manifest-result.json"
+          --failure-draft="$RUNNER_TEMP/agent-manifest-failure-draft.json"
+      - name: Preserve conformance result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-manifest-conformance
+          path: ${{ runner.temp }}/agent-manifest-*.json
+          if-no-files-found: warn
