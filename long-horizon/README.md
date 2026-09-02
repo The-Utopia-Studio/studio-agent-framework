@@ -42,6 +42,28 @@ the current pass looks like so a new build has something concrete to match.
 **When a claim about the harness needs checking.** `research/` holds the dated source material,
 including three claims in circulation that are wrong.
 
+## The one result to read first
+
+If you only take one thing from this folder: an agent survived 11 hours in a bag with no network,
+reported `ok` on every cycle, demonstrably recalled its prior coverage — and had not written its
+durable memory once in nine hours.
+
+Nothing available caught it. Run status was green, the recall check passed (it genuinely was
+recalling, from a different channel), memory size was a plausible 1,742 chars, traces were clean.
+**A frozen memory size and a healthy one are the same number.** Two causes, both in
+[`MEMORY.md`](MEMORY.md): a raw write to the memory column stops the framework offering the
+write tool at all, and — the one that generalises — once semantic recall can answer *"what have
+I covered?"*, the model stops calling the write tool on its own. Memory maintenance decays as
+the corpus grows.
+
+The lesson is not about Mastra. It is that **the environment is the easy part**. Sleep, network
+loss and hard kills are testable and this stack passes them. What is hard is noticing that an
+agent which looks perfect from the outside quietly stopped doing part of its job. That is what
+[`BEHAVIOR.md`](BEHAVIOR.md) is for, and this is its motivating case: a two-line predicate —
+was the memory tool offered, was it called — would have failed on cycle one.
+
+> Grade freshness, never size. A metric you can satisfy by doing nothing is not a metric.
+
 ## How to read it
 
 Each file separates **verified here** from **unverified** from **false**. That split is

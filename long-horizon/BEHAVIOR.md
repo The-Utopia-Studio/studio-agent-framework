@@ -147,6 +147,35 @@ The judging rule is the part that is easy to get wrong, and we got it wrong firs
 A naive "memory must change" clause would have failed a well-behaved agent for seven consecutive
 cycles in our own run. See the trap in [`MEMORY.md`](MEMORY.md).
 
+### And the clause that must sit beside it
+
+The rule above is right, and on its own it is not enough. Two weeks later the inverse happened:
+nine overnight cycles where memory **should** have changed, did not, and every signal stayed
+green — status `ok`, recall demonstrably working, memory a plausible 1,742 chars. The size was
+frozen. A frozen size and a healthy size are the same number.
+
+So the spec needs a second, mechanical predicate that does not depend on judging the input:
+
+> **`required: updateWorkingMemory`** — the memory-write tool must be **offered on the request
+> and called** at least once per N cycles. Graded from the provider request and response, not
+> from the state.
+
+Why offered-and-called rather than looking at the state:
+
+- **Offered** catches the framework silently withholding the tool. It happened: a raw write to
+  `mastra_resources.workingMemory` left Mastra no longer putting `updateWorkingMemory` on the
+  request, while the agent's own replies still said *"Updating memory."*
+- **Called** catches the model declining. It happened, and it is not a bug: once semantic recall
+  can answer *"what have I covered?"*, the model has no need to persist and stops. Memory
+  maintenance **decays as the corpus grows**.
+
+Neither is visible in the state. Both are visible in one provider request. This is the single
+strongest argument for grading conduct rather than outcomes — no status field, log line or trace
+caught nine hours of it, and a two-line predicate would have failed cycle one.
+
+> Corollary for any long-horizon spec: **grade freshness, never size.** A metric you can satisfy
+> by doing nothing is not a metric.
+
 ## 7. One clause worth stealing into every spec
 
 `compound-loop-honesty` names the pattern precisely: a stage that runs but writes nothing

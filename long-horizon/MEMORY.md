@@ -40,6 +40,13 @@ Not "the agent said it remembered". Two tests, and the second is the real one:
 application code carrying anything between them. Observed: cycle 2 opened by naming cycle 1's
 themes and correctly rejected the overlapping items as already covered.
 
+This test is weaker than it looks, and knowing why matters. It proves *something* crossed the
+process boundary — not *which* of the three channels carried it. An agent with empty working
+memory recalls prior coverage just as convincingly from semantic recall alone; that is exactly
+how nine unmaintained cycles passed unnoticed. To attribute recall to working memory
+specifically, **disable the other channels** (`lastMessages: 0`, `semanticRecall: false`) and
+re-run. Both are env-switchable in the reference agent for this reason.
+
 **2. Read it back from outside.** Query the store over **raw HTTP with zero SDK code** — no
 Mastra, no Convex client. If a process that never wrote the state can read it, the state is
 genuinely durable. If that read needs the framework, you have proven a cache, not a store.
@@ -50,15 +57,17 @@ as the standard for any "it persists" claim.
 ## What good memory looks like
 
 Over 24 cycles working memory went **666 → 1,735 chars**. The size is not the interesting part —
-the shape is:
+and taken alone it is actively misleading, since a frozen figure looks identical to a healthy one
+(see [below](#the-failure-that-outranks-all-of-the-above)). The shape is what matters:
 
 - story counts **increment** — "on-device AI demand: 2 stories", up from 1
 - entries get **merged with reasoning the agent wrote itself** — a synthesis line that appears in
   no template it was given
 - a theme was **added on evidence**, with a matching thread to watch
 
-That is note-taking. The failure mode to watch for is the opposite: a log that grows
-monotonically, restating input without merging or retiring anything.
+That is note-taking. Two failure modes sit either side of it: a log that grows monotonically,
+restating input without merging or retiring anything — and memory that simply **stops being
+written** while the agent keeps behaving correctly from its other recall channels.
 
 **Use a bounded template.** Give working memory a shape — sections, and a hint at what belongs
 in each. Unbounded working memory grows without a ceiling; a template is what makes the agent
@@ -85,6 +94,66 @@ climbs**, because every cycle re-injects prior state.
 Bounded by the template and by `topK` on recall — but "bounded" is not "constant". Anything
 budgeting per-run needs to assume growth, and a per-run cost figure measured on an empty memory
 will be wrong by roughly 5× once the agent has been running a while.
+
+## The failure that outranks all of the above
+
+Nine cycles ran overnight through a real sleep boundary. Every one reported `ok`. Every one
+recalled prior coverage. Working memory was **never written** — it sat at exactly 1,742 chars,
+`updatedAt` frozen at the previous afternoon, while messages grew 50 -> 70 and vectors 51 -> 71.
+
+The agent's own replies said *"Two themes touched. Updating memory."* It had no tool with which
+to do that.
+
+Two separate causes, and they compound:
+
+**1. An out-of-band write disables the tool.** A raw `updateResource` write to
+`mastra_resources.workingMemory` — done during an unrelated restore — left the record in a state
+where Mastra stopped **offering** `updateWorkingMemory` to the model at all. Instrumenting the
+provider request showed `OFFERED: false` on every cycle. Clearing the field to `''` brought the
+tool straight back (`OFFERED: true`).
+
+> **Rule: never write `mastra_resources.workingMemory` outside the vendor API.** Not to seed it,
+> not to restore it, not to fix it. Raw reads for verification are fine and necessary. Raw
+> *writes* silently remove the agent's ability to maintain its own memory.
+
+**2. With the tool offered, the model still declines to call it.** This is the more important
+half, because nothing was broken. Reproduced A/B on the same agent, same instructions, same
+model, varying only which recall channels were available:
+
+| Recall available to the agent | `updateWorkingMemory` | Result |
+|---|---|---|
+| `lastMessages: 0` + semantic recall **off** | offered -> **called** | wrote 712 chars |
+| `lastMessages: 6` + semantic recall **on** | offered -> **not called** | frozen |
+
+The three recall channels **compete**. Once semantic recall can answer *"what have I already
+covered?"* from 71 embedded messages, the model has no felt need to persist anything, so it
+doesn't. Memory maintenance therefore **decays as the corpus grows** — the longer the agent runs,
+the less it maintains, which is precisely backwards for a long-horizon agent.
+
+And the recall stays convincing while it happens. With `lastMessages: 0`, empty working memory
+and semantic recall on, the agent *still* correctly referenced prior coverage. Behaviour looked
+perfect from the outside for nine hours.
+
+### Why nothing caught it
+
+Every available signal was green:
+
+- run status: `ok` x9
+- recall check: passed x9 (it genuinely was recalling — from the other channels)
+- working-memory size: a plausible 1,742 chars
+- Langfuse: spans present, no errors
+
+**Size cannot distinguish maintained memory from abandoned memory.** Both are a plausible number.
+Only the write timestamp can. The harness now records `working_memory_updated_at` and
+`cycles_since_memory_write`, and fails a verdict past three `ok` cycles without a write; the
+dashboard prints it in red and `doctor` returns non-zero.
+
+> A memory metric you can satisfy by doing nothing is not a memory metric. Measure **freshness**,
+> never size.
+
+This is also the cleanest argument for [`BEHAVIOR.md`](BEHAVIOR.md) existing at all: a
+`required: updateWorkingMemory` predicate per cycle would have failed on cycle one. No status
+field, log line or trace would have — and none did.
 
 ## The trap that cost a day
 
@@ -114,9 +183,21 @@ Two consequences worth carrying:
       while vectors exist — this produced a two-day false negative)
 - [ ] Compare **input against state** before concluding anything from state not changing
 - [ ] Measure input tokens early **and** late; do not budget from the empty-memory figure
+- [ ] Assert the memory **write timestamp advances** — not that the memory is non-empty or large
+- [ ] Assert `updateWorkingMemory` was **offered and called**, from the provider request itself
+- [ ] Test recall with the other channels **disabled**, or you are measuring semantic recall and
+      calling it working memory
 
 ## Not yet tested
 
-A run across a genuine multi-hour sleep/wake boundary *with varied input*. The 24 cycles above
-were mostly clustered, and five hours of the run received identical input. Whether the cost curve
-plateaus past ~1,700 chars is also open — it stepped up once already.
+Whether the cost curve plateaus past ~1,700 chars — it stepped up once already, and memory has
+since been reset to 712, so the curve needs re-measuring from here.
+
+How to make memory maintenance **non-discretionary**. Options not yet tried: a much more forceful
+instruction, a separate maintenance turn with no recall in context, or a deterministic
+post-cycle write outside the model's discretion. The last is the most likely answer — a
+long-horizon agent should not be able to skip persisting state because it happens to remember
+right now.
+
+Whether the same competition affects the per-category Inngest memory agent
+([`INNGEST.md`](INNGEST.md)), which has only one proven cycle.
