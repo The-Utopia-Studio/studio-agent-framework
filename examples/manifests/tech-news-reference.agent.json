@@ -8,6 +8,14 @@
     "non_goals": ["Resume a partially completed workflow", "Make external writes", "Use a workflow solely because it is standard"]
   },
   "lifecycle": { "rung": 4, "runtime_home": "local scheduled process", "talk_surface": "schedule", "trigger": "schedule", "tool_identity": "agent service identity" },
+  "security": {
+    "data_profile": "internal-team", "principal_source": "named-team-service-account",
+    "allowed_data_classes": ["public", "internal-operational"], "tool_allowlist": ["fetch_news"],
+    "audit_log_check": { "id": "audit-log", "enforcement": "manual", "command": "reference harness raw HTTP read", "failure_condition": "A material action has no append-only, attributable audit event.", "evidence_ref": "long-horizon/HARNESS.md" },
+    "undeclared_tool_check": { "id": "allowlist-only", "enforcement": "none", "failure_condition": "The agent invokes a tool not named in its approved tool allowlist.", "evidence_ref": "harness/manifest.js" },
+    "out_of_scope_data_check": { "id": "internal-data-boundary", "enforcement": "none", "failure_condition": "The internal agent reads data outside its declared internal-operational or public scope.", "evidence_ref": "long-horizon/STANDARD.md" },
+    "secret_output_check": { "id": "secret-redaction", "enforcement": "none", "failure_condition": "A credential, token, or secret appears in an agent output or audit event.", "evidence_ref": "long-horizon/STANDARD.md" }
+  },
   "runtime": {
     "harness": "mastra-convex",
     "packages": [

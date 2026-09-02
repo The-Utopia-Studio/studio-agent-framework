@@ -7,7 +7,7 @@
 
 The right framing is that a chat skill cannot mechanically enforce its own instructions. That is a property of the medium, not a repository defect. The enforceable object is the artifact handed from planning to implementation. `AgentManifest` is that object.
 
-It is not a policy engine and not a second PRD. It is the narrow, versioned contract that records decisions a checker can inspect: runtime and exact pins, identity, effects, durable state, memory choice, budgets, fixture references, required proof checks, and evidence provenance.
+It is not a policy engine and not a second PRD. It is the narrow, versioned contract that records decisions a checker can inspect: audience/data profile, runtime and exact pins, identity, effects, durable state, memory choice, budgets, fixture references, required proof checks, and evidence provenance.
 
 It must not turn a stated fact into a passing fact. Every conformance claim is `verified`, `unverified`, `corrected`, `unenforced`, or `not-applicable`. A verified claim requires an actual check; an unenforced claim requires `enforcement: none` and an explanatory note. A check always names its failure condition.
 
@@ -23,6 +23,7 @@ This proposal adds:
 |---|---|---|---|
 | `agent` | job, owner, scope | missing owner/non-goal | persona and prompt prose |
 | `lifecycle` | rung, home, surface, trigger, tool identity | schedule lacking operational controls | secrets and credential values |
+| `security` | audience/data profile, principal, allowed data, tool allowlist, baseline and profile checks | undeclared tool, incomplete scope boundary, missing fellow/admin proof | actual authentication and database authorization, which the deployed runtime must enforce |
 | `runtime` | harness, exact pins, workflow decision | semver range, approval with no workflow, alternative with no waiver | framework internals owned by an adapter |
 | `tools` | effect, identity, idempotency, approval | outward write without idempotency/approval | natural-language tool descriptions |
 | `state` | canonical store, tenancy, log, memory | non-append-only log; working memory missing deterministic write/freshness/behavior checks | duplicate memory-taxonomy fields |
@@ -64,6 +65,8 @@ PRD decisions → AgentManifest → selected checks + fixture refs
 ```
 
 The manifest consumes the bake-off contract through `evaluation.adapter_contract` and adds per-agent facts the generic bake-off correctly does not know: owner, identity, pins, memory choice, cost cap, and evidence status. TUS-2767 fits this design exactly: it becomes the manifest consumer, not a rival manifest format.
+
+See [`SECURITY-PROFILES.md`](SECURITY-PROFILES.md) for the distinction between internal-team, fellow-scoped, public, and privileged-admin agents. Runtime home is a separate decision: an agent can run in Utopia OS without being fellow-facing.
 
 ## Concrete failures it prevents—and does not
 

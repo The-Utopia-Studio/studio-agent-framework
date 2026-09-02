@@ -7,6 +7,15 @@
     "non_goals": ["Execute an external write before approval", "Use vendor-local state as the source of truth", "Retry a completed external action"]
   },
   "lifecycle": { "rung": 4, "runtime_home": "Utopia OS worker", "talk_surface": "approval queue", "trigger": "event", "tool_identity": "named-team service account" },
+  "security": {
+    "data_profile": "internal-team", "principal_source": "named-team-service-account",
+    "allowed_data_classes": ["internal-operational"],
+    "tool_allowlist": ["read_request", "perform_external_action"],
+    "audit_log_check": { "id": "audit-log", "enforcement": "none", "failure_condition": "A material action has no append-only, attributable audit event.", "evidence_ref": "bakeoff/store/events.js" },
+    "undeclared_tool_check": { "id": "allowlist-only", "enforcement": "none", "failure_condition": "The agent invokes a tool not named in its approved tool allowlist.", "evidence_ref": "harness/manifest.js" },
+    "out_of_scope_data_check": { "id": "internal-data-boundary", "enforcement": "none", "failure_condition": "The internal agent reads data outside its declared internal-operational scope.", "evidence_ref": "agent-prd/SKILL.md" },
+    "secret_output_check": { "id": "secret-redaction", "enforcement": "none", "failure_condition": "A credential, token, or secret appears in an agent output or audit event.", "evidence_ref": "agent-prd/SKILL.md" }
+  },
   "runtime": {
     "harness": "mastra-convex",
     "packages": [ { "name": "@mastra/core", "version": "1.63.2" }, { "name": "@mastra/convex", "version": "1.5.4" } ],
