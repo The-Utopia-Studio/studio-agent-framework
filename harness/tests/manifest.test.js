@@ -55,9 +55,12 @@ test('runner executes manifest-selected cases through an explicit adapter and wr
   // This adapter only exercises runner plumbing. The real Mastra adapter is exercised in CI.
   writeFileSync(adapterPath, `
     const { DatabaseSync } = require('node:sqlite');
+    const fs = require('node:fs');
+    const path = require('node:path');
     module.exports = {
       name: 'fixture-echo',
       run: async (fixture, ctx) => {
+        fs.mkdirSync(path.dirname(ctx.dbPath), { recursive: true });
         const db = new DatabaseSync(ctx.dbPath);
         db.exec('CREATE TABLE events (run_id TEXT, step_index INTEGER, step_name TEXT, tool_selected TEXT, tool_args TEXT, outcome TEXT, failure_stage TEXT, error_message TEXT, resource TEXT, thread TEXT)');
         const add = db.prepare('INSERT INTO events VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
