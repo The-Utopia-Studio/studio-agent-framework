@@ -30,7 +30,7 @@ embeds on every cycle for a week.
 
 Convex tables involved: `mastra_resources` (working memory), `mastra_messages` (history),
 `mastra_threads`, and the vector index. The framework's schema must declare them — see the
-plural-table correction in `HARNESS.md`.
+workflow-table correction in `HARNESS.md`.
 
 ## How to prove it actually persists
 

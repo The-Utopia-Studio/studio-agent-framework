@@ -117,14 +117,40 @@ sub-module you can run on its own is a sub-module you can grade on its own.
 ### Verified vs not
 
 **Verified here:** workflow snapshots persist in `ConvexStore` and resume after `kill -9` (12/12
-golden cases) · `suspend()` / `resume()` on a tool-approval gate · the snapshot table is
-`mastra_workflow_snapshots` — **plural**, and our own 26 Aug findings doc had it singular, which
-fails *only* on resume because Convex accepts writes to an undeclared table.
+golden cases) · `suspend()` / `resume()` on a tool-approval gate.
 
-**Design, not yet verified by us:** nested workflows at depth · `.branch()` · `.foreach()` ·
-`.parallel()` · agents-as-steps at module scale · `watch()` streaming. The primitives exist and
-are documented upstream; we have not run them at this scale, and this folder does not claim
-otherwise.
+**And the nesting this section recommends is now tested too** (2 Sep) — the exact shape above: a
+parent workflow, `.branch()` routing on real data into a **nested** workflow, `suspend()` inside
+that nested workflow, the process `kill -9`'d while suspended, and a fresh process resuming from
+Convex with the runId as its only input.
+
+```
+[nest] suspended at: [["submodule-approval","await-approval"]]
+   kill -9 → process is gone
+[nest] FRESH PROCESS resuming runId=24a2b4b0-…
+[nest] status=success
+[nest] result={"submodule-approval":{"verdict":"approved by haniyah"}}
+```
+
+Two structural details worth knowing before you build on it:
+
+- **A nested workflow gets its own snapshot row.** One run produced two rows sharing a runId —
+  `module-harness` (the parent) and `submodule-approval` (the child). Sub-modules are durable
+  independently, which is what makes them independently resumable.
+- **Suspension is addressed by path, two levels deep.** The parent records
+  `suspendedPaths: {"submodule-approval": [1,0]}`; the child records `{"await-approval": [1]}`.
+  `resume()` takes `step: ["submodule-approval", "await-approval"]` — the nested workflow id, then
+  the step id. Build your approval routing around that shape.
+
+**The real table name, since we got this wrong once:** `TABLE_WORKFLOW_SNAPSHOT =
+"mastra_workflow_snapshot"` — **singular**. The package's bundled reference doc says plural; that
+is an upstream documentation bug, and following it makes you declare an empty table while the one
+holding your data stays undeclared. Reads and writes are both singular and self-consistent, so
+nothing breaks — but declare the singular name so the real table gets a validator and indexes.
+
+**Still unverified by us:** `.foreach()` · `.parallel()` · `.dowhile()` / `.dountil()` ·
+`.agent()` as a step · `watch()` streaming · nesting deeper than two levels. The primitives exist
+and are documented upstream; we have not run them, and this folder does not claim otherwise.
 
 ---
 

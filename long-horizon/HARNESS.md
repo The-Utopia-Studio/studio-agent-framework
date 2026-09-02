@@ -182,15 +182,30 @@ args validator declares a `$or` field and Convex reserves `$`).
 
 ## Two errors in our own 26 Aug material
 
-**The Convex schema is wrong.** [`findings-mastra.md`](../docs/bakeoff/findings-mastra.md) §4
-declares `mastra_workflow_snapshot` (singular). The Convex table is **`mastra_workflow_snapshots`**
-(plural). §4 traced HTTP request bodies, correctly saw the singular name, and mistook it for the
-table name — that is Mastra's *logical* name, which the storage handler resolves to the plural
-Convex table. Identical in 1.5.4 and 1.5.5, so never a version change.
+**The Convex schema declares the wrong workflow table — and an earlier revision of this file
+had the correction backwards.** Settled by resolving the constant out of the package and reading
+both tables (2 Sep):
 
-It looked harmless because **Convex accepts writes to a table you never declared.** It fails only
-on an indexed read — which is what `Workflow.createRun()` does. Invisible until resume needs to
-work.
+```
+@mastra/convex  TABLE_WORKFLOW_SNAPSHOT = "mastra_workflow_snapshot"   ← SINGULAR. reads AND writes
+our convex/schema.ts declares             "mastra_workflow_snapshots"  ← PLURAL. 0 rows, inert
+row counts on the live deployment:        singular 13 · plural 0
+```
+
+[`findings-mastra.md`](../docs/bakeoff/findings-mastra.md) §4 had this **right**, and was more
+careful than a previous version of this file credited: it distinguished the package's *bundled
+reference doc* (which names the table plural — an upstream documentation bug) from the *runtime
+constant* (singular). Following the reference doc is how we came to declare a table nothing writes
+to.
+
+**It is latent, not active.** The runtime is self-consistent — singular for reads and writes — so
+`resume()`, `listWorkflowRuns()`, `listActiveWorkflowRuns()` and `getWorkflowRunById()` all
+succeed against it (verified). The cost of the mismatch is that **the table holding the real data
+is undeclared**: no schema validator, no declared indexes. Convex permits that, which is exactly
+why it went unnoticed.
+
+**Fix:** declare `mastra_workflow_snapshot` (singular) in `convex/schema.ts`. Not yet pushed —
+the deployment currently has a live agent on it, and a schema push is the user's call.
 
 **`model_calls_after_resume` was a flaky assertion, and ours not Mastra's.** The decline path
 used `declineToolCall()`, which resolves *before* the model's concluding turn finishes, leaving

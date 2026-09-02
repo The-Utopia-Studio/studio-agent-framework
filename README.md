@@ -8,7 +8,7 @@ never the thing that generated, the rules that stopped us before are loaded befo
 the first question, and a build that isn't ready gets stopped with the reason named
 instead of politely completed.
 
-Install all six. They are a chain, not a menu.
+Install all seven. They are a chain, not a menu.
 
 ```
 atelier-learnings/    the hard rules — load first, cited by ID (CTX-1, LOOP-2, STATE-1 …)
@@ -18,23 +18,31 @@ workflow-design/      stage 1 — fleet or solo, spawn triggers, loop exits
 agent-design/         stage 2 — one agent: role · tools · memory layer · eval pointer
 eval-first-spec/      stage 3 — 20 golden cases, autonomy L0–L4, cost per outcome
 agent-prd/            stage 4 — hard gates → PRD → work orders
+mastra-harness/       stage 5 — implement a work order on Mastra + ConvexStore
 ```
+
+Stage 5 exists because stage 4 ends with *"Stop. Do not begin executing the first order unless
+asked"* — and nothing picked it up from there. It decides, per agent, whether the agent needs a
+Mastra workflow at all and which memory channels it gets (both are real choices with real costs,
+not defaults), then ships the three runtime pieces that are always forgotten and a `doctor`
+command that must exit 0 before an order is called done. Evidence in
+[`long-horizon/`](long-horizon/).
 
 **Credits.** `agent-design`, `workflow-design`, and `eval-first-spec` are from Ollie's
 Icarus pack (modules 09 + 07), bundled here unchanged so the chain is testable in one
-place. `agent-builder`, `agent-prd`, and `atelier-learnings` are Haniyah's.
+place. `agent-builder`, `agent-prd`, `mastra-harness`, and `atelier-learnings` are Haniyah's.
 
 ---
 
 ## Install (~2 min)
 
 Claude.ai → Settings → Capabilities → Skills → Add → upload each folder's `SKILL.md`
-(or the whole folder, where supported). All six go in Personal skills:
+(or the whole folder, where supported). All seven go in Personal skills:
 
 `atelier-learnings` · `agent-builder` · `workflow-design` · `agent-design` ·
-`eval-first-spec` · `agent-prd`
+`eval-first-spec` · `agent-prd` · `mastra-harness`
 
-Six, not five. The orchestrator loads `atelier-learnings` before its first question and
+Seven, not six. The orchestrator loads `atelier-learnings` before its first question and
 cites rule IDs when it blocks or waives something — without it installed the chain runs
 with its rules missing and no one is told.
 
