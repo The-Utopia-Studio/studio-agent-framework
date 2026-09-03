@@ -34,6 +34,8 @@ codegen, eval sweeps. Tier B/C coded agents only.
   `createInngestAgent` through suspend + worker re-invoke (6/7 steps); the resumed run does not
   complete. The proven production path remains `generate()` + `approveToolCallGenerate()` +
   `ConvexStore` — see [`HARNESS.md`](../long-horizon/HARNESS.md).
+  `createDurableAgent` / `untilIdle` remain **unverified** here (same note in
+  [`HARNESS.md`](../long-horizon/HARNESS.md)).
 - A run across a genuine multi-hour sleep/wake boundary with varied input.
 - Whether the memory cost curve plateaus — see [`MEMORY.md`](../long-horizon/MEMORY.md).
 - Behaviour specs are researched but not yet wired in — plan in
