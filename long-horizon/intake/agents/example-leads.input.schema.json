@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/The-Utopia-Studio/studio-agent-framework/long-horizon/intake/agents/example-leads.input.schema.json",
+  "title": "example-leads typed input",
+  "description": "Illustrative per-agent input for STANDARD §1a. Not a production agent.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["segment", "leadCount", "deliverable"],
+  "properties": {
+    "segment": {
+      "type": "string",
+      "minLength": 3,
+      "description": "Who to qualify — e.g. fintech CFOs."
+    },
+    "leadCount": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 500
+    },
+    "deliverable": {
+      "type": "string",
+      "enum": ["qualified-list", "outreach-drafts", "both"]
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

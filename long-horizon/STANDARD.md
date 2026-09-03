@@ -128,6 +128,12 @@ to *pick*, but carries nothing to *validate a filled payload against*. Until it 
 `OUT` cannot be checked, and "nothing starts until validation passes" has nothing to check
 against. That is the single blocking gap on this path.
 
+**Scaffold (checkable, not the full path):** [`intake/`](intake/) validates router `OUT`
+`{ agentId, input }` against a per-agent schema and refuses half-filled or unknown-agent
+payloads (`node --test long-horizon/intake/tests/validate.test.js`). Envelope schema:
+[`schemas/router-output.schema.json`](../schemas/router-output.schema.json). The router, run
+row, and notify/approve leg remain unbuilt.
+
 **Also unbuilt:** the router itself, the run row, and the notify/approve leg. What is proven is the
 middle — a workflow suspending, surviving a hard kill, and resuming from Convex with the runId as
 its only input.
@@ -370,11 +376,12 @@ nothing breaks — but declare the singular name so the real table gets a valida
 `.agent()` as a step · `watch()` streaming · nesting deeper than two levels. The primitives exist
 and are documented upstream; we have not run them, and this folder does not claim otherwise.
 
-**And the entry path in §1a is design, not evidence.** The router, the run row, and the
-notify/approve leg are unbuilt. The manifest that would give the router something to validate
-against exists but carries no per-agent input schema yet — see §1a. So the *middle* of the picture
-is proven and both *ends* are proposed, which is worth saying out loud before anyone demos it as a
-working front door.
+**And the entry path in §1a is mostly design, not evidence.** The router, the run row, and the
+notify/approve leg are unbuilt. A checkable typed-input scaffold now lives in [`intake/`](intake/)
+(router `OUT` + per-agent schema + refuse-to-start tests); the manifest still does not embed that
+schema. So the *middle* of the picture is proven, the *input gate* has a small executable stub,
+and both *ends* of the front door remain proposed — worth saying before anyone demos it as a
+working entry path.
 
 ---
 
