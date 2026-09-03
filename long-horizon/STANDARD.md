@@ -734,7 +734,7 @@ The same shape as the harness tests, because they're the ones that caught real p
 | Harness | **Mastra + ConvexStore.** Proven: 12/12 kill-test, 41 hours unattended, three sleep boundaries |
 | Orchestration | **Mastra workflows — where warranted.** A per-agent call (§2): a workflow only if losing work mid-flight costs something. Our reference agent used none and ran 41 hours |
 | Who decides | **stage 5, `mastra-harness`.** Workflow yes/no and which memory channels, recorded with reasons. An empty cell fails the gate |
-| How a fellow gets in | **a router picks the *agent*** (the module follows), fills its typed input, and stops. Nothing starts until validation passes; the run row is written before dispatch. **Design, not built** — §1a |
+| How a fellow gets in | **a router picks the *agent*** (the module follows), fills its typed input, and stops. Nothing starts until validation passes; the run row is written before dispatch. **Typed-input scaffold in [`intake/`](intake/); router/run-row still design** — §1a |
 | What a "decision" is | a **step returns a value**, never a model reasoning in a loop. The value is snapshotted, so resume gets the same answer; a conversation is lost and may decide differently |
 | Agents | inside workflow steps, one decision each, skills as tools |
 | Sub-modules | **nested workflows** — independently runnable, independently gradeable |
