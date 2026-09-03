@@ -12,6 +12,7 @@ Tier B/C coded agents only. Skills, projects and managed surfaces stay on lighte
 | [`MEMORY.md`](MEMORY.md) | How a long-horizon agent remembers across processes, and what that costs |
 | [`INNGEST.md`](INNGEST.md) | The durable loop, tested — what works, and the five blockers that stop it being usable |
 | [`BEHAVIOR.md`](BEHAVIOR.md) | How agent conduct gets graded, and the plan to wire it in |
+| [`intake/`](intake/) | STANDARD §1a scaffold — router OUT must carry `agentId` + typed input; half-filled requests do not start |
 | [`research/`](research/) | Source research behind the above, with dates |
 
 ---

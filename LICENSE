@@ -24,3 +24,6 @@
    before treating this file as covering those three directories. If it does not,
    either relicense this repo to match, or unbundle them and reference by URL.
    This placeholder is deliberately explicit rather than silently wrong.
+
+   Status and search notes: docs/LICENSE-ICARUS.md (licence still unresolved;
+   Apache-2.0 is not claimed for those three directories).
