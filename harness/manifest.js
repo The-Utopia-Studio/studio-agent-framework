@@ -39,6 +39,38 @@ export function validateManifest(manifest) {
   if (manifest.schema_version !== '1.0.0') issue(issues, 'schema_version', 'must be 1.0.0');
   if (!manifest.agent?.id) issue(issues, 'agent.id', 'is required');
 
+  const security = manifest.security;
+  const profiles = new Set(['internal-team', 'fellow-scoped', 'public', 'privileged-admin']);
+  if (!security || !profiles.has(security.data_profile)) {
+    issue(issues, 'security.data_profile', 'must be internal-team, fellow-scoped, public, or privileged-admin');
+  } else {
+    const expectedPrincipal = {
+      'internal-team': 'named-team-service-account',
+      'fellow-scoped': 'authenticated-fellow-context',
+      public: 'anonymous-or-user-session',
+      'privileged-admin': 'break-glass-admin-context',
+    }[security.data_profile];
+    if (security.principal_source !== expectedPrincipal) issue(issues, 'security.principal_source', `must be ${expectedPrincipal} for ${security.data_profile}`);
+    if (!Array.isArray(security.tool_allowlist) || !security.tool_allowlist.length) issue(issues, 'security.tool_allowlist', 'must name the only tools this agent may use');
+    const declaredTools = new Set((manifest.tools || []).map((tool) => tool.name));
+    for (const tool of security.tool_allowlist || []) {
+      if (!declaredTools.has(tool)) issue(issues, 'security.tool_allowlist', `${tool} is not declared in tools`);
+    }
+    for (const tool of declaredTools) {
+      if (!security.tool_allowlist?.includes(tool)) issue(issues, 'security.tool_allowlist', `${tool} is declared in tools but not allowlisted`);
+    }
+    for (const checkName of ['audit_log_check', 'undeclared_tool_check', 'out_of_scope_data_check', 'secret_output_check']) {
+      checkCheck(security[checkName], `security.${checkName}`, issues);
+    }
+    if (security.data_profile === 'fellow-scoped') {
+      if (!security.allowed_data_classes?.includes('fellow-private')) issue(issues, 'security.allowed_data_classes', 'must explicitly declare fellow-private data for fellow-scoped agents');
+      checkCheck(security.tenant_isolation_check, 'security.tenant_isolation_check', issues);
+    }
+    if (security.data_profile === 'internal-team' && security.allowed_data_classes?.includes('fellow-private')) issue(issues, 'security.allowed_data_classes', 'internal-team agents cannot declare fellow-private data');
+    if (security.data_profile === 'public' && security.allowed_data_classes?.some((value) => value !== 'public')) issue(issues, 'security.allowed_data_classes', 'public agents may only declare public data');
+    if (security.data_profile === 'privileged-admin') checkCheck(security.elevated_access_check, 'security.elevated_access_check', issues);
+  }
+
   const packages = manifest.runtime?.packages;
   if (!Array.isArray(packages) || !packages.length) issue(issues, 'runtime.packages', 'must declare exact runtime packages');
   for (const [index, pkg] of (packages || []).entries()) {

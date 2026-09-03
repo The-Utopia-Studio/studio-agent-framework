@@ -6,10 +6,14 @@ import NodeDiagram from './NodeDiagram';
 
 type Answer = 'person' | 'scheduled' | 'read' | 'write' | 'review' | 'system';
 type Phase = 'brief' | 'dispatch' | 'running' | 'diagram';
+type Audience = 'internal-team' | 'fellow-scoped' | 'public' | 'privileged-admin';
+type RuntimeHome = 'utopia-os' | 'standalone' | 'local';
 
 type BuildFlowProps = {
   rec: string[];
   answers: Answer[];
+  audience: Audience | null;
+  runtimeHome: RuntimeHome | null;
 };
 
 function FlowView({
@@ -30,7 +34,7 @@ function FlowView({
   );
 }
 
-export default function BuildFlow({ rec, answers }: BuildFlowProps) {
+export default function BuildFlow({ rec, answers, audience, runtimeHome }: BuildFlowProps) {
   const [phase, setPhase] = useState<Phase>('brief');
   const [runStep, setRunStep] = useState(0);
 
@@ -133,6 +137,18 @@ export default function BuildFlow({ rec, answers }: BuildFlowProps) {
           <h3>Prove it first</h3>
           <p>Define good, failed, and hardest-realistic runs before implementation.</p>
         </article>
+        <article>
+          <b>04</b>
+          <h3>Set the safety boundary</h3>
+          <p>
+            {audience === 'fellow-scoped'
+              ? 'Fellow-facing: authenticated identity and cross-fellow denial tests are required.'
+              : audience === 'public'
+                ? 'Public: the agent may use public data only.'
+                : 'Internal team: named team access, tool allowlist, and audit trail are required.'}
+          </p>
+          <em>{runtimeHome === 'utopia-os' ? 'Runs in Utopia OS.' : runtimeHome === 'standalone' ? 'Runs as a standalone app.' : 'Runs locally or on a managed surface.'}</em>
+        </article>
       </div>
 
       <div className="handoff">
@@ -144,14 +160,14 @@ export default function BuildFlow({ rec, answers }: BuildFlowProps) {
           <div className="handoff-actions">
             <a
               className="btn-download"
-              href="/api/skills-zip?bundle=claude-single-skill-v2"
-              aria-label="Download the Claude-ready skills bundle"
-              title="A Claude-ready ZIP: the seven skills, plus their linked long-horizon evidence. No UI, tests, docs, or other repository files."
+              href="/api/skills-zip?bundle=claude-single-skill-v3"
+              aria-label="Download the Claude-ready framework skill"
+              title="One Claude-uploadable skill ZIP: one top-level folder and one SKILL.md, with the seven stage instructions and linked evidence inside."
             >
               <span className="btn-download-arrow" aria-hidden="true">
                 ↓
               </span>
-              <span>Download Claude-ready skills</span>
+              <span>Download for Claude</span>
             </a>
             <button className="solid compact" onClick={generate}>
               Generate PRD and work orders →
