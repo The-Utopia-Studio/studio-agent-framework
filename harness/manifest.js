@@ -57,9 +57,9 @@ export function validateManifest(manifest) {
   }
   checkCheck(manifest.operations?.preflight?.record_check, 'operations.preflight.record_check', issues);
 
-  const statuses = manifest.operations?.statuses || [];
+  const statuses = manifest.operations?.health_statuses || [];
   if (statuses.length !== 4 || !statuses.every((status) => STATUSES.has(status))) {
-    issue(issues, 'operations.statuses', 'must declare exactly ok, degraded, offline, and failed');
+    issue(issues, 'operations.health_statuses', 'must declare exactly ok, degraded, offline, and failed');
   }
   checkCheck(manifest.operations?.budget?.enforcement_check, 'operations.budget.enforcement_check', issues);
 

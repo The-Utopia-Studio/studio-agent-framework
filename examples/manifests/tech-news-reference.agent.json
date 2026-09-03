@@ -28,7 +28,7 @@
   },
   "operations": {
     "preflight": { "required": true, "dependencies": ["news source", "model host"], "record_check": { "id": "preflight-recorded", "enforcement": "manual", "command": "reference harness behavior evaluator", "failure_condition": "A cycle begins work without a precondition_checked event, or a network failure is classified as failed rather than offline.", "evidence_ref": "bakeoff/evals/behavior.js" } },
-    "statuses": ["ok", "degraded", "offline", "failed"],
+    "health_statuses": ["ok", "degraded", "offline", "failed"],
     "budget": { "currency": "USD", "max_per_period": 3, "period": "run", "enforcement_check": { "id": "self-enforced-budget", "enforcement": "manual", "command": "reference harness budget test", "failure_condition": "The agent continues scheduling work after recorded spend reaches its configured cap.", "evidence_ref": "long-horizon/HARNESS.md" } }
   },
   "evaluation": {

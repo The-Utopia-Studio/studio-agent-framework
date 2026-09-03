@@ -26,7 +26,7 @@ This proposal adds:
 | `runtime` | harness, exact pins, workflow decision | semver range, approval with no workflow, alternative with no waiver | framework internals owned by an adapter |
 | `tools` | effect, identity, idempotency, approval | outward write without idempotency/approval | natural-language tool descriptions |
 | `state` | canonical store, tenancy, log, memory | non-append-only log; working memory missing deterministic write/freshness/behavior checks | duplicate memory-taxonomy fields |
-| `operations` | preflight, statuses, spend cap | scheduled agent with no preflight; incomplete status set; no hard cap | pager routing, not yet proven/standardised |
+| `operations` | preflight, health_statuses, spend cap | scheduled agent with no preflight; incomplete health status set; no hard cap | pager routing, not yet proven/standardised |
 | `evaluation` | fixtures and behavior gate | no fixture or failure condition | subjective judge calibration until packaged |
 | `conformance` | claim status and proof mechanism | impossible-to-fail “check”; verified-but-unenforced claim | pass booleans, which rot silently |
 | `evidence` | whether proof is rerunnable | hidden external-only evidence | credentials, raw private traces, source data |
@@ -71,7 +71,7 @@ The manifest consumes the bake-off contract through `evaluation.adapter_contract
 |---|---|---|---|---|
 | Nine green cycles with no durable-memory write | `state.memory.deterministic_write`, `freshness_check`, `write_behavior_check`, `behavior_eval` | `mastra-harness`; then runner/compiler | Design cannot declare working memory without timestamp and offered-and-called checks; runner later catches stale/missing writes | JSON cannot observe timestamps or provider requests. The real reference is therefore `unenforced` until a runner exists. |
 | Docs asserted core 1.63.2/exact convex 1.5.4 while package had 1.61.0/caret | `runtime.packages[].version` and pin check | schema then `harness/run.ts` | Schema rejects `^1.5.4`; runner compares manifest to package and lockfile | It cannot stop prose drift unless docs/checklists are generated from the manifest. |
-| DarkWake caused 44-minute hang, `failed` instead of `offline`, orphaned snapshots | scheduled trigger; `operations.preflight`, `statuses`, preflight record check | schema then adapter test | Schedule without preflight is invalid; all four statuses are mandatory; runner can demand a preflight event | It cannot prove preflight ran before workflow or clean snapshots without an instrumented trace. |
+| DarkWake caused 44-minute hang, `failed` instead of `offline`, orphaned snapshots | scheduled trigger; `operations.preflight`, `health_statuses`, preflight record check | schema then adapter test | Schedule without preflight is invalid; all four statuses are mandatory; runner can demand a preflight event | It cannot prove preflight ran before workflow or clean snapshots without an instrumented trace. |
 
 This is why the manifest is a completeness and drift-control mechanism, not a substitute for the memory, pin, or DarkWake tests. The pin is directly checkable once the runner exists. The memory and DarkWake safeguards remain runtime evidence.
 

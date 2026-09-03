@@ -23,7 +23,7 @@
   },
   "operations": {
     "preflight": { "required": true, "dependencies": ["Convex", "action API", "model host"], "record_check": { "id": "preflight-before-work", "enforcement": "none", "failure_condition": "A dependency-shaped outage starts a workflow or produces failed instead of offline.", "evidence_ref": "mastra-harness/scaffold/preflight.js" } },
-    "statuses": ["ok", "degraded", "offline", "failed"],
+    "health_statuses": ["ok", "degraded", "offline", "failed"],
     "budget": { "currency": "USD", "max_per_period": 1, "period": "run", "enforcement_check": { "id": "per-run-budget", "enforcement": "none", "failure_condition": "The agent invokes the model after its recorded per-run spend cap.", "evidence_ref": "long-horizon/HARNESS.md" } }
   },
   "evaluation": {
