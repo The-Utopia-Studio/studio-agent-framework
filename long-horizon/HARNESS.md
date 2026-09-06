@@ -174,8 +174,39 @@ args validator declares a `$or` field and Convex reserves `$`).
 - **"Durable/background agents are new in 1.62/1.63."** No. `createInngestAgent` shipped in
   **1.30.0**, `untilIdle` in **1.41.0** — both already present in the 1.61.0 baseline the 26 Aug
   decision was made against. The 1.63.0 changelog does not mention durable agents at all.
-- **"`sandbox.stop()` suspends."** Not a Mastra API. No `@mastra/sandbox` on npm, no `Sandbox`
-  type anywhere in core 1.63.2. Sandboxing belongs to `@studio/ai-runtime`.
+- ~~**"`sandbox.stop()` suspends."** Not a Mastra API. No `@mastra/sandbox` on npm, no `Sandbox`
+  type anywhere in core 1.63.2.~~ **Struck: this correction was itself wrong, twice over.**
+  Re-verified 4 Sep against the published tarball, shasum `3a04cc53…` matched against
+  `registry.npmjs.org/@mastra/core` `versions["1.63.2"].dist.shasum`:
+
+  - **`sandbox.stop()` is a real Mastra API**, and on remote providers it *does* suspend.
+    `workspace.d.ts` says so in its own doc comment: *"stop, not destroy — remote providers
+    pause/suspend so the sandbox can be resumed later"*, and *"a process restart suspends remote
+    sandboxes instead of deleting them."* `LocalSandbox` is the exception — *"a local sandbox has
+    no suspend/resume."*
+  - **Sandbox types are all over core 1.63.2.** `./workspace` is an export; `WorkspaceSandbox`,
+    the `MastraSandbox` abstract base and `LocalSandbox` all exist, with **22** `.d.ts` files under
+    `dist/workspace/sandbox/` including `native-sandbox/seatbelt.d.ts` and
+    `native-sandbox/bubblewrap.d.ts`. There are also first-party provider packages
+    (`@mastra/daytona`, `@mastra/e2b`, `@mastra/docker`, and others).
+  - **Only one half survives:** there is no npm package named `@mastra/sandbox`
+    (`{"error":"Not found"}`).
+
+  **How the error was made, because it is a repeatable trap:** nothing sandbox-related is
+  reachable from the package root — `dist/index.d.ts` is a single line exporting `Mastra` and
+  `Config` — and no type is named *exactly* `Sandbox`. A search of the root entry point, or for
+  that exact identifier, returns nothing and reads like absence. **It was absence of reachability,
+  not absence of the feature.** Same family as the vector-table read that returns 0 rows whether
+  or not vectors exist: a query that answers "no" for two different reasons is not a query.
+
+  **The 26 Aug decision is unaffected, for a sharper reason than the one we gave.** A Mastra
+  sandbox is a *remote compute target a host-side tool drives*, not a boundary around your tool. A
+  tool's `execute` is a plain async function awaited in the agent's own process; `requireApproval`
+  and workflow `suspend()` gate **whether** a tool runs, never **what it does** once running. And
+  `SandboxInfo` carries no isolation attestation to check, while `LocalSandbox` resolves isolation
+  to `'none'` when no backend is available — so a gate that demanded proof of isolation could not
+  be satisfied by reading a Mastra API anyway. Sandboxing as a *boundary* still belongs to
+  `@studio/ai-runtime`.
 - **"Background tasks resume instead of double-running" — this one is TRUE.** 1.63.0, and the
   trigger is a *falsy* resume payload. `false` is how a boolean human-in-the-loop tool
   **declines**, so the bug lived precisely on the gate path.

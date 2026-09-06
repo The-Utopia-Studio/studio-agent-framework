@@ -82,9 +82,9 @@ export const LEARNING_GROUPS: {
         state: 'false',
       },
       {
-        claim: '"sandbox.stop() suspends a run"',
+        claim: '"sandbox.stop() is not a Mastra API"',
         detail:
-          'Not a Mastra API at all. No @mastra/sandbox on npm, no Sandbox type in core 1.63.2. It belongs to @studio/ai-runtime.',
+          'That was our correction, and it was wrong twice over — re-verified 4 Sep against the published tarball with a matching shasum. sandbox.stop() IS a Mastra API, and on remote providers it does suspend: the doc comment reads "remote providers pause/suspend so the sandbox can be resumed later". Sandbox types are throughout core 1.63.2 — WorkspaceSandbox, MastraSandbox, LocalSandbox, 22 .d.ts files, seatbelt and bubblewrap backends. Only one half survived: there is no npm package called @mastra/sandbox. The trap: nothing sandbox-related is reachable from the package root and no type is named exactly "Sandbox", so a search of the entry point reads like absence — absence of REACHABILITY, not of the feature.',
         state: 'false',
       },
       {
@@ -244,6 +244,12 @@ export const LEARNING_GROUPS: {
         claim: 'Never trust a metric you can satisfy by doing nothing',
         detail:
           'A frozen memory size and a healthy memory size are the same number. Grade freshness — the write timestamp — never size. Everything green for nine hours came down to this one substitution.',
+        state: 'proven',
+      },
+      {
+        claim: 'Do not read a package\u2019s entry point and conclude a feature does not exist',
+        detail:
+          'We asserted "no Sandbox type anywhere in core 1.63.2". There are dozens, across 22 .d.ts files with seatbelt and bubblewrap backends \u2014 they are just not reachable from the root export, and none is named exactly "Sandbox". A search of dist/index.d.ts (one line) returns nothing and reads like absence. Check the exports map and the tarball, not the entry point. Fifth instance of a query that answers "no" for two different reasons.',
         state: 'proven',
       },
       {
