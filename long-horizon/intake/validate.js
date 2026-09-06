@@ -5,7 +5,14 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
 /** Explicit registry — mirrors STANDARD §1a "typed input belongs to the agent". */
+// Deliberately explicit -- no filesystem glob at dispatch time until the registry owns this.
+// tests/manifest-join.test.js asserts this map stays in step with examples/manifests/, because
+// the two were built separately and originally had ZERO agents in common while every test on
+// both sides passed.
 export const AGENT_INPUT_SCHEMAS = {
+  'tech-news-reference': path.join(HERE, 'agents', 'tech-news-reference.input.schema.json'),
+  'approval-gated-module': path.join(HERE, 'agents', 'approval-gated-module.input.schema.json'),
+  // Teaching example from the README walkthrough; intentionally has no manifest.
   'example-leads': path.join(HERE, 'agents', 'example-leads.input.schema.json'),
 };
 

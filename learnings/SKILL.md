@@ -176,6 +176,14 @@ seven consecutive cycles).
 *Violation looked like:* nine overnight cycles reporting `ok` with memory never written once,
 while the agent's own replies said "Updating memory."
 
+**HORIZON-3b · A deterministic write still needs a bound.** Making the write unskippable fixes
+*whether* it happens, not *how big* it gets. Left unbounded, the model emits a slightly longer
+document every cycle and the code faithfully persists all of it. Measured: 712 -> 18,535 chars at
+~581 per cycle with no plateau, taking cycles from 17s to 100s and spend from $0.19 to $1.07 --
+because memory sits in every prompt. Cap the characters, add an explicit retire step, or both.
+*And note what will not catch it:* freshness reads healthy the entire way, because a growing
+document has a moving timestamp. Track size against a ceiling as a **separate** signal.
+
 **HORIZON-3a · Never write a framework's memory tables out of band.** Raw *reads* for verification
 are essential and are what MEM-8 demands. A raw *write* silently removed the agent's ability to
 maintain its own memory — the framework stopped offering the write tool at all. And a framework's

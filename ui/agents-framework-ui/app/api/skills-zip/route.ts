@@ -15,7 +15,7 @@ const BUNDLE_FILES = [
   'eval-first-spec/SKILL.md', 'eval-first-spec/examples/sample.md', 'eval-first-spec/template.md',
   'learnings/SKILL.md',
   'long-horizon/BEHAVIOR.md', 'long-horizon/HARNESS.md', 'long-horizon/INNGEST.md', 'long-horizon/MEMORY.md', 'long-horizon/README.md', 'long-horizon/STANDARD.md',
-  'mastra-harness/SKILL.md', 'mastra-harness/scaffold/budget.js', 'mastra-harness/scaffold/doctor.js', 'mastra-harness/scaffold/freshness.js', 'mastra-harness/scaffold/harness.js', 'mastra-harness/scaffold/memory.js', 'mastra-harness/scaffold/preflight.js', 'mastra-harness/scaffold/status.js', 'mastra-harness/template.md', 'mastra-harness/tests/README.md', 'mastra-harness/tests/nested-kill-resume.js', 'mastra-harness/tests/provider-probe.mjs',
+  'mastra-harness/SKILL.md', 'mastra-harness/scaffold/budget.js', 'mastra-harness/scaffold/doctor.js', 'mastra-harness/scaffold/freshness.js', 'mastra-harness/scaffold/harness.js', 'mastra-harness/scaffold/memory.js', 'mastra-harness/scaffold/preflight.js', 'mastra-harness/scaffold/status.js', 'mastra-harness/template.md', 'mastra-harness/tests/README.md', 'mastra-harness/tests/nested-kill-resume.js', 'mastra-harness/tests/provider-probe.mjs', 'mastra-harness/tests/inngest-workflow-durability.js',
   'workflow-design/SKILL.md', 'workflow-design/examples/sample.md', 'workflow-design/template.md',
 ];
 

@@ -65,6 +65,15 @@ export async function writeWorkingMemory(memory, resource, next) {
   const body = String(next ?? '').trim();
   if (!body) return { written: false, reason: 'model produced no memory body' };
 
+  // Bound BEFORE writing. An over-ceiling document is a failure to report, not something to
+  // persist and deal with later -- by then it is already in the next prompt, and the next, and
+  // the cost is compounding. Refuse rather than truncate: truncating corrupts the document
+  // mid-section, and the caller should ask the model to RETIRE entries and re-emit.
+  const room = withinCeiling(body);
+  if (!room.ok) {
+    return { written: false, reason: room.reason, chars: room.chars, overBy: room.chars - room.ceiling };
+  }
+
   const before = await memory.getWorkingMemory({ resourceId: resource }).catch(() => null);
 
   // The vendor API, not the table. This is the whole point.
@@ -91,6 +100,23 @@ export async function writeWorkingMemory(memory, resource, next) {
     chars: afterStr.length,
     grew: afterStr.length - String(before ?? '').length,
   };
+}
+
+// A CEILING, because the template alone does not hold. Making the write deterministic fixes
+// whether it happens, not how big it gets: measured 712 -> 18,535 chars at ~581/cycle with no
+// plateau, which took cycles from 17s to 100s and spend from $0.19 to $1.07. Memory is in every
+// prompt, so an unbounded document is an unbounded bill. Freshness cannot catch it -- a growing
+// document has a moving timestamp and reads healthy the whole way up.
+export const MAX_MEMORY_CHARS = Number(process.env.MAX_MEMORY_CHARS ?? 4000);
+
+/** Refuse an over-ceiling write rather than persisting it. The caller should ask the model to
+ *  retire entries and try again -- silently truncating would corrupt the document mid-section. */
+export function withinCeiling(body) {
+  const n = String(body ?? '').length;
+  return n <= MAX_MEMORY_CHARS
+    ? { ok: true, chars: n }
+    : { ok: false, chars: n, ceiling: MAX_MEMORY_CHARS,
+        reason: `working memory is ${n} chars, over the ${MAX_MEMORY_CHARS} ceiling — the model must retire entries, not append` };
 }
 
 // Bounded template. Give working memory a SHAPE or it grows without a ceiling: a template is

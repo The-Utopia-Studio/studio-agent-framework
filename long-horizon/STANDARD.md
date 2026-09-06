@@ -358,9 +358,15 @@ Convex with the runId as its only input.
 
 Two structural details worth knowing before you build on it:
 
-- **A nested workflow gets its own snapshot row.** One run produced two rows sharing a runId —
-  `module-harness` (the parent) and `submodule-approval` (the child). Sub-modules are durable
-  independently, which is what makes them independently resumable.
+- **A nested workflow gets its own snapshot row — on the plain engine.** One run produced two rows
+  sharing a runId: `module-harness` (the parent) and `submodule-approval` (the child). Sub-modules
+  are durable independently, which is what makes them independently resumable.
+
+  **This does not hold on Inngest.** The same shape run through `init(inngest)` writes **one** row,
+  the parent only (verified 4 Sep). So "sub-modules are independently resumable" is an
+  engine-specific property, not a property of nesting. If a design depends on it, it depends on the
+  plain engine. Also on Inngest, `res.suspended` comes back `null` rather than the path — you must
+  know the suspension path yourself. See [`INNGEST.md`](INNGEST.md).
 - **Suspension is addressed by path, two levels deep.** The parent records
   `suspendedPaths: {"submodule-approval": [1,0]}`; the child records `{"await-approval": [1]}`.
   `resume()` takes `step: ["submodule-approval", "await-approval"]` — the nested workflow id, then

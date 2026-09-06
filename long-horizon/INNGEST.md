@@ -22,7 +22,7 @@ matters for production.
 | 4 | A run dispatches and **suspends** on the approval gate | **pass** — `finishReason: suspended`, gated on the tool |
 | 5 | The suspended snapshot persists in Convex and survives `kill -9` | **pass** — verified with a control |
 | 6 | **Inngest re-invokes the worker on resume** | **pass** — the worker was invoked without us driving it |
-| 7 | The resumed run **completes** | **fail** |
+| 7 | The resumed run **completes** | **fail** — on the *agent* path. The **workflow** path passes; see below |
 
 Step 7's failure, from the worker log:
 
@@ -92,9 +92,58 @@ slot and produces no signal.
 
 ---
 
+## The workflow path is a different door, and it passes
+
+Everything above tests `createInngestAgent()` — Mastra's durable-**agent** wrapper. `init(inngest)`
+is a separate export that returns `createWorkflow` / `createStep` bound to Inngest, so each
+workflow step becomes an Inngest step. Three of the four checkable blockers
+(`"agentic-loop"`, `AUTOMATIC_PARALLEL_INDEXING`, `"metadata-only stub"`) do not appear in
+`@mastra/inngest` at all. `agentSpanData` — the crash that killed the agent path — *does* appear,
+12 times, which is why this was worth running rather than assuming.
+
+**Run 4 Sep 2026**, `@mastra/core` 1.63.2 + `@mastra/inngest` 1.8.8 + `@mastra/convex` 1.5.4, no
+agent and no model call:
+
+```
+start                → status: suspended, inside the NESTED workflow
+kill -9 the worker   → worker is gone
+restart the worker   → ACTIVE
+resume, fresh proc   → status: success
+                       result: {"verdict":"approved by …"}
+```
+
+**That is step 7, which the agent path never reached.** `agentSpanData` never fired.
+
+| | agent path (`createInngestAgent`) | workflow path (`init()`) |
+|---|---|---|
+| suspends | yes | yes |
+| survives `kill -9` | yes | yes |
+| Inngest re-invokes the worker | yes | yes |
+| **the resumed run completes** | **no** | **yes** |
+
+Two differences from the plain (non-Inngest) engine, both of which change how you write the
+calling code:
+
+- **`res.suspended` is `null`.** The plain engine returns `[["child","step"]]`. On Inngest you
+  cannot discover the suspension path from the result — you have to know it and pass it to
+  `resume()`. A driver that relies on the returned path will fail here.
+- **One snapshot row, not two.** The plain engine writes a row for the parent *and* one for the
+  nested child. Inngest writes only the parent. So **a sub-module is not independently resumable on
+  Inngest**, which is the opposite of what the plain-engine test showed.
+
+One honest wrinkle: the **first** resume attempt failed with a bare `fetch failed` about 12 seconds
+after the worker restarted, and succeeded on retry. Tracing every request showed all of them
+returning 200/201, so it looks like a re-registration race rather than a real failure — but it is a
+single occurrence and a retry-after-restart is worth having before this carries real work.
+
+Reproduce: [`mastra-harness/tests/inngest-workflow-durability.js`](../mastra-harness/tests/inngest-workflow-durability.js).
+
 ## What this means for the standard
 
-**Not yet.** `createInngestAgent()` is not usable for a Tier B/C build at these versions. The
+**Not via `createInngestAgent()`** — that is not usable for a Tier B/C build at these versions.
+**A Mastra workflow on Inngest via `init()` is a different matter and passes the durability
+test** (see above); what remains unproven there is `.foreach()` over a model-produced plan,
+agents-as-steps, and whether Inngest's automatic step retries interact safely with a memory write. The
 proven path remains `generate()` + `approveToolCallGenerate()` + `ConvexStore`, which passes
 12/12 — see [`HARNESS.md`](HARNESS.md).
 

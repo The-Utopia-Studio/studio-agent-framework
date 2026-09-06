@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/The-Utopia-Studio/studio-agent-framework/long-horizon/intake/agents/approval-gated-module.input.schema.json",
+  "title": "approval-gated-module typed input",
+  "description": "Input for a tenant-scoped external action held behind a named human approval. The approver is required at dispatch, not chosen later: a gate with no named owner is not a gate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["tenantId", "action", "approver"],
+  "properties": {
+    "tenantId": {
+      "type": "string",
+      "description": "Tenant the action is scoped to. Required at the boundary — see MEM-7.",
+      "minLength": 1
+    },
+    "action": {
+      "type": "string",
+      "description": "The external effect being requested.",
+      "enum": ["send-outreach", "publish-update", "create-record"]
+    },
+    "approver": {
+      "type": "string",
+      "description": "Who must approve before the effect runs. A named person, not a role.",
+      "minLength": 1
+    },
+    "payload": {
+      "type": "object",
+      "description": "Action-specific body, validated by the action's own step.",
+      "additionalProperties": true
+    }
+  }
+}

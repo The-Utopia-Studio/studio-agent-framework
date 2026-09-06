@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/The-Utopia-Studio/studio-agent-framework/long-horizon/intake/agents/tech-news-reference.input.schema.json",
+  "title": "tech-news-reference typed input",
+  "description": "Input for the scheduled tech-news reference agent. Schedule-triggered agents still need a typed input: the trigger supplies it instead of a fellow, and it must validate the same way.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sources", "batchSize"],
+  "properties": {
+    "sources": {
+      "type": "array",
+      "description": "Feeds to collect from. Titles and metadata only — never article bodies.",
+      "items": { "enum": ["hackernews", "lobsters"] },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "batchSize": {
+      "type": "integer",
+      "description": "Headlines presented per cycle. Bounded because memory sits in every prompt.",
+      "minimum": 1,
+      "maximum": 25
+    },
+    "preferUnseen": {
+      "type": "boolean",
+      "description": "Prefer headlines never shown before. Off means a byte-identical batch, which tests nothing — see MEMORY.md, 'the trap that cost a day'.",
+      "default": true
+    }
+  }
+}

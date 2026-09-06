@@ -218,6 +218,43 @@ Same family as the original failure, which is the point: **a check that cannot d
 not run" from "ran somewhere else" is not a check.** It is the fourth variant of this bug on this
 project, and it appeared *inside the fix for the third*.
 
+## The third failure: the fix for the second one leaks
+
+The deterministic write worked. Memory stopped freezing. Then it never stopped growing.
+
+```
+712 -> 1,722 -> 5,678 -> 15,137 -> 18,535 chars
+avg over the last 10 writes:  +581 chars per cycle, no plateau
+cycle duration:               17s  ->  100s
+spend:                        $0.19  ->  $1.07
+```
+
+**The fix addressed the wrong half.** Removing the model's ability to *skip* the write says nothing
+about *what* it writes. Every cycle the model emitted a slightly longer document and the code
+faithfully persisted all of it. Memory sits in every prompt, so a 26x larger document is a 26x more
+expensive prompt -- which is most of where that $1.07 went.
+
+The exact inverse of the failure it fixed:
+
+| | What went wrong |
+|---|---|
+| **Second failure** | the tool was offered and the model **would not write** -- memory froze at 1,742 |
+| **Third failure** | code always writes -- memory **grows without bound**, 18,535 and climbing |
+
+The bounded template was supposed to prevent this. `MEM-1` and `MEM-6` both require memory to
+**merge and retire**, not append. The template gives the document sections; nothing enforces that
+the sections stay short, and "revise this" is advice a model can satisfy by adding a line.
+
+> **Deterministic *that* it writes is only half the rule.** You also need a bound on *what* it
+> writes -- a hard character cap, an explicit retire step, or both. A write you always perform and
+> never bound is a slow leak with a bill attached.
+
+**And the freshness check cannot catch it.** A growing memory has a moving timestamp, so freshness
+reads healthy the whole way up. Track **size against a ceiling** as a separate signal. That is not a
+contradiction of "grade freshness, never size" -- the two measure different failures. Freshness
+catches a write that stopped; a ceiling catches a write that never stops. Neither substitutes for
+the other.
+
 ## The trap that cost a day
 
 For seven consecutive cycles memory sat frozen and cost flatlined. Both looked like findings
@@ -247,6 +284,8 @@ Two consequences worth carrying:
 - [ ] Compare **input against state** before concluding anything from state not changing
 - [ ] Measure input tokens early **and** late; do not budget from the empty-memory figure
 - [ ] Assert the memory **write timestamp advances** — not that the memory is non-empty or large
+- [ ] Assert the memory stays **under a ceiling** — a separate check from freshness, catching the
+      opposite failure. Freshness cannot see unbounded growth
 - [ ] Assert `updateWorkingMemory` was **offered and called**, from the provider request itself
 - [ ] Test recall with the other channels **disabled**, or you are measuring semantic recall and
       calling it working memory

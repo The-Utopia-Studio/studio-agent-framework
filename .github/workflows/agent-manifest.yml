@@ -7,6 +7,7 @@ on:
       - 'examples/manifests/**'
       - 'harness/**'
       - 'bakeoff/**'
+      - 'long-horizon/intake/**'
       - '.github/workflows/agent-manifest.yml'
   push:
     branches: [main]
@@ -15,6 +16,7 @@ on:
       - 'examples/manifests/**'
       - 'harness/**'
       - 'bakeoff/**'
+      - 'long-horizon/intake/**'
       - '.github/workflows/agent-manifest.yml'
 
 permissions:
@@ -35,6 +37,17 @@ jobs:
         run: npm ci --prefix bakeoff/mastra
       - name: Validate runner guardrails
         run: node --test harness/tests/manifest.test.js
+      - name: Typed-input scaffold, and its join to the manifests
+        # manifest-join.test.js is the reason both paths trigger this workflow: it asserts every
+        # manifest agent has a registered input schema. The two sides were built separately and
+        # originally shared no agents at all while every test on both sides passed.
+        # Files listed explicitly: `node --test <dir>` is not supported on every Node version
+        # (v26 tries to require the directory), and a shell glob would silently run nothing if the
+        # path ever moved. Adding a test here is deliberate, like BUNDLE_FILES.
+        run: >-
+          node --test
+          long-horizon/intake/tests/validate.test.js
+          long-horizon/intake/tests/manifest-join.test.js
       - name: Run manifest-selected golden cases
         run: >-
           node harness/run.js
