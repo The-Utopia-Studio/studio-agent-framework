@@ -174,23 +174,26 @@ args validator declares a `$or` field and Convex reserves `$`).
 - **"Durable/background agents are new in 1.62/1.63."** No. `createInngestAgent` shipped in
   **1.30.0**, `untilIdle` in **1.41.0** — both already present in the 1.61.0 baseline the 26 Aug
   decision was made against. The 1.63.0 changelog does not mention durable agents at all.
-- ~~**"`sandbox.stop()` suspends."** Not a Mastra API. No `@mastra/sandbox` on npm, no `Sandbox`
-  type anywhere in core 1.63.2.~~ **Struck: this correction was itself wrong, twice over.**
+- **On `sandbox.stop()` — our correction was itself wrong, and only partly.** Because the verdict
+  differs per clause, here it is clause by clause rather than struck through as a block.
   Re-verified 4 Sep against the published tarball, shasum `3a04cc53…` matched against
   `registry.npmjs.org/@mastra/core` `versions["1.63.2"].dist.shasum`:
 
-  - **`sandbox.stop()` is a real Mastra API**, and on remote providers it *does* suspend.
-    `workspace.d.ts` says so in its own doc comment: *"stop, not destroy — remote providers
-    pause/suspend so the sandbox can be resumed later"*, and *"a process restart suspends remote
-    sandboxes instead of deleting them."* `LocalSandbox` is the exception — *"a local sandbox has
-    no suspend/resume."*
-  - **Sandbox types are all over core 1.63.2.** `./workspace` is an export; `WorkspaceSandbox`,
-    the `MastraSandbox` abstract base and `LocalSandbox` all exist, with **22** `.d.ts` files under
-    `dist/workspace/sandbox/` including `native-sandbox/seatbelt.d.ts` and
-    `native-sandbox/bubblewrap.d.ts`. There are also first-party provider packages
-    (`@mastra/daytona`, `@mastra/e2b`, `@mastra/docker`, and others).
-  - **Only one half survives:** there is no npm package named `@mastra/sandbox`
-    (`{"error":"Not found"}`).
+  | What we wrote | Verdict |
+  |---|---|
+  | "`sandbox.stop()` … not a Mastra API" | **FALSE.** It is one, and on remote providers it *does* suspend |
+  | "no `Sandbox` type anywhere in core 1.63.2" | **FALSE.** They are throughout `./workspace` |
+  | "no `@mastra/sandbox` on npm" | **TRUE — this clause stands** (`{"error":"Not found"}`) |
+
+  On the first: `workspace.d.ts` says it in its own doc comment — *"stop, not destroy — remote
+  providers pause/suspend so the sandbox can be resumed later"*, and *"a process restart suspends
+  remote sandboxes instead of deleting them."* `LocalSandbox` is the documented exception: *"a
+  local sandbox has no suspend/resume."*
+
+  On the second: `./workspace` is an export; `WorkspaceSandbox`, the `MastraSandbox` abstract base
+  and `LocalSandbox` all exist, with **22** `.d.ts` files under `dist/workspace/sandbox/` including
+  `native-sandbox/seatbelt.d.ts` and `native-sandbox/bubblewrap.d.ts`. There are first-party
+  provider packages too — `@mastra/daytona`, `@mastra/e2b`, `@mastra/docker` and others.
 
   **How the error was made, because it is a repeatable trap:** nothing sandbox-related is
   reachable from the package root — `dist/index.d.ts` is a single line exporting `Mastra` and
