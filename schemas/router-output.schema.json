@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/The-Utopia-Studio/studio-agent-framework/schemas/router-output.schema.json",
+  "title": "Router output (STANDARD §1a)",
+  "description": "The only thing a fellow→harness router may emit before a run starts. agentId selects the agent; input must then validate against that agent's typed input schema. Half-filled or schema-invalid payloads must not start a run.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["agentId", "input"],
+  "properties": {
+    "agentId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{2,63}$",
+      "description": "Must match an agent.id known to the registry / input-schema map."
+    },
+    "input": {
+      "type": "object",
+      "description": "Typed payload for the selected agent. Shape is per-agent, not global."
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["high", "low"],
+      "description": "Optional. If present and low, validation treats the request as not ready to start (ask the fellow)."
+    },
+    "question": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional clarifying question when the router cannot fill input confidently."
+    }
+  }
+}
