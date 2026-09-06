@@ -19,6 +19,28 @@ const BUNDLE_FILES = [
   'workflow-design/SKILL.md', 'workflow-design/examples/sample.md', 'workflow-design/template.md',
 ];
 
+const BUNDLE_FOLDER = 'studio-agent-framework';
+const ROOT_SKILL = `---
+name: Studio Agent Framework
+description: Build agents through the Utopia Studio pipeline. Use when someone asks to build, plan, scope, or ship an agent. First classify the audience/data profile and runtime home, then carry one intake through workflow design, agent design, eval-first specification, and an agent PRD. Use the supporting instructions in this bundle; do not treat this as permission to access any data or tools.
+---
+
+# Studio Agent Framework
+
+This is one bundled Claude skill. The stage instructions live in the folders beside this file.
+
+## Required sequence
+
+1. Read \`learnings/INSTRUCTIONS.md\` first and cite its rule IDs when blocking or waiving a design.
+2. Read \`agent-builder/INSTRUCTIONS.md\` and run its intake. Record both the audience/data profile (internal team, fellow-scoped, public, or privileged admin) and runtime home (Utopia OS, standalone, or local/managed). These are separate decisions.
+3. Follow the stage sequence the Builder specifies: \`workflow-design/INSTRUCTIONS.md\`, \`agent-design/INSTRUCTIONS.md\`, \`eval-first-spec/INSTRUCTIONS.md\`, then \`agent-prd/INSTRUCTIONS.md\`.
+4. For a coded agent, use \`mastra-harness/INSTRUCTIONS.md\` after the PRD and work orders exist.
+
+## Security baseline
+
+Every design names its principal, allowed data, tool allowlist, audit path, refusal tests, and approval requirements. Fellow-scoped work requires cross-fellow isolation proof. Internal-team work must not claim fellow-private access. The bundle gives instructions only; it does not grant access to data, connectors, or credentials.
+`;
+
 type ZipEntry = { name: string; bytes: Uint8Array };
 
 function crc32(bytes: Uint8Array) {
@@ -76,7 +98,8 @@ async function fetchEntries(paths: string[]) {
     const batch = await Promise.all(paths.slice(index, index + 12).map(async (file) => {
       const response = await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${REF}/${file}`, { next: { revalidate: 300 } });
       if (!response.ok) throw new Error(`Could not download ${file}`);
-      return { name: file, bytes: new Uint8Array(await response.arrayBuffer()) };
+      const relativeName = file.endsWith('/SKILL.md') ? file.replace(/SKILL\.md$/, 'INSTRUCTIONS.md') : file;
+      return { name: `${BUNDLE_FOLDER}/${relativeName}`, bytes: new Uint8Array(await response.arrayBuffer()) };
     }));
     entries.push(...batch);
   }
@@ -85,7 +108,10 @@ async function fetchEntries(paths: string[]) {
 
 export async function GET() {
   try {
-    const zip = makeZip(await fetchEntries(BUNDLE_FILES));
+    const zip = makeZip([
+      { name: `${BUNDLE_FOLDER}/SKILL.md`, bytes: new TextEncoder().encode(ROOT_SKILL) },
+      ...(await fetchEntries(BUNDLE_FILES)),
+    ]);
     return new NextResponse(zip, {
       headers: {
         'Content-Type': 'application/zip',

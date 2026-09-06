@@ -275,6 +275,8 @@ unacted output.
 
 **Required at every tier and every rung. Never skip this one.**
 
+**Audience and data profile.** Record one: `internal-team`, `fellow-scoped`, `public`, or `privileged-admin`. This is separate from runtime home. Every PRD must name the authenticated/tool principal, allowed data classes, tool allowlist, audit-log route, undeclared-tool refusal, out-of-scope-data refusal, and secret-free-output eval. Add cross-tenant denial for `fellow-scoped`; add break-glass approval proof for `privileged-admin`. A manifest field records these requirements, but deployed authorization must derive identity and tenant server-side—not from model output.
+
 This is the section people who do not build agents actually read. Everything else in
 the PRD describes properties of the system; this describes what happens, in order, and
 where a human comes in. When the engineering gates are skipped for a low-rung build,

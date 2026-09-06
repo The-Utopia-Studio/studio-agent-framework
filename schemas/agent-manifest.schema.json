@@ -5,7 +5,7 @@
   "description": "The checkable hand-off from an agent PRD to a runtime harness. This schema validates declared intent and the checks required to prove it; it does not itself prove runtime behaviour.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "agent", "lifecycle", "runtime", "tools", "state", "operations", "evaluation", "conformance", "evidence"],
+  "required": ["schema_version", "agent", "lifecycle", "security", "runtime", "tools", "state", "operations", "evaluation", "conformance", "evidence"],
   "$defs": {
     "exactVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$" },
     "check": {
@@ -82,6 +82,28 @@
         "trigger": { "enum": ["human", "schedule", "event", "api"] },
         "tool_identity": { "type": "string", "minLength": 3 }
       }
+    },
+    "security": {
+      "type": "object", "additionalProperties": false,
+      "required": ["data_profile", "principal_source", "allowed_data_classes", "tool_allowlist", "audit_log_check", "undeclared_tool_check", "out_of_scope_data_check", "secret_output_check"],
+      "properties": {
+        "data_profile": { "enum": ["internal-team", "fellow-scoped", "public", "privileged-admin"] },
+        "principal_source": { "enum": ["named-team-service-account", "authenticated-fellow-context", "anonymous-or-user-session", "break-glass-admin-context"] },
+        "allowed_data_classes": { "type": "array", "items": { "enum": ["public", "internal-operational", "fellow-private", "privileged-admin"] }, "minItems": 1, "uniqueItems": true },
+        "tool_allowlist": { "type": "array", "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }, "minItems": 1, "uniqueItems": true },
+        "audit_log_check": { "$ref": "#/$defs/check" },
+        "undeclared_tool_check": { "$ref": "#/$defs/check" },
+        "out_of_scope_data_check": { "$ref": "#/$defs/check" },
+        "secret_output_check": { "$ref": "#/$defs/check" },
+        "tenant_isolation_check": { "$ref": "#/$defs/check" },
+        "elevated_access_check": { "$ref": "#/$defs/check" }
+      },
+      "allOf": [
+        { "if": { "properties": { "data_profile": { "const": "fellow-scoped" } } }, "then": { "required": ["tenant_isolation_check"], "properties": { "principal_source": { "const": "authenticated-fellow-context" }, "allowed_data_classes": { "contains": { "const": "fellow-private" } } } } },
+        { "if": { "properties": { "data_profile": { "const": "internal-team" } } }, "then": { "properties": { "principal_source": { "const": "named-team-service-account" }, "allowed_data_classes": { "not": { "contains": { "const": "fellow-private" } } } } } },
+        { "if": { "properties": { "data_profile": { "const": "public" } } }, "then": { "properties": { "allowed_data_classes": { "items": { "const": "public" } } } } },
+        { "if": { "properties": { "data_profile": { "const": "privileged-admin" } } }, "then": { "required": ["elevated_access_check"], "properties": { "principal_source": { "const": "break-glass-admin-context" }, "allowed_data_classes": { "contains": { "const": "privileged-admin" } } } } }
+      ]
     },
     "runtime": {
       "type": "object", "additionalProperties": false,

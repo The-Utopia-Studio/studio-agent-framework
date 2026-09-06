@@ -8,6 +8,8 @@ import ToolsFooter from './components/ToolsFooter';
 import { PATH_EXAMPLES } from './data/tools';
 
 type A = 'person' | 'scheduled' | 'read' | 'write' | 'review' | 'system';
+type Audience = 'internal-team' | 'fellow-scoped' | 'public' | 'privileged-admin';
+type RuntimeHome = 'utopia-os' | 'standalone' | 'local';
 type View = 'home' | 'learnings';
 
 const steps = [
@@ -22,6 +24,8 @@ export default function Home() {
   const [a, setA] = useState<A[]>([]);
   const [started, setStarted] = useState(false);
   const [view, setView] = useState<View>('home');
+  const [audience, setAudience] = useState<Audience | null>(null);
+  const [runtimeHome, setRuntimeHome] = useState<RuntimeHome | null>(null);
 
   // Offset by the 74px sticky header, which scrollIntoView would otherwise scroll underneath.
   const toIntake = () => {
@@ -59,7 +63,7 @@ export default function Home() {
             <i>///</i> UTOPIA STUDIO
           </button>
         </header>
-        <BuildFlow rec={rec} answers={a} />
+        <BuildFlow rec={rec} answers={a} audience={audience} runtimeHome={runtimeHome} />
       </main>
     );
   }
@@ -125,20 +129,20 @@ export default function Home() {
             <p className="hero-aside-sub">autonomy is earned, not assumed</p>
             <a
               className="btn-download"
-              href="/api/skills-zip?bundle=claude-single-skill-v2"
-              aria-label="Download the Claude-ready skills bundle"
-              title="A Claude-ready ZIP: the seven skills, plus their linked long-horizon evidence. No UI, tests, docs, or other repository files."
+              href="/api/skills-zip?bundle=claude-single-skill-v3"
+              aria-label="Download the Claude-ready framework skill"
+              title="One Claude-uploadable skill ZIP: one top-level folder and one SKILL.md, with the seven stage instructions and linked evidence inside."
             >
               <span className="btn-download-arrow" aria-hidden="true">
                 ↓
               </span>
-              <span>Download Claude-ready skills</span>
+              <span>Download for Claude</span>
             </a>
           </aside>
         </div>
       </section>
 
-      <Intake a={a} c={c} choose={choose} rec={rec} start={() => setStarted(true)} ready={ready} has={has} />
+      <Intake a={a} c={c} choose={choose} rec={rec} start={() => setStarted(true)} ready={ready && !!audience && !!runtimeHome} has={has} audience={audience} setAudience={setAudience} runtimeHome={runtimeHome} setRuntimeHome={setRuntimeHome} />
 
       <section className="path">
         <label>THE BUILD PATH</label>
@@ -170,6 +174,10 @@ function Intake({
   start,
   ready,
   has,
+  audience,
+  setAudience,
+  runtimeHome,
+  setRuntimeHome,
 }: {
   a: A[];
   c: (x: A) => string;
@@ -178,6 +186,10 @@ function Intake({
   start: () => void;
   ready: boolean;
   has: (x: A) => boolean;
+  audience: Audience | null;
+  setAudience: (audience: Audience) => void;
+  runtimeHome: RuntimeHome | null;
+  setRuntimeHome: (home: RuntimeHome) => void;
 }) {
   return (
     <section className="section" id="intake">
@@ -211,6 +223,31 @@ function Intake({
               It feeds another system
             </button>
           </Q>
+          <Q n="04" t="Who is it for?">
+            <button className={audience === 'internal-team' ? 'choice chosen' : 'choice'} onClick={() => setAudience('internal-team')}>
+              Internal team
+              <br />named team access
+            </button>
+            <button className={audience === 'fellow-scoped' ? 'choice chosen' : 'choice'} onClick={() => setAudience('fellow-scoped')}>
+              Fellow-facing
+              <br />strict per-fellow boundary
+            </button>
+            <button className={audience === 'public' ? 'choice chosen' : 'choice'} onClick={() => setAudience('public')}>
+              Public
+              <br />public data only
+            </button>
+          </Q>
+          <Q n="05" t="Where will it run?">
+            <button className={runtimeHome === 'utopia-os' ? 'choice chosen' : 'choice'} onClick={() => setRuntimeHome('utopia-os')}>
+              Utopia OS
+            </button>
+            <button className={runtimeHome === 'standalone' ? 'choice chosen' : 'choice'} onClick={() => setRuntimeHome('standalone')}>
+              Standalone app
+            </button>
+            <button className={runtimeHome === 'local' ? 'choice chosen' : 'choice'} onClick={() => setRuntimeHome('local')}>
+              Local / managed
+            </button>
+          </Q>
         </div>
         <aside className="rec">
           <label>YOUR PATH</label>
@@ -233,8 +270,10 @@ function Intake({
               (has('person') || has('scheduled')) && 'trigger',
               (has('read') || has('write')) && 'surface',
               (has('review') || has('system')) && 'output',
+              audience && 'audience',
+              runtimeHome && 'runtime',
             ].filter(Boolean).length}{' '}
-            of 3 decisions recorded
+            of 5 decisions recorded
           </small>
         </aside>
       </div>

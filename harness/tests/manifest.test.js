@@ -34,6 +34,19 @@ test('rejects verified claims backed by an unenforced check', () => {
   assert.ok(validateManifest(bad).some((failure) => failure.path === 'conformance[0]'));
 });
 
+test('requires a complete baseline security contract and profile-specific controls', () => {
+  const bad = structuredClone(approval);
+  bad.security.tool_allowlist = ['read_request'];
+  bad.security.data_profile = 'fellow-scoped';
+  bad.security.principal_source = 'named-team-service-account';
+  bad.security.allowed_data_classes = ['internal-operational'];
+  const issues = validateManifest(bad).map((failure) => failure.path);
+  assert.ok(issues.includes('security.tool_allowlist'));
+  assert.ok(issues.includes('security.principal_source'));
+  assert.ok(issues.includes('security.allowed_data_classes'));
+  assert.ok(issues.includes('security.tenant_isolation_check'));
+});
+
 test('compares pins against both package manifest and lockfile', () => {
   assert.deepEqual(verifyPins(approval, 'bakeoff/mastra/package.json', 'bakeoff/mastra/package-lock.json'), []);
   const bad = structuredClone(approval);
