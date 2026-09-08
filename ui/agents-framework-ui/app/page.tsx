@@ -107,6 +107,14 @@ export default function Home() {
     !job.trim() && 'Describe the result you want the agent to produce.',
     !owner.trim() && 'Name the person responsible for its output and access.',
   ].filter(Boolean) as string[];
+  const openBuild = () => {
+    if (blockers.length > 0) {
+      toIntake();
+      return;
+    }
+    setStarted(true);
+    window.scrollTo(0, 0);
+  };
 
   const applyPreset = (preset: Preset) => {
     setJob(preset.job);
@@ -135,7 +143,11 @@ export default function Home() {
         <div className="header-actions">
           <button className="nav-tab" aria-current={view === 'home'} onClick={() => { setView('home'); window.scrollTo(0, 0); }}>Builder</button>
           <button className="nav-tab" aria-current={view === 'learnings'} onClick={() => { setView('learnings'); window.scrollTo(0, 0); }}>Learnings</button>
-          {view === 'home' && <button className="solid compact" onClick={toIntake}>Build an agent →</button>}
+          {view === 'home' && (
+            <button className="solid compact" onClick={openBuild}>
+              {blockers.length ? 'Build an agent →' : 'Review build brief →'}
+            </button>
+          )}
         </div>
       </header>
 
