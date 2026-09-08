@@ -11,9 +11,13 @@ description: >-
   fire to spec ONE agent's role/tools/memory (use agent-design), to design the product's
   internal request-time pipeline of input→router→reason→validate (use
   compound-system-architecture), or to write the pass/fail eval (use eval-first-spec).
-type: generator
-supersedes: none
+metadata:
+  type: generator
+  supersedes: none
 ---
+
+> **Studio integration contract:** Read [the pipeline contract](../agent-structure/references/pipeline.md) before this stage. It governs evidence proportionality, optional memory, current rule precedence, and persisted handoffs. Historical examples below do not override it.
+
 
 # Workflow-Design
 

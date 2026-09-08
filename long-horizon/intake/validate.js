@@ -1,8 +1,11 @@
+import { validateSchema } from '../../harness/schema.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+const routerSchema = JSON.parse(fs.readFileSync(path.join(HERE, '../../schemas/router-output.schema.json'), 'utf8'));
+const inputSchemas = new Map();
 
 /** Explicit registry — mirrors STANDARD §1a "typed input belongs to the agent". */
 // Deliberately explicit -- no filesystem glob at dispatch time until the registry owns this.
@@ -25,63 +28,6 @@ function loadJson(filePath) {
 }
 
 /**
- * Tiny subset of JSON Schema draft-2020-12 used by the example agent schemas.
- * Enough to check required fields, types, enums, and additionalProperties:false —
- * not a general-purpose validator.
- */
-function validateAgainstSchema(value, schema, pathName, issues) {
-  if (schema.type === 'object') {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) {
-      issue(issues, pathName, 'must be an object');
-      return;
-    }
-    for (const key of schema.required || []) {
-      if (value[key] === undefined || value[key] === null || value[key] === '') {
-        issue(issues, pathName === '$' ? key : `${pathName}.${key}`, 'is required and must be filled');
-      }
-    }
-    if (schema.additionalProperties === false) {
-      const allowed = new Set(Object.keys(schema.properties || {}));
-      for (const key of Object.keys(value)) {
-        if (!allowed.has(key)) issue(issues, pathName === '$' ? key : `${pathName}.${key}`, 'is not allowed');
-      }
-    }
-    for (const [key, propSchema] of Object.entries(schema.properties || {})) {
-      if (value[key] === undefined || value[key] === null) continue;
-      validateAgainstSchema(value[key], propSchema, pathName === '$' ? key : `${pathName}.${key}`, issues);
-    }
-    return;
-  }
-
-  if (schema.type === 'string') {
-    if (typeof value !== 'string') {
-      issue(issues, pathName, 'must be a string');
-      return;
-    }
-    if (schema.minLength && value.length < schema.minLength) {
-      issue(issues, pathName, `must be at least ${schema.minLength} characters`);
-    }
-    if (schema.enum && !schema.enum.includes(value)) {
-      issue(issues, pathName, `must be one of: ${schema.enum.join(', ')}`);
-    }
-    return;
-  }
-
-  if (schema.type === 'integer') {
-    if (!Number.isInteger(value)) {
-      issue(issues, pathName, 'must be an integer');
-      return;
-    }
-    if (schema.minimum !== undefined && value < schema.minimum) {
-      issue(issues, pathName, `must be >= ${schema.minimum}`);
-    }
-    if (schema.maximum !== undefined && value > schema.maximum) {
-      issue(issues, pathName, `must be <= ${schema.maximum}`);
-    }
-  }
-}
-
-/**
  * Validate a router OUT payload per STANDARD §1a.
  * Returns { ok, mayStart, issues }. mayStart is false unless validation passes
  * and confidence is not explicitly "low".
@@ -92,6 +38,7 @@ export function validateRouterOutput(output) {
     return { ok: false, mayStart: false, issues: [{ path: '$', message: 'router output must be an object' }] };
   }
 
+  issues.push(...validateSchema(routerSchema, output));
   const agentId = output.agentId;
   if (typeof agentId !== 'string' || !/^[a-z][a-z0-9-]{2,63}$/.test(agentId)) {
     issue(issues, 'agentId', 'is required and must match an agent id pattern');
@@ -115,8 +62,9 @@ export function validateRouterOutput(output) {
     return { ok: false, mayStart: false, issues };
   }
 
-  const schema = loadJson(schemaPath);
-  validateAgainstSchema(output.input, schema, 'input', issues);
+  if (!inputSchemas.has(schemaPath)) inputSchemas.set(schemaPath, loadJson(schemaPath));
+  const schema = inputSchemas.get(schemaPath);
+  issues.push(...validateSchema(schema, output.input, 'input'));
 
   if (output.confidence === 'low') {
     issue(issues, 'confidence', 'is low — ask the fellow; nothing starts');

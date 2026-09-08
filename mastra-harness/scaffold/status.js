@@ -69,4 +69,4 @@ function coverage({ runs, awakeMinutes, intervalMinutes }) {
   return Math.min(1, runs / expected);
 }
 
-module.exports = { classifyRun, classifyGap, coverage };
+export { classifyRun, classifyGap, coverage };

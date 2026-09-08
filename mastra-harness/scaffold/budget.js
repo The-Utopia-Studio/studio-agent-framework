@@ -9,7 +9,7 @@
 // +61% for a memory-carrying agent (1,043 -> 1,678 avg input) against +25% for a memoryless
 // control, and the curve had not plateaued. Budgeting from an empty-memory cycle underestimates
 // the steady state by roughly 60%.
-const { execFile } = require('node:child_process');
+import { execFile } from 'node:child_process';
 
 /**
  * @param o.spentUsd   spend so far, from the agent's own ledger
@@ -48,4 +48,4 @@ function stopLaunchdJob(label) {
   });
 }
 
-module.exports = { enforceBudget, stopLaunchdJob };
+export { enforceBudget, stopLaunchdJob };

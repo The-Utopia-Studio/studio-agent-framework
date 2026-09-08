@@ -1,3 +1,5 @@
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
 'use strict';
 // Every agent in a manifest must have a typed input schema the router can validate against.
 //
@@ -21,9 +23,9 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const ROOT = path.join(__dirname, '..', '..', '..');
+const ROOT = path.join(new URL('.', import.meta.url).pathname, '..', '..', '..');
 const MANIFEST_DIR = path.join(ROOT, 'examples', 'manifests');
-const SCHEMA_DIR = path.join(__dirname, '..', 'agents');
+const SCHEMA_DIR = path.join(new URL('.', import.meta.url).pathname, '..', 'agents');
 
 function manifestAgents() {
   if (!fs.existsSync(MANIFEST_DIR)) return [];
@@ -44,7 +46,7 @@ function schemaIds() {
 }
 
 function registeredIds() {
-  const src = fs.readFileSync(path.join(__dirname, '..', 'validate.js'), 'utf8');
+  const src = fs.readFileSync(path.join(new URL('.', import.meta.url).pathname, '..', 'validate.js'), 'utf8');
   const block = /AGENT_INPUT_SCHEMAS\s*=\s*\{([\s\S]*?)\}/.exec(src);
   if (!block) return [];
   return [...block[1].matchAll(/['"]([a-z0-9-]+)['"]\s*:/g)].map((m) => m[1]);

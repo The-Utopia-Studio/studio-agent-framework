@@ -48,6 +48,15 @@ generalisation is that **a metric you can satisfy by doing nothing is not a metr
 
 ---
 
+## Current integration scope (7 September 2026)
+
+Use [the pipeline contract](../agent-structure/references/pipeline.md) for evidence profiles and
+handoffs, and [runtime contracts](../agent-structure/references/runtime-contracts.md) for write
+safety and memory ownership. These clarifications supersede conflicting historical examples:
+memory is optional; immutable provenance records differ from replaceable working summaries;
+retention/deletion policy still applies to source data; read-back may use an independent client
+or raw HTTP; the tested provider/version memory behavior is not a universal model law.
+
 ## Context rules
 
 **CTX-1 · Context is an attention budget, not storage.** Aim for the smallest set of high-signal tokens that gets the outcome. Recall degrades as the window fills.
@@ -95,7 +104,7 @@ generalisation is that **a metric you can satisfy by doing nothing is not a metr
 
 **MEM-2 · Retrieve, do not inject.** Each stage gets a search tool over memory with a fixed token allowance filled by relevance. If the allowance overflows, the ranking is wrong — do not raise the ceiling.
 
-**MEM-3 · Append only, with provenance.** Corrections supersede; nothing is rewritten or deleted. Every entry carries decision, rationale, source, timestamp, and identifier. An agent-inferred entry never outranks a human decision. Structured entries, not prose blobs — blobs cannot be deduplicated, superseded, or audited.
+**MEM-3 · Append only, with provenance.** Corrections to audit decisions supersede prior entries. Working summaries may be rebuilt; raw source data follows its retention/deletion policy. Every entry carries decision, rationale, source, timestamp, and identifier. An agent-inferred entry never outranks a human decision. Structured entries, not prose blobs — blobs cannot be deduplicated, superseded, or audited.
 
 **MEM-4 · Write the diff before applying a human edit**, so a later regeneration cannot silently revert it.
 
@@ -116,7 +125,7 @@ generalisation is that **a metric you can satisfy by doing nothing is not a metr
 
 **EVAL-3 · Make subjective quality gradable: explicit criteria, hard thresholds.** Any criterion below threshold fails the round and returns specific feedback. Weight the criteria the model is bad at (coherence, originality) over what it handles by default. "Is this good?" is unanswerable; four scored criteria are not.
 
-**EVAL-4 · No evals, not done.** Ten eval tasks written on day one, twenty to fifty within weeks, drawn from real failures and rejections — run on every change. Without them every design opinion is unverifiable. Establish the naked single-call baseline before adding any scaffolding, or you will never know what the scaffolding is worth.
+**EVAL-4 · No evals, not done.** Use the selected pipeline evidence profile (prototype, reviewed, or production), drawn from real failures and rejections — run on every change. Without them every design opinion is unverifiable. Establish the naked single-call baseline before adding any scaffolding, or you will never know what the scaffolding is worth.
 
 **EVAL-5 · Deterministic before judgment.** Cheap mechanical checks (build passes, schema validates, banned pattern absent) run first and free; spend model judgment only on what genuinely needs it. Validator error messages say exactly what to fix — "invalid file" produces the same mistake three times.
 
@@ -218,9 +227,9 @@ predicates assume a trace with a start and a finish; a background agent has neit
 mechanical predicates over a **window of N cycles** instead. A request-shaped run has a human at the
 end who notices a bad answer — a background agent has nobody, so a predicate over its *behaviour* is
 the only thing standing between "working" and "quietly stopped".
-*The predicate that would have caught HORIZON-3 on cycle one:* the memory-write tool must be
-**offered on the provider request and called**, graded from the request itself, never from the
-resulting state.
+*For model-owned tool writes*, assert offered and called on the provider request. For the
+standard deterministic write, assert the code path ran and exact read-back succeeded; do not
+require a tool deliberately disabled by that design. Test memory quality separately in both cases.
 
 **Cross-run state is not a workflow snapshot.** Worth stating plainly because it is the most common
 confusion here: a snapshot resumes an *interrupted run*. Continuity *across* runs is memory plus the

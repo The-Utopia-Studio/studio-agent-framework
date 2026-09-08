@@ -1,27 +1,10 @@
 name: Agent manifest conformance
-
 on:
   pull_request:
-    paths:
-      - 'schemas/agent-manifest.schema.json'
-      - 'examples/manifests/**'
-      - 'harness/**'
-      - 'bakeoff/**'
-      - 'long-horizon/intake/**'
-      - '.github/workflows/agent-manifest.yml'
   push:
     branches: [main]
-    paths:
-      - 'schemas/agent-manifest.schema.json'
-      - 'examples/manifests/**'
-      - 'harness/**'
-      - 'bakeoff/**'
-      - 'long-horizon/intake/**'
-      - '.github/workflows/agent-manifest.yml'
-
 permissions:
   contents: read
-
 jobs:
   conformance:
     runs-on: ubuntu-latest
@@ -32,23 +15,21 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: bakeoff/mastra/package-lock.json
-      - name: Install the deterministic Mastra fixture harness
-        run: npm ci --prefix bakeoff/mastra
-      - name: Validate runner guardrails
-        run: node --test harness/tests/manifest.test.js
-      - name: Typed-input scaffold, and its join to the manifests
-        # manifest-join.test.js is the reason both paths trigger this workflow: it asserts every
-        # manifest agent has a registered input schema. The two sides were built separately and
-        # originally shared no agents at all while every test on both sides passed.
-        # Files listed explicitly: `node --test <dir>` is not supported on every Node version
-        # (v26 tries to require the directory), and a shell glob would silently run nothing if the
-        # path ever moved. Adding a test here is deliberate, like BUNDLE_FILES.
-        run: >-
-          node --test
-          long-horizon/intake/tests/validate.test.js
-          long-horizon/intake/tests/manifest-join.test.js
-      - name: Run manifest-selected golden cases
+          cache-dependency-path: |
+            package-lock.json
+            bakeoff/mastra/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm ci --prefix bakeoff/mastra --ignore-scripts
+      - name: Check all skill entrypoints and references
+        run: npm run check
+      - name: Pipeline, manifest, structure, package and runtime regressions
+        run: npm test
+      - name: Build installable bundle
+        run: npm run bundle
+      - name: Run selected mock fixtures (not live production conformance)
+        env:
+          DIGEST_REAL_MODEL: '0'
+          DIGEST_STORE: libsql
         run: >-
           node harness/run.js
           --manifest=examples/manifests/approval-gated-module.agent.json
@@ -56,12 +37,13 @@ jobs:
           --lockfile=bakeoff/mastra/package-lock.json
           --adapter=bakeoff/mastra/entry.js
           --behavior
-          --result="$RUNNER_TEMP/agent-manifest-result.json"
-          --failure-draft="$RUNNER_TEMP/agent-manifest-failure-draft.json"
-      - name: Preserve conformance result
+          --result="${{ runner.temp }}/agent-manifest-result.json"
+          --failure-draft="${{ runner.temp }}/agent-manifest-failure-draft.json"
+      - name: Preserve result and installable bundle
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: agent-manifest-conformance
-          path: ${{ runner.temp }}/agent-manifest-*.json
-          if-no-files-found: warn
+          name: framework-conformance-and-bundle
+          path: |
+            ${{ runner.temp }}/agent-manifest-*.json
+            dist/studio-agent-framework.zip

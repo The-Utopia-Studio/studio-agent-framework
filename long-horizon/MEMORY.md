@@ -1,5 +1,10 @@
 # Memory for long-horizon agents
 
+> Historical experiments on the pinned stack. Current requirements are in
+> [runtime contracts](../agent-structure/references/runtime-contracts.md). Version-specific
+> failures below are regression evidence, not universal behavior claims.
+
+
 What an agent remembers between runs, where it lives, how you prove it, and what it costs.
 Tested **1 Sep 2026** on the stack pinned in [`HARNESS.md`](HARNESS.md).
 
@@ -49,7 +54,7 @@ re-run. Both are env-switchable in the reference agent for this reason.
 
 **2. Read it back from outside.** Query the store over **raw HTTP with zero SDK code** — no
 Mastra, no Convex client. If a process that never wrote the state can read it, the state is
-genuinely durable. If that read needs the framework, you have proven a cache, not a store.
+genuinely durable. An independent SDK-based remote read can also prove persistence; raw HTTP additionally tests external inspectability.
 
 This is the same technique the 26 Aug probe used for workflow snapshots, and it is worth keeping
 as the standard for any "it persists" claim.
@@ -286,7 +291,7 @@ Two consequences worth carrying:
 - [ ] Assert the memory **write timestamp advances** — not that the memory is non-empty or large
 - [ ] Assert the memory stays **under a ceiling** — a separate check from freshness, catching the
       opposite failure. Freshness cannot see unbounded growth
-- [ ] Assert `updateWorkingMemory` was **offered and called**, from the provider request itself
+- [ ] For model-tool writes assert offered and called; for deterministic writes assert code execution and exact read-back, with the model tool disabled
 - [ ] Test recall with the other channels **disabled**, or you are measuring semantic recall and
       calling it working memory
 
@@ -295,11 +300,7 @@ Two consequences worth carrying:
 Whether the cost curve plateaus past ~1,700 chars — it stepped up once already, and memory has
 since been reset to 712, so the curve needs re-measuring from here.
 
-How to make memory maintenance **non-discretionary**. Options not yet tried: a much more forceful
-instruction, a separate maintenance turn with no recall in context, or a deterministic
-post-cycle write outside the model's discretion. The last is the most likely answer — a
-long-horizon agent should not be able to skip persisting state because it happens to remember
-right now.
+Deterministic post-cycle writes were implemented above. Remaining work: distributed write coordination, scoped provenance, memory-quality tests, and remeasurement after upgrades.
 
 Whether the same competition affects the per-category Inngest memory agent
 ([`INNGEST.md`](INNGEST.md)), which has only one proven cycle.

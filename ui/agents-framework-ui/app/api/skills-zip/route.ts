@@ -6,40 +6,7 @@ const OWNER = 'The-Utopia-Studio';
 const REPO = 'studio-agent-framework';
 const REF = 'main';
 
-// This is intentionally a short, explicit allow-list—not a repository archive.
-// `long-horizon` stays because learnings and mastra-harness link to it directly.
-const BUNDLE_FILES = [
-  'agent-builder/SKILL.md', 'agent-builder/hermes/README.md', 'agent-builder/hermes/RESULTS.md', 'agent-builder/hermes/cases/adversarial.md', 'agent-builder/hermes/cases/golden.md', 'agent-builder/hermes/rubric.json',
-  'agent-design/SKILL.md', 'agent-design/examples/sample.md', 'agent-design/template.md',
-  'agent-prd/SKILL.md',
-  'eval-first-spec/SKILL.md', 'eval-first-spec/examples/sample.md', 'eval-first-spec/template.md',
-  'learnings/SKILL.md',
-  'long-horizon/BEHAVIOR.md', 'long-horizon/HARNESS.md', 'long-horizon/INNGEST.md', 'long-horizon/MEMORY.md', 'long-horizon/README.md', 'long-horizon/STANDARD.md',
-  'mastra-harness/SKILL.md', 'mastra-harness/scaffold/budget.js', 'mastra-harness/scaffold/doctor.js', 'mastra-harness/scaffold/freshness.js', 'mastra-harness/scaffold/harness.js', 'mastra-harness/scaffold/memory.js', 'mastra-harness/scaffold/preflight.js', 'mastra-harness/scaffold/status.js', 'mastra-harness/template.md', 'mastra-harness/tests/README.md', 'mastra-harness/tests/nested-kill-resume.js', 'mastra-harness/tests/provider-probe.mjs', 'mastra-harness/tests/inngest-workflow-durability.js',
-  'workflow-design/SKILL.md', 'workflow-design/examples/sample.md', 'workflow-design/template.md',
-];
-
 const BUNDLE_FOLDER = 'studio-agent-framework';
-const ROOT_SKILL = `---
-name: Studio Agent Framework
-description: Build agents through the Utopia Studio pipeline. Use when someone asks to build, plan, scope, or ship an agent. First classify the audience/data profile and runtime home, then carry one intake through workflow design, agent design, eval-first specification, and an agent PRD. Use the supporting instructions in this bundle; do not treat this as permission to access any data or tools.
----
-
-# Studio Agent Framework
-
-This is one bundled Claude skill. The stage instructions live in the folders beside this file.
-
-## Required sequence
-
-1. Read \`learnings/INSTRUCTIONS.md\` first and cite its rule IDs when blocking or waiving a design.
-2. Read \`agent-builder/INSTRUCTIONS.md\` and run its intake. Record both the audience/data profile (internal team, fellow-scoped, public, or privileged admin) and runtime home (Utopia OS, standalone, or local/managed). These are separate decisions.
-3. Follow the stage sequence the Builder specifies: \`workflow-design/INSTRUCTIONS.md\`, \`agent-design/INSTRUCTIONS.md\`, \`eval-first-spec/INSTRUCTIONS.md\`, then \`agent-prd/INSTRUCTIONS.md\`.
-4. For a coded agent, use \`mastra-harness/INSTRUCTIONS.md\` after the PRD and work orders exist.
-
-## Security baseline
-
-Every design names its principal, allowed data, tool allowlist, audit path, refusal tests, and approval requirements. Fellow-scoped work requires cross-fellow isolation proof. Internal-team work must not claim fellow-private access. The bundle gives instructions only; it does not grant access to data, connectors, or credentials.
-`;
 
 type ZipEntry = { name: string; bytes: Uint8Array };
 
@@ -92,14 +59,15 @@ function makeZip(entries: ZipEntry[]) {
   ]);
 }
 
-async function fetchEntries(paths: string[]) {
+async function fetchEntries(paths: string[], commit: string) {
   const entries: ZipEntry[] = [];
   for (let index = 0; index < paths.length; index += 12) {
     const batch = await Promise.all(paths.slice(index, index + 12).map(async (file) => {
-      const response = await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${REF}/${file}`, { next: { revalidate: 300 } });
+      const response = await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${commit}/${file}`, { cache: 'no-store' });
       if (!response.ok) throw new Error(`Could not download ${file}`);
+      const text = await response.text();
       const relativeName = file.endsWith('/SKILL.md') ? file.replace(/SKILL\.md$/, 'INSTRUCTIONS.md') : file;
-      return { name: `${BUNDLE_FOLDER}/${relativeName}`, bytes: new Uint8Array(await response.arrayBuffer()) };
+      return { name: `${BUNDLE_FOLDER}/${relativeName}`, bytes: new TextEncoder().encode(file.endsWith('.md') ? text.replace(/\/SKILL\.md/g, '/INSTRUCTIONS.md') : text) };
     }));
     entries.push(...batch);
   }
@@ -108,9 +76,23 @@ async function fetchEntries(paths: string[]) {
 
 export async function GET() {
   try {
+    // Resolve once: every file in this response comes from the same immutable commit.
+    const revision = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/commits/${REF}`, { cache: 'no-store' });
+    if (!revision.ok) throw new Error('Could not resolve bundle revision');
+    const revisionData: unknown = await revision.json();
+    const sha = revisionData && typeof revisionData === 'object' && 'sha' in revisionData ? revisionData.sha : null;
+    if (typeof sha !== 'string' || !/^[a-f0-9]{40}$/.test(sha)) throw new Error('Invalid revision');
+    const fileListResponse = await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${sha}/ui/agents-framework-ui/app/data/bundle-files.json`, { cache: 'no-store' });
+    if (!fileListResponse.ok) throw new Error('Could not read bundle file list');
+    const files: unknown = await fileListResponse.json();
+    if (!Array.isArray(files) || !files.length || files.some((file: unknown) => typeof file !== 'string' || !/^[a-zA-Z0-9_.-]+(?:\/[a-zA-Z0-9_.-]+)*$/.test(file) || file.split('/').some(part => part === '..' || part === '.'))) throw new Error('Invalid bundle file list');
+    const entries = await fetchEntries(files, sha);
+    const root = entries.find(entry => entry.name === `${BUNDLE_FOLDER}/scripts/bundle-root.md`);
+    if (!root) throw new Error('Bundle root instructions missing');
     const zip = makeZip([
-      { name: `${BUNDLE_FOLDER}/SKILL.md`, bytes: new TextEncoder().encode(ROOT_SKILL) },
-      ...(await fetchEntries(BUNDLE_FILES)),
+      { name: `${BUNDLE_FOLDER}/SKILL.md`, bytes: root.bytes },
+      ...entries,
+      { name: `${BUNDLE_FOLDER}/bundle-version.json`, bytes: new TextEncoder().encode(JSON.stringify({ commit: sha, files })) },
     ]);
     return new NextResponse(zip, {
       headers: {

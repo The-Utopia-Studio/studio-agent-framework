@@ -87,6 +87,7 @@ export async function writeWorkingMemory(memory, resource, next) {
   if (!afterStr) {
     throw new Error('working memory read back empty immediately after updateWorkingMemory — a failure, not a no-op');
   }
+  if (afterStr.trim() !== body) throw new Error('working memory read-back does not match the requested update');
   // Do NOT throw on unchanged content. Unchanged memory is CORRECT when the input was already
   // covered -- an earlier version of this file threw here, which is the same mistake as an eval
   // clause reading "memory must change": it fails a well-behaved agent. Report it instead.
@@ -108,6 +109,7 @@ export async function writeWorkingMemory(memory, resource, next) {
 // prompt, so an unbounded document is an unbounded bill. Freshness cannot catch it -- a growing
 // document has a moving timestamp and reads healthy the whole way up.
 export const MAX_MEMORY_CHARS = Number(process.env.MAX_MEMORY_CHARS ?? 4000);
+if (!Number.isSafeInteger(MAX_MEMORY_CHARS) || MAX_MEMORY_CHARS <= 0) throw new Error('MAX_MEMORY_CHARS must be a positive integer');
 
 /** Refuse an over-ceiling write rather than persisting it. The caller should ask the model to
  *  retire entries and try again -- silently truncating would corrupt the document mid-section. */

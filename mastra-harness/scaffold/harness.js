@@ -15,6 +15,7 @@ import { z } from 'zod';
 // so a wrong guess fails at runtime rather than at construction.
 export function makeStore() {
   if (!process.env.CONVEX_URL) throw new Error('CONVEX_URL is required — Convex is the system of record');
+  if (!process.env.CONVEX_ADMIN_KEY) throw new Error('CONVEX_ADMIN_KEY is required for this server-only adapter');
   return new ConvexStore({
     id: 'mastra-convex',
     deploymentUrl: process.env.CONVEX_URL,
@@ -96,7 +97,8 @@ export const workflow = createWorkflow({
   .commit();
 
 export function makeMastra(extra = {}) {
-  return new Mastra({ workflows: { [WORKFLOW_ID]: workflow }, storage: makeStore(), ...extra });
+  if ('storage' in extra) throw new Error('storage override is not allowed: configure the approved canonical store explicitly');
+  return new Mastra({ ...extra, workflows: { [WORKFLOW_ID]: workflow, ...extra.workflows }, storage: makeStore() });
 }
 
 // ---- run and resume.

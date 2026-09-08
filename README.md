@@ -2,13 +2,13 @@
 
 The Utopia Studio standard for how agents get **specified, judged, and shipped**.
 
-Six skills. One pipeline. The point is that an agent build at the Studio is not a
+Eight skills. One pipeline. The point is that an agent build at the Studio is not a
 matter of taste: the scope is written so it can be scored, the thing that grades is
 never the thing that generated, the rules that stopped us before are loaded before
 the first question, and a build that isn't ready gets stopped with the reason named
 instead of politely completed.
 
-Install all seven. They are a chain, not a menu.
+Install the complete eight-skill chain, including agent-structure.
 
 ```
 learnings/            the hard rules — load first, cited by ID (CTX-1, MEM-8, STATE-1a, HORIZON-4 …)
@@ -34,44 +34,60 @@ golden cases, and portable behaviour rules in CI. That CI is intentionally mock-
 regressions, while the long-running/live claims remain labeled with their actual provenance.
 
 **Credits.** `agent-design`, `workflow-design`, and `eval-first-spec` are from Ollie's
-Icarus pack (modules 09 + 07), bundled here unchanged so the chain is testable in one
-place. `agent-builder`, `agent-prd`, `mastra-harness`, and `learnings` are Haniyah's.
+Icarus pack (modules 09 + 07), bundled with attribution and Studio integration edits so the chain is testable in one
+place. Current wrappers clarify proportional evidence, optional memory, and handoffs; source rights
+remain as recorded in docs/LICENSE-ICARUS.md. `agent-builder`, `agent-prd`, `mastra-harness`, and `learnings` are Haniyah's.
 
 ---
 
-## Install (~2 min)
+## Connected build pipeline (7 September 2026)
 
-Claude.ai → Settings → Capabilities → Skills → Add → upload each folder's `SKILL.md`
-(or the whole folder, where supported). All seven go in Personal skills:
+Eight skills. The shared contract is [agent-structure/references/pipeline.md](agent-structure/references/pipeline.md).
+A saved `build-state.json` carries confirmed facts and artifact paths across stages; coded builds
+must emit `agent-manifest.json` before implementation. Validate the carrier with
+`node harness/pipeline.js <agent-repo>/build-state.json` and the manifest with
+`node harness/run.js --manifest=<path>`. Missing runtime evidence is `incomplete`, never a pass.
 
-`learnings` · `agent-builder` · `workflow-design` · `agent-design` ·
-`eval-first-spec` · `agent-prd` · `mastra-harness`
+`agent-structure` defines skill, managed, and coded repository profiles. Memory and workflows
+are optional choices. Prototype and reviewed builds use proportional evidence; production keeps
+the full gate. The runtime stack is unchanged; external-tool experiments are deferred.
 
-Seven, not six. The orchestrator loads `learnings` before its first question and
-cites rule IDs when it blocks or waives something — without it installed the chain runs
-with its rules missing and no one is told.
+### Why both SQL and Convex appear
 
-> **If you installed `atelier-learnings` before Sep 2026, remove it.** It was renamed to
-> `learnings` — the rules were never only Atelier's, and the long-horizon `HORIZON-*` family came
-> from the Mastra harness run instead. **Every rule ID is unchanged**, so nothing that cites
-> `CTX-1` or `STATE-1a` breaks. But leaving both installed is worse than either alone: the
-> orchestrator may load the stale copy, which has no `HORIZON-*` rules and no real definition of
-> `STATE-1a`, and you will not be told which one it read.
+Mastra uses the configured storage adapter. `LibSQLStore` writes SQL; `ConvexStore` writes supported
+runtime records to Convex. They are alternatives, not a synchronization pipeline. The bake-off's
+SQLite canonical log and optional LibSQL vendor store are explicit test configurations.
+Production scaffolds select Convex and fail on missing configuration. Domain events are separate
+from mutable workflow snapshots. See [runtime responsibilities](agent-structure/references/runtime-contracts.md).
 
-**No git? Grab the whole repo as one zip:**
+### Install and verify
 
-```bash
-curl -L -o studio-standard-agent-framework.zip \
-  https://github.com/The-Utopia-Studio/studio-standard-agent-framework/archive/refs/heads/main.zip
-unzip studio-standard-agent-framework.zip
-```
+Install all eight skill folders, or build the single-skill bundle: `npm ci && npm run bundle`.
+Upload `dist/studio-agent-framework.zip` to a compatible skill host. Bundle-only coded builds
+include the manifest, harness, reference fixtures and validator dependencies; run `npm ci` where
+execution is available. On a chat-only host, hand the saved artifacts to a coding environment.
+Optional external skills are not required; the pipeline contract defines inline fallbacks.
 
-Unzips to `studio-standard-agent-framework-main/`, containing all six skill folders above
-plus supporting docs. No auth needed — it's the same archive GitHub's own "Download ZIP"
-button serves. Upload the six folders (or the whole unzipped directory, where the uploader
-supports a folder at a time) into Claude.ai's skill uploader per the step above.
+Run `npm run check` for metadata/references and `npm test` for regressions. Install the pinned
+bake-off dependencies with `npm ci --prefix bakeoff/mastra` before running runtime fixtures.
+The bundle has a version record; do not mix installed releases or duplicate old learnings skills.
+
+### Verification vocabulary
+
+- `passed`: all requested core and manifest-declared proof checks were observed passing.
+- `incomplete`: one or more checks were not executed, including missing live evidence.
+- `failed`: an observed failure or invalid declaration.
+
+`--release` exits nonzero for both incomplete and failed results. Without it, declaration-only
+validation may exit zero with an explicit incomplete result so planning can proceed.
+See [the runner contract](harness/README.md) for actual-agent proof modules.
 
 ---
+
+## Historical workflow and operational evidence
+
+The sections below preserve earlier experiments. The current pipeline contract above controls
+stage transitions, packaging, and proportional evidence when older examples differ.
 
 ## "Build" enters the pipeline. "Design" is one stage.
 

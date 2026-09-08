@@ -41,21 +41,31 @@ test('requires a complete baseline security contract and profile-specific contro
   bad.security.principal_source = 'named-team-service-account';
   bad.security.allowed_data_classes = ['internal-operational'];
   const issues = validateManifest(bad).map((failure) => failure.path);
-  assert.ok(issues.includes('security.tool_allowlist'));
+  const badAllowlist = structuredClone(approval);
+  badAllowlist.security.tool_allowlist = ['read_request'];
+  assert.ok(validateManifest(badAllowlist).some((i) => i.path === 'security.tool_allowlist'));
   assert.ok(issues.includes('security.principal_source'));
   assert.ok(issues.includes('security.allowed_data_classes'));
   assert.ok(issues.includes('security.tenant_isolation_check'));
 });
 
 test('compares pins against both package manifest and lockfile', () => {
-  assert.deepEqual(verifyPins(approval, 'bakeoff/mastra/package.json', 'bakeoff/mastra/package-lock.json'), []);
+  assert.deepEqual(
+    verifyPins(approval, 'bakeoff/mastra/package.json', 'bakeoff/mastra/package-lock.json'),
+    [],
+  );
   const bad = structuredClone(approval);
   bad.runtime.packages[0].version = '1.61.0';
-  assert.ok(verifyPins(bad, 'bakeoff/mastra/package.json', 'bakeoff/mastra/package-lock.json').length > 0);
+  assert.ok(
+    verifyPins(bad, 'bakeoff/mastra/package.json', 'bakeoff/mastra/package-lock.json').length > 0,
+  );
 });
 
 test('resolves only repository-owned fixture references', () => {
-  assert.deepEqual(resolveFixtureCases(approval).cases, ['4-crash-resume', '11-post-crash-duplicate-check']);
+  assert.deepEqual(resolveFixtureCases(approval).cases, [
+    '4-crash-resume',
+    '11-post-crash-duplicate-check',
+  ]);
   const bad = structuredClone(approval);
   bad.evaluation.output_eval.fixture_refs = ['../../package.json'];
   assert.equal(resolveFixtureCases(bad).issues.length, 1);
@@ -66,7 +76,9 @@ test('runner executes manifest-selected cases through an explicit adapter and wr
   const adapterPath = join(dir, 'adapter.cjs');
   const resultPath = join(dir, 'result.json');
   // This adapter only exercises runner plumbing. The real Mastra adapter is exercised in CI.
-  writeFileSync(adapterPath, `
+  writeFileSync(
+    adapterPath,
+    `
     const { DatabaseSync } = require('node:sqlite');
     const fs = require('node:fs');
     const path = require('node:path');
@@ -83,34 +95,120 @@ test('runner executes manifest-selected cases through an explicit adapter and wr
         return { ...fixture.expect, slack_posts: 0 };
       },
     };
-  `);
-  const run = spawnSync(process.execPath, [
-    'harness/run.js',
-    '--manifest=examples/manifests/approval-gated-module.agent.json',
-    `--adapter=${adapterPath}`,
-    `--result=${resultPath}`,
-  ], { encoding: 'utf8' });
+  `,
+  );
+  const run = spawnSync(
+    process.execPath,
+    [
+      'harness/run.js',
+      '--manifest=examples/manifests/approval-gated-module.agent.json',
+      `--adapter=${adapterPath}`,
+      `--result=${resultPath}`,
+    ],
+    { encoding: 'utf8' },
+  );
   assert.equal(run.status, 0, `${run.stdout}\n${run.stderr}`);
   assert.match(run.stdout, /2 manifest-selected fixture\(s\) passed/);
   const result = JSON.parse(readFileSync(resultPath, 'utf8'));
-  assert.equal(result.status, 'passed');
-  assert.deepEqual(result.observations.find((item) => item.id === 'golden-cases').cases, ['4-crash-resume', '11-post-crash-duplicate-check']);
+  assert.equal(result.status, 'incomplete');
+  assert.equal(result.release_ready, false);
+  assert.ok(result.observations.some((o) => o.status === 'UNENFORCED'));
+  assert.deepEqual(result.observations.find((item) => item.id === 'golden-cases').cases, [
+    '4-crash-resume',
+    '11-post-crash-duplicate-check',
+  ]);
 });
 
 test('runner fails when the shared evaluator reports a non-passing verdict', () => {
   const dir = mkdtempSync(join(tmpdir(), 'agent-manifest-runner-'));
   const adapterPath = join(dir, 'adapter.cjs');
   const resultPath = join(dir, 'result.json');
-  writeFileSync(adapterPath, "module.exports = { run: async (fixture) => ({ ...fixture.expect, slack_posts: 0 }) };\n");
-  const run = spawnSync(process.execPath, [
-    'harness/run.js',
-    '--manifest=examples/manifests/approval-gated-module.agent.json',
-    `--adapter=${adapterPath}`,
-    `--result=${resultPath}`,
-  ], { encoding: 'utf8' });
+  writeFileSync(
+    adapterPath,
+    'module.exports = { run: async (fixture) => ({ ...fixture.expect, slack_posts: 0 }) };\n',
+  );
+  const run = spawnSync(
+    process.execPath,
+    [
+      'harness/run.js',
+      '--manifest=examples/manifests/approval-gated-module.agent.json',
+      `--adapter=${adapterPath}`,
+      `--result=${resultPath}`,
+    ],
+    { encoding: 'utf8' },
+  );
   assert.equal(run.status, 1);
   assert.match(run.stdout, /FAIL\s+golden-cases/);
   const result = JSON.parse(readFileSync(resultPath, 'utf8'));
   assert.equal(result.status, 'failed');
   assert.equal(result.failures[0].id, 'golden-cases');
+});
+
+for (const [name, change] of [
+  ['missing owner', (m) => delete m.agent.owner],
+  ['missing lifecycle', (m) => delete m.lifecycle],
+  ['mutable event log', (m) => (m.state.event_log.append_only = false)],
+  ['missing budget', (m) => delete m.operations.budget.max_per_period],
+  ['empty fixtures', (m) => (m.evaluation.output_eval.fixture_refs = [])],
+  ['duplicate health states', (m) => (m.operations.health_statuses = ['ok', 'ok', 'ok', 'ok'])],
+  ['mixed no-memory channels', (m) => (m.state.memory.channels = ['none', 'module'])],
+  ['unknown fields', (m) => (m.mistyped = true)],
+])
+  test(`schema rejects ${name}`, () => {
+    const bad = structuredClone(approval);
+    change(bad);
+    assert.ok(validateManifest(bad).length);
+  });
+
+test('partial pin arguments fail and persist the failure', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'studio-pin-'));
+  const output = join(dir, 'result.json');
+  const run = spawnSync(process.execPath, [
+    'harness/run.js',
+    '--manifest=examples/manifests/approval-gated-module.agent.json',
+    '--package=bakeoff/mastra/package.json',
+    `--result=${output}`,
+  ]);
+  assert.equal(run.status, 1);
+  const result = JSON.parse(readFileSync(output));
+  assert.equal(result.status, 'failed');
+  assert.ok(result.failures.some((f) => f.id === 'pin-check'));
+});
+
+test('release refuses unexecuted checks and declaration-only verified claims', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'studio-release-'));
+  const output = join(dir, 'result.json');
+  const run = spawnSync(process.execPath, [
+    'harness/run.js',
+    '--manifest=examples/manifests/approval-gated-module.agent.json',
+    '--release',
+    `--result=${output}`,
+  ]);
+  assert.equal(run.status, 2);
+  const result = JSON.parse(readFileSync(output));
+  assert.equal(result.status, 'incomplete');
+  assert.ok(
+    result.observations.some((f) => f.id.startsWith('proof:') && f.status === 'UNENFORCED'),
+  );
+  assert.equal(result.manifest_hash.length, 64);
+});
+
+test('invalid manifest does not execute an operator-supplied check module', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'studio-invalid-'));
+  const marker = join(dir, 'executed');
+  const checks = join(dir, 'checks.mjs');
+  const manifest = join(dir, 'manifest.json');
+  writeFileSync(
+    checks,
+    `import fs from 'node:fs'; fs.writeFileSync(${JSON.stringify(marker)}, 'ran');`,
+  );
+  writeFileSync(manifest, '{}');
+  const run = spawnSync(process.execPath, [
+    'harness/run.js',
+    `--manifest=${manifest}`,
+    `--checks=${checks}`,
+    `--result=${join(dir, 'result.json')}`,
+  ]);
+  assert.equal(run.status, 1);
+  assert.throws(() => readFileSync(marker));
 });

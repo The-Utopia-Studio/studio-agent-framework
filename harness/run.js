@@ -1,147 +1,256 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
+import { createHash, randomUUID } from 'node:crypto';
+import { pathToFileURL } from 'node:url';
 import path from 'node:path';
-import process from 'node:process';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { loadManifest, resolveFixtureCases, validateManifest, verifyPins } from './manifest.js';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-
-function argument(name) {
-  const prefix = `--${name}=`;
-  return process.argv.slice(2).find((value) => value.startsWith(prefix))?.slice(prefix.length);
-}
-
-function report(status, id, detail) {
-  console.log(`${status.padEnd(11)} ${id}${detail ? ` — ${detail}` : ''}`);
-}
-
-const manifestPath = argument('manifest');
-const packagePath = argument('package');
-const lockfilePath = argument('lockfile');
-const adapterPath = argument('adapter');
-const resultPath = argument('result');
-const failureDraftPath = argument('failure-draft');
-const runBehavior = process.argv.includes('--behavior');
-
+const arg = (name) => process.argv.find((v) => v.startsWith(`--${name}=`))?.slice(name.length + 3);
+const release = process.argv.includes('--release');
+const manifestPath = arg('manifest');
 if (!manifestPath) {
-  console.error('usage: node harness/run.js --manifest=<path> [--package=<path> --lockfile=<path>] [--adapter=<path>] [--behavior] [--result=<path>]');
+  console.error(
+    'Required: --manifest=<path>. Optional: --package, --lockfile, --adapter, --behavior, --checks, --release, --result.',
+  );
   process.exit(2);
 }
-
+const fileHash = (file) => {
+  try {
+    return hash(readFileSync(file));
+  } catch {
+    return null;
+  }
+};
+const hash = (text) => createHash('sha256').update(text).digest('hex');
+const observations = [];
+function record(id, status, detail, extra = {}) {
+  observations.push({ id, status, detail, ...extra });
+  console.log(`${status.padEnd(11)} ${id} — ${detail}`);
+}
 let manifest;
 try {
   manifest = loadManifest(manifestPath);
 } catch (error) {
-  report('FAIL', 'manifest-json', error.message);
-  process.exit(1);
+  record('manifest-json', 'FAIL', error.message);
 }
-
-const failures = [];
-const observations = [];
-const contractIssues = validateManifest(manifest);
-if (contractIssues.length) {
-  for (const failure of contractIssues) {
-    report('FAIL', failure.path, failure.message);
-    failures.push({ id: failure.path, detail: failure.message });
-  }
-} else {
-  report('PASS', 'manifest-contract', `${manifest.agent.id} is internally consistent`);
-  observations.push({ id: 'manifest-contract', status: 'PASS' });
-}
-
-if (packagePath || lockfilePath) {
-  if (!packagePath || !lockfilePath) {
-    report('FAIL', 'pin-check', 'both --package and --lockfile are required');
-  } else {
+const issues = manifest ? validateManifest(manifest) : [];
+issues.forEach((i) => record(i.path, 'FAIL', i.message));
+const valid = manifest && !issues.length;
+const runId = randomUUID();
+const manifestHash = manifest ? hash(JSON.stringify(manifest)) : null;
+const adapterValue = arg('agent-adapter') || arg('adapter');
+const adapter = adapterValue ? path.resolve(adapterValue) : null;
+const agentMode = !!arg('agent-adapter');
+if (arg('agent-adapter') && arg('adapter'))
+  record('adapter-selection', 'FAIL', 'choose agent-adapter or bakeoff adapter, not both');
+let suite = null;
+if (valid) {
+  record('manifest-contract', 'PASS', 'complete JSON Schema and cross-field rules validated');
+  const pkg = arg('package'),
+    lock = arg('lockfile');
+  if (!!pkg !== !!lock) record('pin-check', 'FAIL', 'both --package and --lockfile are required');
+  else if (!pkg) record('package-pins', 'UNENFORCED', 'supply package and lockfile');
+  else {
     try {
-      const pinIssues = verifyPins(manifest, packagePath, lockfilePath);
-      if (pinIssues.length) for (const failure of pinIssues) {
-        report('FAIL', failure.path, failure.message);
-        failures.push({ id: failure.path, detail: failure.message });
-      } else {
-        report('PASS', 'package-pins', 'manifest, package.json, and lockfile agree');
-        observations.push({ id: 'package-pins', status: 'PASS' });
-      }
+      const failures = verifyPins(manifest, pkg, lock);
+      if (failures.length) failures.forEach((i) => record(i.path, 'FAIL', i.message));
+      else
+        record('package-pins', 'PASS', 'manifest, package and lockfile agree', {
+          package_hash: hash(readFileSync(pkg)),
+          lockfile_hash: hash(readFileSync(lock)),
+        });
     } catch (error) {
-      report('FAIL', 'pin-check', error.message);
-      failures.push({ id: 'pin-check', detail: error.message });
+      record('package-pins', 'FAIL', error.message);
     }
   }
-} else {
-  report('UNENFORCED', 'package-pins', 'provide --package and --lockfile to compare installed declarations');
-}
-
-if (adapterPath) {
-  const fixtureSet = resolveFixtureCases(manifest);
-  if (fixtureSet.issues.length) {
-    for (const failure of fixtureSet.issues) {
-      report('FAIL', failure.path, failure.message);
-      failures.push({ id: failure.path, detail: failure.message });
+  if (adapter && !agentMode)
+    record(
+      'actual-agent-binding',
+      'UNENFORCED',
+      'bakeoff evidence is analogous; use --agent-adapter for actual-agent release proof',
+    );
+  if (adapter) {
+    const projectRoot = agentMode ? path.dirname(path.resolve(manifestPath)) : process.cwd();
+    const fixtures = resolveFixtureCases(
+      manifest,
+      projectRoot,
+      agentMode ? 'tests/fixtures' : 'bakeoff/evals/fixtures',
+    );
+    if (fixtures.issues.length) fixtures.issues.forEach((i) => record(i.path, 'FAIL', i.message));
+    else {
+      const dir = mkdtempSync(path.join(tmpdir(), 'studio-suite-'));
+      const output = path.join(dir, 'suite.json');
+      const evaluator = agentMode
+        ? new URL('./agent-suite.js', import.meta.url).pathname
+        : path.resolve('bakeoff/evals/runner.js');
+      const extra = agentMode
+        ? [
+            `--fixture-root=${path.join(projectRoot, 'tests/fixtures')}`,
+            `--agent-id=${manifest.agent.id}`,
+            ...(manifest.evaluation.behavior_eval.enabled
+              ? [
+                  `--policy=${JSON.stringify({ requirePreflight: manifest.operations.preflight.required, requireApproval: manifest.tools.some((t) => t.effect === 'external-write' && t.approval_required) })}`,
+                ]
+              : []),
+          ]
+        : [];
+      const child = spawnSync(
+        process.execPath,
+        [
+          evaluator,
+          `--harness=${adapter}`,
+          `--case=${fixtures.cases.join(',')}`,
+          `--suite-id=${runId}`,
+          `--result=${output}`,
+          `--runs-dir=${dir}`,
+          ...extra,
+        ],
+        { stdio: 'inherit', timeout: 300000 },
+      );
+      try {
+        suite = JSON.parse(readFileSync(output, 'utf8'));
+      } catch {
+        /* missing evidence is a failure */
+      }
+      const exact =
+        suite?.suite_id === runId &&
+        suite?.adapter === adapter &&
+        Array.isArray(suite.results) &&
+        suite.results.length === fixtures.cases.length &&
+        new Set(suite.results.map((r) => r.case)).size === fixtures.cases.length &&
+        fixtures.cases.every((c) =>
+          suite.results.some((r) => r.case === c && r.verdict === 'PASS'),
+        );
+      if (child.status === 0 && exact)
+        record(
+          'golden-cases',
+          'PASS',
+          `${fixtures.cases.length} manifest-selected fixture(s) passed`,
+          {
+            cases: fixtures.cases,
+            scope: agentMode ? 'actual-agent-adapter' : 'bakeoff-adapter',
+            adapter,
+          },
+        );
+      else
+        record(
+          'golden-cases',
+          'FAIL',
+          `suite failed, blocked, missing, or mismatched (exit ${child.status})`,
+        );
     }
-  } else {
-    const evaluator = path.resolve('bakeoff/evals/runner.js');
-    const adapter = path.resolve(adapterPath);
-    const result = spawnSync(process.execPath, [evaluator, `--harness=${adapter}`, `--case=${fixtureSet.cases.join(',')}`], { stdio: 'inherit' });
-    let suite = null;
-    try { suite = JSON.parse(readFileSync('runs/last-suite.json', 'utf8')); } catch (_) { /* reported below */ }
-    const nonPassing = suite?.results?.filter((item) => item.verdict !== 'PASS') || [];
-    if (result.status === 0 && suite && nonPassing.length === 0) {
-      report('PASS', 'golden-cases', `${fixtureSet.cases.length} manifest-selected fixture(s) passed`);
-      observations.push({ id: 'golden-cases', status: 'PASS', cases: fixtureSet.cases });
-    } else {
-      const detail = result.status !== 0
-        ? `selected fixture suite exited ${result.status ?? 'with a signal'}`
-        : !suite
-          ? 'selected fixture suite produced no machine-readable result'
-          : `${nonPassing.length} selected fixture(s) did not pass: ${nonPassing.map((item) => `${item.case}=${item.verdict}`).join(', ')}`;
-      report('FAIL', 'golden-cases', detail);
-      failures.push({ id: 'golden-cases', detail, cases: fixtureSet.cases });
+  } else
+    record(
+      'golden-cases',
+      'UNENFORCED',
+      'supply an explicit adapter to run selected bakeoff fixtures',
+    );
+  if (process.argv.includes('--behavior')) {
+    const child = spawnSync(
+      process.execPath,
+      ['--test', new URL('../bakeoff/evals/behavior.test.js', import.meta.url).pathname],
+      { stdio: 'inherit', timeout: 60000 },
+    );
+    record(
+      'behavior-compiler',
+      child.status === 0 ? 'PASS' : 'FAIL',
+      'compiler unit tests; not proof of this agent’s behavior',
+    );
+  } else record('behavior-compiler', 'UNENFORCED', 'not requested');
+
+  // Only operator-supplied modules execute code. Manifest command strings are documentation.
+  let checks = {};
+  if (arg('checks')) {
+    try {
+      checks = (await import(pathToFileURL(path.resolve(arg('checks'))).href)).checks || {};
+    } catch (error) {
+      record('check-module', 'FAIL', error.message);
     }
   }
-} else {
-  report('UNENFORCED', 'golden-cases', 'pass --adapter to execute the manifest-selected fixtures');
-}
-
-if (runBehavior) {
-  const testPath = path.resolve('bakeoff/evals/behavior.test.js');
-  const result = spawnSync(process.execPath, ['--test', testPath], { stdio: 'inherit' });
-  if (result.status === 0) {
-    report('PASS', 'behavior-compiler', 'portable predicates pass');
-    observations.push({ id: 'behavior-compiler', status: 'PASS' });
-  } else {
-    report('FAIL', 'behavior-compiler', 'behavior test failed');
-    failures.push({ id: 'behavior-compiler', detail: 'behavior test failed' });
+  function collect(value, prefix = '') {
+    if (!value || typeof value !== 'object') return [];
+    if (value.id && value.failure_condition && value.enforcement)
+      return [{ check: value, field: prefix }];
+    return Object.entries(value).flatMap(([k, v]) => collect(v, prefix ? `${prefix}.${k}` : k));
   }
-} else {
-  report('UNENFORCED', 'behavior-compiler', 'pass --behavior to run the portable behavior test');
+  for (const { check, field } of collect(manifest)) {
+    const id = `proof:${field}`;
+    if (typeof checks[check.id] !== 'function') {
+      record(id, 'UNENFORCED', `no executable proof supplied for ${check.id}`, {
+        check_id: check.id,
+      });
+      continue;
+    }
+    let timer;
+    try {
+      const evidence = await Promise.race([
+        checks[check.id]({ manifest, manifestHash, runId, adapter, suite }),
+        new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error('proof timed out after 30s')), 30000);
+        }),
+      ]);
+      const bound =
+        evidence?.agent_id === manifest.agent.id &&
+        evidence?.manifest_hash === manifestHash &&
+        evidence?.run_id === runId;
+      if (
+        !bound ||
+        typeof evidence.detail !== 'string' ||
+        !evidence.detail.trim() ||
+        !['PASS', 'FAIL', 'UNENFORCED'].includes(evidence.status)
+      )
+        throw new Error(
+          'proof must name this agent, manifest hash, run ID, explicit status, and detail',
+        );
+      record(id, evidence.status, evidence.detail, { check_id: check.id });
+    } catch (error) {
+      record(id, 'FAIL', error.message, { check_id: check.id });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
 }
-
-const outputPath = resultPath || `runs/manifests/${manifest.agent.id}-latest.json`;
-const output = {
-  manifest: manifest.agent.id,
-  schema_version: manifest.schema_version,
+const failures = observations.filter((o) => o.status === 'FAIL');
+const incomplete = observations.some((o) => o.status === 'UNENFORCED');
+const status = failures.length ? 'failed' : incomplete ? 'incomplete' : 'passed';
+const git = spawnSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' });
+const dirty = spawnSync('git', ['status', '--porcelain'], { encoding: 'utf8' });
+const result = {
+  manifest: manifest?.agent?.id ?? null,
+  schema_version: manifest?.schema_version ?? null,
+  run_id: runId,
+  manifest_hash: manifestHash,
+  git_sha: git.status === 0 ? git.stdout.trim() : null,
+  adapter_hash: adapter && valid ? fileHash(adapter) : null,
+  check_module_hash: arg('checks') && valid ? fileHash(arg('checks')) : null,
+  working_tree_dirty: dirty.status === 0 ? !!dirty.stdout.trim() : null,
   generated_at: new Date().toISOString(),
-  status: failures.length ? 'failed' : 'passed',
+  status,
+  release_ready: status === 'passed',
   observations,
   failures,
 };
-mkdirSync(path.dirname(outputPath), { recursive: true });
-writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`);
-report('RESULT', 'conformance-result', outputPath);
-
-if (failureDraftPath && failures.some((failure) => failure.id === 'golden-cases')) {
-  let suite = null;
-  try { suite = JSON.parse(readFileSync('runs/last-suite.json', 'utf8')); } catch (_) { /* report remains useful without runner detail */ }
-  const draft = {
-    generated_at: output.generated_at,
-    status: 'review-required',
-    manifest: manifest.agent.id,
-    adapter: adapterPath,
-    instruction: 'Review this draft before adding or changing a permanent fixture. Do not promote a failure automatically.',
-    non_passing_cases: suite?.results?.filter((item) => item.verdict !== 'PASS') || [],
-  };
-  mkdirSync(path.dirname(failureDraftPath), { recursive: true });
-  writeFileSync(failureDraftPath, `${JSON.stringify(draft, null, 2)}\n`);
-  report('RESULT', 'failure-draft', failureDraftPath);
+const output =
+  arg('result') || `runs/manifests/${valid ? manifest.agent.id : 'invalid'}-latest.json`;
+mkdirSync(path.dirname(output), { recursive: true });
+writeFileSync(output, JSON.stringify(result, null, 2) + '\n');
+if (arg('failure-draft') && failures.some((f) => f.id === 'golden-cases')) {
+  mkdirSync(path.dirname(arg('failure-draft')), { recursive: true });
+  writeFileSync(
+    arg('failure-draft'),
+    JSON.stringify(
+      {
+        status: 'review-required',
+        run_id: runId,
+        manifest: result.manifest,
+        instruction: 'Review before promoting any failure into a permanent fixture.',
+        non_passing_cases: suite?.results?.filter((r) => r.verdict !== 'PASS') || [],
+      },
+      null,
+      2,
+    ) + '\n',
+  );
 }
-
-process.exit(failures.length ? 1 : 0);
+console.log(`RESULT      ${status} — ${output}`);
+process.exit(failures.length ? 1 : release && incomplete ? 2 : 0);

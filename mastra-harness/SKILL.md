@@ -1,22 +1,13 @@
 ---
 name: mastra-harness
-description: >-
-  Implements a Tier B/C coded agent on the studio harness — Mastra + ConvexStore. Fires when a
-  PRD and work orders already exist and code is about to be written: "build the first work
-  order", "implement the agent", "scaffold the harness", "wire up Mastra", "does this agent need
-  a workflow", "what memory should this agent have", "this agent needs to survive restarts / run
-  overnight / remember across runs". Picks up exactly where `agent-prd` stops. First DECIDES,
-  per agent, whether it needs a Mastra workflow and which memory channels it gets — both are
-  per-agent calls with real costs, not defaults — then builds the seven-step runtime shape with
-  the three pieces that are always forgotten (dependency preflight, deterministic memory write,
-  state freshness check) and a `doctor` command that must exit 0 before the order is done. Do
-  NOT fire to decide WHETHER to build an agent (use agent-builder), to spec role/tools/memory
-  (use agent-design), to write golden cases or autonomy level (use eval-first-spec), to produce
-  the PRD and work orders (use agent-prd), or for Tier A skills/projects that never run
-  unattended — those need no harness.
-type: implementer
-supersedes: none
+description: Implement an approved coded-agent work order using its validated AgentManifest and the Studio Mastra/Convex scaffold. Use when building a work order or adding durable workflows, memory, or restart recovery. For initial scope and design, use agent-builder.
+metadata:
+  type: implementer
+  supersedes: none
 ---
+
+> **Studio integration contract:** Read [the pipeline contract](../agent-structure/references/pipeline.md) before this stage. It governs evidence proportionality, optional memory, current rule precedence, and persisted handoffs. Historical examples below do not override it.
+
 
 # Mastra harness
 
@@ -327,3 +318,16 @@ flags from the §1 decisions — an agent with no memory must not be failed for 
 | A spend cap the agent can't act on | A warning stops nothing at 3am. It must unload its own job |
 | Coverage measured on wall-clock | Punishes a machine for being switched off. Measure awake time |
 | A snapshot used to carry state between runs | Snapshots resume a run. Across runs is memory |
+
+## Required input and completion
+
+Read `build-state.json`, the PRD/work order, and `agent-manifest.json`. Validate the full manifest
+before implementation; select layout with `agent-structure`. Configure runtime packages, storage,
+tool identity, effects, memory and budgets from confirmed manifest fields. Never copy the bake-off's
+local SQL fallback into a production build. Implement the selected behavior and its actual-agent
+proof registry using [runtime contracts](../agent-structure/references/runtime-contracts.md).
+
+`doctor` exits 0 only when all requested checks are observed and passing; warnings mean incomplete.
+Run `harness/run.js --release` with explicit actual-agent checks before claiming release readiness.
+Generic compiler tests and analogous digest fixtures do not satisfy those checks. Record unresolved
+live checks as incomplete and update the carrier rather than manufacturing a pass.

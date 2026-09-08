@@ -11,19 +11,23 @@ description: >-
   multi-agent fleet or hand-offs (use workflow-design), writing its golden cases / autonomy level /
   cost budget (use eval-first-spec — this skill routes there and carries the number), or the
   post-launch ship-observe-learn-refine loop and autonomy-raise (use refine-flywheel).
-type: generator
-supersedes: none
+metadata:
+  type: generator
+  supersedes: none
 ---
+
+> **Studio integration contract:** Read [the pipeline contract](../agent-structure/references/pipeline.md) before this stage. It governs evidence proportionality, optional memory, current rule precedence, and persisted handoffs. Historical examples below do not override it.
+
 
 # Agent Design
 
 ## What it does
 
-Turns "we want an agent for this" into a spec built from four parts, in order of how much of it the fellow actually owns: a **role** stated as one decision the agent owns at a chosen autonomy level; the **minimum tool set**, each tool with its blast radius and guardrail; the **memory layer** — CLAUDE.md, skills, an append-only lessons.md, and a trace archive, each with a load trigger and a writer — which is the owned, compounding part and gets most of the design budget; and the **eval** that proves the whole thing works and is getting better, which is `eval-first-spec`'s golden set, routed there, not restated. The artefact is the filled `template.md`. An agent with no memory layer or no eval is not an agent; it is a prompt with tools, and it does not compound.
+Turns "we want an agent for this" into a spec built from four parts, in order of how much of it the fellow actually owns: a **role** stated as one decision the agent owns at a chosen autonomy level; the **minimum tool set**, each tool with its blast radius and guardrail; the **memory layer** — CLAUDE.md, skills, an append-only lessons.md, and a trace archive, each with a load trigger and a writer — which is the owned, compounding part and gets most of the design budget; and the **eval** that proves the whole thing works and is getting better, which is `eval-first-spec`'s golden set, routed there, not restated. The artefact is the filled `template.md`. An agent must have an evaluation plan. Memory is optional: record which channels the job needs, or explicitly choose none.
 
 ## The Icarus reframe
 
-A generic agent design is a prompt, a tool list, and a model — and a competitor can rent the same model, wire the same tools, and copy the prompt from one screenshot in an afternoon. The one part that is yours and gets better only for you is the **memory layer**: CLAUDE.md for durable context, skills for tell-able procedure, an append-only lessons.md for the corrections that are the tacit half of the expertise, and a trace archive of every real run — all loaded into context at birth so run N starts smarter than run N−1. So this skill spends its effort on what gets written, by whom, and when it loads, treats role and tools as the cheap swappable shell around it, and makes an eval prove the memory is compounding rather than merely accumulating.
+A generic agent design is a prompt, a tool list, and a model — and a competitor can rent the same model, wire the same tools, and copy the prompt from one screenshot in an afternoon. The one part that is yours and gets better only for you is the **memory layer**: CLAUDE.md for durable context, skills for tell-able procedure, an append-only lessons.md for the corrections that are the tacit half of the expertise, and a trace archive of every real run — retrieved selectively when relevant, with only the invariant core preloaded. So this skill spends its effort on what gets written, by whom, and when it loads, treats role and tools as the cheap swappable shell around it, and makes an eval prove the memory is compounding rather than merely accumulating.
 
 ## When to use / When NOT
 
@@ -81,7 +85,7 @@ This is the section that matters. Four stores. Fill every column for each — a 
 |---|---|---|---|---|
 | **CLAUDE.md** | Durable operating context: system facts, the org map, standing rules, thresholds | Human, curated | At birth, every run | Stops the agent re-learning context each session |
 | **skills** | Tell-able, repeatable procedures the agent invokes | Explicit capture — route to `explicit-vs-tacit-capture` | Registered at birth; invoked on demand | The *explicit* half of the expertise, versioned |
-| **lessons.md** | Append-only log of corrections + failures — one entry each, what was changed and why | The agent / operator, the moment a correction happens | At birth, every run | The *tacit* half accretes here — the defensible part |
+| **lessons.md** | Append-only log of corrections + failures — one entry each, what was changed and why | The agent / operator, the moment a correction happens | Retrieve relevant, current lessons on demand | The *tacit* half accretes here — the defensible part |
 | **trace archive** | Every run: input, output, human edit, outcome | The system, automatically | Sampled into eval + discovery (not all into context) | YODA moat + eval fuel + the discovery corpus |
 
 Then the ownership test — why the memory layer, and only the memory layer, is where value compounds:

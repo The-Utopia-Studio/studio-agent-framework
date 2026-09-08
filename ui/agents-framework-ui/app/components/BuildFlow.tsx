@@ -162,7 +162,7 @@ export default function BuildFlow({ rec, answers, audience, runtimeHome }: Build
               className="btn-download"
               href="/api/skills-zip?bundle=claude-single-skill-v3"
               aria-label="Download the Claude-ready framework skill"
-              title="One Claude-uploadable skill ZIP: one top-level folder and one SKILL.md, with the seven stage instructions and linked evidence inside."
+              title="One Claude-uploadable skill ZIP: one top-level folder and one SKILL.md, with the eight skill instructions and linked evidence inside."
             >
               <span className="btn-download-arrow" aria-hidden="true">
                 ↓

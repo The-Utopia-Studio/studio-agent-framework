@@ -22,6 +22,10 @@ const harnessArg = arg('harness');
 const caseArg = arg('case');
 const live = !!arg('live');
 const verbose = !!arg('verbose');
+const resultPath = arg('result');
+const suiteId = arg('suite-id');
+const runsDir = path.resolve(arg('runs-dir', 'runs'));
+fs.mkdirSync(runsDir, { recursive: true });
 
 if (!harnessArg) {
   console.error('usage: node evals/runner.js --harness=<path> [--case=a,b | --all] [--live] [--verbose]');
@@ -109,7 +113,7 @@ function gradeOne(key, expected, report) {
 
   for (const fx of fixtures) {
     const runId = `${fx.case}-${process.pid}-${Date.now()}`;
-    const dbPath = path.join(process.cwd(), 'runs', `${fx.case}.db`);
+    const dbPath = path.join(runsDir, `${fx.case}.db`);
     try { fs.rmSync(dbPath, { force: true }); fs.rmSync(`${dbPath}-wal`, { force: true }); fs.rmSync(`${dbPath}-shm`, { force: true }); } catch (_) {}
 
     const slackCounter = { attempts: 0 };
@@ -186,10 +190,10 @@ function gradeOne(key, expected, report) {
   console.log(`PASS ${n('PASS')}   FAIL ${n('FAIL')}   PRIMITIVE-GAP ${n('PRIMITIVE-GAP')}   BLOCKED ${n('BLOCKED-NO-CREDENTIAL')}   ERROR ${n('ERROR')}   of ${results.length}`);
   console.log(`${'-'.repeat(64)}`);
 
-  const outPath = path.join(process.cwd(), 'runs', 'last-suite.json');
+  const outPath = resultPath || path.join(process.cwd(), 'runs', 'last-suite.json');
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify({
-    harness: harness.name || harnessPath, live, at: new Date().toISOString(), results,
+    suite_id: suiteId, adapter: harnessPath, harness: harness.name || harnessPath, live, at: new Date().toISOString(), results,
   }, null, 2));
   console.log(`results -> ${path.relative(process.cwd(), outPath)}`);
 

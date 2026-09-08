@@ -1,0 +1,18 @@
+{
+  "name": "studio-agent-framework",
+  "version": "0.2.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "test": "node --test harness/tests/*.test.js long-horizon/intake/tests/*.test.js bakeoff/evals/behavior.test.js mastra-harness/tests/scaffold.test.mjs scripts/tests/*.test.mjs",
+    "check": "node scripts/check-skills.mjs",
+    "bundle": "node scripts/build-bundle.mjs"
+  },
+  "dependencies": {
+    "ajv": "8.17.1",
+    "ajv-formats": "3.0.1",
+    "yaml": "2.8.1"
+  }
+}

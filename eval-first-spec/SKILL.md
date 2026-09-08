@@ -1,9 +1,13 @@
 ---
 name: eval-first-spec
 description: Turn a validated wedge into the scope you can SCORE — a one-sentence job, 20 pass/fail golden cases drawn from real artefacts, an L0–L4 autonomy level with a failure taxonomy and a derived acceptable failure rate per mode, and a cost-per-outcome budget to the cent. Fires on "spec the build", "define scope", "scope the v1", "write the spec", "how do we know it works". Not for the component pipeline or effort split (use compound-system-architecture), not for pilot price / terms / commercial success metrics (use pilot-six-term-sheet), not for whether the thing gets adopted at all (use wedge-five-questions).
-type: generator
-supersedes: none
+metadata:
+  type: generator
+  supersedes: none
 ---
+
+> **Studio integration contract:** Read [the pipeline contract](../agent-structure/references/pipeline.md) before this stage. It governs evidence proportionality, optional memory, current rule precedence, and persisted handoffs. Historical examples below do not override it.
+
 
 ## What it does
 
@@ -27,6 +31,13 @@ Do not use when:
 | "Score the whole idea / give me the so-what" | `problem-quality-scorecard` / `so-what-stress-test` (00–01). Those judge the idea; this specs the build. |
 
 Do not use it to invent a spec from nothing. If there are no real artefacts to draw golden cases from, the input is not ready. Say so and send the fellow back to probes and data sourcing. Never fabricate cases to reach 20.
+
+## Evidence profile
+
+Select the profile from the pipeline contract first. The 20-case composition and 14-real-input
+floor below apply to production. For prototype and reviewed builds use their smaller explicit
+gates; label evidence provisional and preserve all refusal, identity, and human-review requirements.
+Do not describe a prototype as production-ready.
 
 ## Method
 

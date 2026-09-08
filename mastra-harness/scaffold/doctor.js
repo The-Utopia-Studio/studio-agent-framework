@@ -15,9 +15,8 @@ import { freshness } from './freshness.js';
 
 const PASS = 'PASS', WARN = 'WARN', FAIL = 'FAIL';
 
-// Raw HTTP, zero SDK. A process that never wrote the state proves the state is DURABLE; if the
-// read needs the vendor's client you have proven a cache that survived because nothing
-// restarted hard enough.
+// Independent remote read-back checks inspectability. An SDK-based independent read is also
+// valid durability evidence; this probe deliberately avoids the SDK as a portability check.
 async function readTable(tableName, limit = 200) {
   const base = (process.env.CONVEX_URL || '').replace(/\/+$/, '');
   const res = await fetch(`${base}/api/mutation`, {
@@ -75,13 +74,13 @@ export async function doctor(opts = {}) {
       else {
         wm = String(mine.workingMemory || '');
         updatedAt = mine.updatedAt || null;
-        add(PASS, 'durable memory', `resource "${resource}" readable over raw HTTP, ${wm.length} chars`);
+        add(wm ? PASS : FAIL, 'durable memory', `resource "${resource}" readable over raw HTTP, ${wm.length} chars`);
       }
     } catch (e) { add(FAIL, 'durable memory', e.message); }
 
     if (wm !== null) {
       // FRESHNESS, not size. A frozen 1,742 chars and a healthy 1,742 chars are the same number.
-      const f = freshness(updatedAt, cycles);
+      const f = freshness(updatedAt, cycles.filter(c => c.resource === resource));
       add(f.stale === null ? WARN : (f.stale ? FAIL : PASS), 'memory freshness', f.reason);
     }
   }
@@ -105,9 +104,9 @@ export async function doctor(opts = {}) {
   console.log('-'.repeat(72));
   const fails = rows.filter((r) => r.state === FAIL).length;
   const warns = rows.filter((r) => r.state === WARN).length;
-  console.log(fails ? `  ${fails} failure(s), ${warns} warning(s)`
+  console.log(!rows.length ? '  incomplete: no checks requested' : fails ? `  ${fails} failure(s), ${warns} warning(s)`
             : warns ? `  healthy, with ${warns} warning(s)` : '  all checks passed');
-  return { fails, warns, rows };
+  return { fails, warns, rows, ready: rows.length > 0 && fails === 0 && warns === 0 };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
@@ -116,6 +115,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     deps: [{ name: 'convex', url: `${(process.env.CONVEX_URL || '').replace(/\/+$/, '')}/version` }],
     resource: process.env.MASTRA_RESOURCE || null,
     expect: { memory: !!process.env.MASTRA_RESOURCE, workflow: true },
-  }).then((r) => process.exit(r.fails ? 1 : 0))
+  }).then((r) => process.exit(r.fails ? 1 : r.ready ? 0 : 2))
     .catch((e) => { console.error('doctor failed:', e.message); process.exit(1); });
 }

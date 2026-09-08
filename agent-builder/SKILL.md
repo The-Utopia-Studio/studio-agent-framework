@@ -1,21 +1,13 @@
 ---
 name: agent-builder
-description: >-
-  The front door for building any agent at Utopia Studio — technical or not. Fires when
-  someone wants to build, plan, scope, or ship an agent and hasn't been routed to a specific
-  stage: "I want to build an agent", "help me build an agent for X", "where do I start with
-  agents", "we need an agent that...", "turn this workflow into an agent". Runs a short
-  intake, then chains the build-craft skills in order — workflow-design (fleet or solo?) →
-  agent-design (role · tools · memory) → eval-first-spec (golden cases · autonomy · cost) →
-  agent-prd (gates → PRD → work orders) → mastra-harness (workflow? memory? → implement,
-  then doctor) — carrying each stage's artefact into the next so nothing gets re-asked. Exits non-builders early on the surface ladder (skill → project →
-  managed → coded) with a checklist instead of a codebase. Always load `learnings` first and check the design against its rule IDs.
-  Do NOT fire when a specific
-  stage is named ("spec just this one agent" → agent-design, "design the fleet" →
-  workflow-design, "write the PRD" → agent-prd, "build the work order" → mastra-harness) — this is the router, not a replacement.
-type: orchestrator
-supersedes: none
+description: "Build an agent through the Utopia Studio pipeline: intake, workflow and agent design, evaluation, PRD, manifest, implementation, and verification. Use for build, plan, scope, or ship requests that do not name a specific stage. Choose the smallest useful implementation. Load learnings first; carry confirmed answers forward."
+metadata:
+  type: orchestrator
+  supersedes: none
 ---
+
+> **Studio integration contract:** Read [the pipeline contract](../agent-structure/references/pipeline.md) before this stage. It governs evidence proportionality, optional memory, current rule precedence, and persisted handoffs. Historical examples below do not override it.
+
 
 # Agent Builder
 
@@ -157,8 +149,9 @@ nobody can execute.
 eval-first-spec assumes a **validated wedge** — adoption evidence in hand — and refuses to
 spec from nothing. Check before entering stage 3: is there behaviour or money behind this
 agent (someone already does this work, asked for it, or pays for it), not just an opinion
-that it would be useful? If the wedge is unvalidated, stop the chain here and route to
-`wedge-five-questions` first. Do not let the pipeline's momentum carry a nobody-wants-this
+that it would be useful? If the wedge is unvalidated, do not claim production readiness. Establish the user and real
+workflow inline, or use `wedge-five-questions` if installed. A labeled prototype may proceed under
+the pipeline evidence profile. Do not let the pipeline's momentum carry a nobody-wants-this
 idea into a fully specced, fully gated PRD — that is the most expensive way to find out.
 
 ### Step 3 — eval-first-spec → eval contract
@@ -261,3 +254,11 @@ when intake Q2 finds real by-hand runs.
 
 Supersedes: none. New skill — the intake/orchestration layer the pack routes around but
 nothing currently owns.
+
+## Implementation handoff
+
+Persist `build-state.json` at intake and every transition, using the pipeline contract. Before
+writing work orders, agent-prd must emit and validate `agent-manifest.json` for rung 4. Then load
+`agent-structure`, select the repository profile, and continue into `mastra-harness` when the user
+has authorized implementation. Its input is the carrier, approved decisions, manifest and ready
+work orders. Completion requires the built artifact and actual-agent evidence. A plan is not a build.
