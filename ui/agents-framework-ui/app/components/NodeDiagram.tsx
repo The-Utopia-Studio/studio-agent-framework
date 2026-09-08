@@ -8,10 +8,70 @@ import ToolLogo from './ToolLogo';
 
 type NodeDiagramProps = {
   pathType: string;
+  job: string;
+  owner: string;
+  scheduled: boolean;
+  writes: boolean;
+  reviewed: boolean;
 };
 
 type FlowStep = { from: string; to: string };
 type Point = { x: number; y: number };
+
+function shortLabel(value: string, limit = 42) {
+  const clean = value.trim().replace(/[.?!]+$/, '');
+  return clean.length > limit ? `${clean.slice(0, limit - 1).trim()}…` : clean;
+}
+
+function connectedToolLabels(job: string, writes: boolean, fallback: string[]) {
+  const task = job.toLowerCase();
+  const builder = fallback[2] ?? 'Build tool';
+
+  if (task.includes('linear')) return ['Meeting notes', 'Linear', builder];
+  if (task.includes('notion')) return ['Source material', 'Notion', builder];
+  if (task.includes('hubspot') || task.includes('crm')) return ['Source material', 'HubSpot CRM', builder];
+  if (task.includes('calendar')) return ['Source material', 'Calendar', builder];
+  if (task.includes('website') || task.includes('site')) return ['Site files', 'Deployment', builder];
+
+  return ['Source material', writes ? 'Connected system' : 'Reference files', builder];
+}
+
+function personalizedBlueprint({ pathType, job, owner, scheduled, writes, reviewed }: NodeDiagramProps): AgentBlueprint {
+  const base = getAgentBlueprint(pathType);
+  const tools = base.nodes.filter((node) => node.kind === 'tool');
+  const toolLabels = connectedToolLabels(job, writes, tools.map((tool) => tool.label));
+  let fileIndex = 0;
+  let toolIndex = 0;
+
+  return {
+    ...base,
+    name: shortLabel(job),
+    owner,
+    summary: job,
+    nodes: base.nodes.map((node) => {
+      if (node.kind === 'trigger') {
+        return { ...node, label: scheduled ? 'Schedule or event' : `${shortLabel(owner, 28)} request` };
+      }
+      if (node.kind === 'agent') return { ...node, label: shortLabel(job) };
+      if (node.kind === 'output') {
+        return {
+          ...node,
+          label: reviewed
+            ? `${shortLabel(owner, 24)} reviews`
+            : writes
+              ? 'System receives result'
+              : 'Result delivered',
+        };
+      }
+      if (node.kind === 'file') {
+        const labels = ['agent-prd.md', 'work-orders.md', 'acceptance-checks.md'];
+        return { ...node, label: labels[fileIndex++] ?? node.label };
+      }
+      if (node.kind === 'tool') return { ...node, label: toolLabels[toolIndex++] ?? node.label };
+      return node;
+    }),
+  };
+}
 
 function buildFlowSteps(blueprint: AgentBlueprint): FlowStep[] {
   const steps: FlowStep[] = [{ from: 'trigger', to: 'agent' }];
@@ -111,8 +171,12 @@ function AgentNode({
   );
 }
 
-export default function NodeDiagram({ pathType }: NodeDiagramProps) {
-  const blueprint = getAgentBlueprint(pathType);
+export default function NodeDiagram(props: NodeDiagramProps) {
+  const { pathType, job, owner, scheduled, writes, reviewed } = props;
+  const { blueprint, flowSteps } = useMemo(() => {
+    const nextBlueprint = personalizedBlueprint({ pathType, job, owner, scheduled, writes, reviewed });
+    return { blueprint: nextBlueprint, flowSteps: buildFlowSteps(nextBlueprint) };
+  }, [pathType, job, owner, scheduled, writes, reviewed]);
   const trigger = blueprint.nodes.find((n) => n.kind === 'trigger')!;
   const agent = blueprint.nodes.find((n) => n.kind === 'agent')!;
   const output = blueprint.nodes.find((n) => n.kind === 'output')!;
@@ -120,7 +184,6 @@ export default function NodeDiagram({ pathType }: NodeDiagramProps) {
   const tools = blueprint.nodes.filter((n) => n.kind === 'tool');
   const buildToolItems = BUILD_TOOLS.filter((t) => blueprint.buildTools.includes(t.id));
 
-  const flowSteps = useMemo(() => buildFlowSteps(getAgentBlueprint(pathType)), [pathType]);
   const [stepIndex, setStepIndex] = useState(0);
   const [dot, setDot] = useState<Point>({ x: 100, y: 52 });
   const [visited, setVisited] = useState<Set<string>>(() => new Set(['trigger']));
@@ -132,9 +195,8 @@ export default function NodeDiagram({ pathType }: NodeDiagramProps) {
     const step = flowSteps[stepIndex % flowSteps.length];
     if (!step) return;
 
-    const activeBlueprint = getAgentBlueprint(pathType);
-    const from = getNodePosition(step.from, activeBlueprint);
-    const to = getNodePosition(step.to, activeBlueprint);
+    const from = getNodePosition(step.from, blueprint);
+    const to = getNodePosition(step.to, blueprint);
 
     let move = 0;
     const reset = requestAnimationFrame(() => {
@@ -156,7 +218,7 @@ export default function NodeDiagram({ pathType }: NodeDiagramProps) {
       cancelAnimationFrame(move);
       clearTimeout(advance);
     };
-  }, [stepIndex, pathType, flowSteps]);
+  }, [stepIndex, flowSteps, blueprint]);
 
   const flowPaths = (() => {
     const seen = new Set<string>();
@@ -172,11 +234,11 @@ export default function NodeDiagram({ pathType }: NodeDiagramProps) {
     <div className="diagram-wrap">
       <div className="diagram-head">
         <label>BUILD SEQUENCE</label>
-        <h3>How a {blueprint.name.toLowerCase()} build fits together.</h3>
+        <h3>How your {blueprint.pathType.toLowerCase()} build fits together.</h3>
         <p className="diagram-meta">
-          <strong>{blueprint.pathType}</strong> · example build
+          <strong>{blueprint.pathType}</strong> · owned by {owner}
         </p>
-        <p className="diagram-desc">{blueprint.summary}</p>
+        <p className="diagram-desc"><strong>The job:</strong> {job}</p>
       </div>
 
       <div className="agent-graph agent-graph--live">
@@ -261,7 +323,7 @@ export default function NodeDiagram({ pathType }: NodeDiagramProps) {
                 id={t.id}
                 label={t.label}
                 kind="tool"
-                toolId={t.id}
+                toolId={i === tools.length - 1 ? t.id : undefined}
                 delay={`${0.38 + i * 0.06}s`}
                 active={activeNode === t.id}
                 visited={visited.has(t.id)}

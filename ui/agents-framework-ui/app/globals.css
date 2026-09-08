@@ -1149,6 +1149,180 @@ fieldset div {
   }
 }
 
+/* Visual harness map — one guarded circuit from request to release. */
+.standard.standard--visual { display: block; }
+
+.harness-title-row {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.8fr) minmax(300px, 1.25fr) auto;
+  gap: 36px;
+  align-items: end;
+  margin-bottom: 28px;
+}
+
+.standard--visual .standard-heading h2 { max-width: 10em; margin-bottom: 0; }
+.standard--visual .standard-intro { max-width: 600px; margin: 0; font-size: 15px; line-height: 1.6; }
+
+.harness-legend {
+  display: grid;
+  gap: 7px;
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.harness-legend span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font: 9px ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--line); }
+.legend-dot--guard { background: #fff; }
+.legend-dot--ai { background: var(--ink); border-color: var(--ink); }
+.legend-dot--proof { background: #719d7d; border-color: #719d7d; }
+
+.harness-story {
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 24px;
+  box-shadow: 0 18px 42px rgba(59, 52, 55, 0.06);
+}
+
+.harness-story-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+.harness-story h3 { margin: 6px 0 0; max-width: 650px; font-size: clamp(18px, 2vw, 24px); line-height: 1.25; letter-spacing: -0.035em; }
+
+.harness-circuit {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(150px, auto));
+  gap: 42px 48px;
+  padding: 45px 28px 48px;
+  border: 1px solid var(--line);
+  background: radial-gradient(circle at 1px 1px, rgba(59, 52, 55, 0.08) 1px, transparent 0) 0 0 / 18px 18px, #fcfbfa;
+}
+
+.circuit-input,
+.circuit-output { position: absolute; z-index: 3; color: var(--accent); font: bold 9px ui-monospace, monospace; letter-spacing: 0.11em; }
+.circuit-input { top: 18px; left: 28px; }
+.circuit-output { bottom: 18px; left: 28px; }
+
+.harness-node {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  min-height: 150px;
+  padding: 15px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease, color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+
+.harness-node--1 { grid-column: 1; grid-row: 1; }
+.harness-node--2 { grid-column: 2; grid-row: 1; }
+.harness-node--3 { grid-column: 3; grid-row: 1; }
+.harness-node--4 { grid-column: 4; grid-row: 1; }
+.harness-node--5 { grid-column: 4; grid-row: 2; }
+.harness-node--6 { grid-column: 3; grid-row: 2; }
+.harness-node--7 { grid-column: 2; grid-row: 2; }
+
+.harness-node::after { position: absolute; color: #b7ada9; font: 22px ui-monospace, monospace; pointer-events: none; }
+.harness-node--1::after,
+.harness-node--2::after,
+.harness-node--3::after { content: '→'; top: calc(50% - 14px); right: -38px; }
+.harness-node--4::after { content: '↓'; bottom: -36px; left: calc(50% - 7px); }
+.harness-node--5::after,
+.harness-node--6::after,
+.harness-node--7::after { content: '←'; top: calc(50% - 14px); left: -38px; }
+
+.harness-node .node-top { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: auto; }
+.harness-node .node-top b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid currentColor; font: 10px ui-monospace, monospace; }
+.harness-node .node-top em { color: var(--muted); font: 9px ui-monospace, monospace; font-style: normal; letter-spacing: 0.1em; }
+.harness-node > strong { margin-top: 18px; font-size: 15px; line-height: 1.2; letter-spacing: -0.02em; }
+.harness-node > span:last-child { display: block; margin-top: 6px; color: var(--muted); font-size: 11px; line-height: 1.4; }
+.harness-node--3 { border-color: var(--ink); box-shadow: inset 0 4px 0 var(--ink); }
+.harness-node.is-done { border-color: #9fbea9; background: #f4f8f5; }
+.harness-node.is-done .node-top b { background: #719d7d; border-color: #719d7d; color: #fff; }
+.harness-node.is-active { z-index: 4; border-color: var(--accent); background: #fff7f3; box-shadow: 0 0 0 3px rgba(216, 85, 54, 0.13), 0 12px 25px rgba(59, 52, 55, 0.09); transform: translateY(-3px); }
+.harness-node.is-active .node-top b { background: var(--accent); border-color: var(--accent); color: #fff; animation: step-pulse 1.2s ease-in-out infinite; }
+.harness-node.is-caught { border-color: var(--accent); background: #fdf0eb; }
+
+.harness-inspector {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.75fr) minmax(300px, 1.4fr) auto;
+  align-items: center;
+  gap: 24px;
+  min-height: 92px;
+  margin-top: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--ink);
+  background: #fcfbfa;
+}
+
+.inspector-status { display: grid; gap: 5px; }
+.inspector-status span { color: var(--accent); font: bold 9px ui-monospace, monospace; letter-spacing: 0.1em; }
+.inspector-status b { font-size: 14px; line-height: 1.3; }
+.harness-inspector p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.harness-inspector button { border: 0; background: none; color: var(--accent); font: 10px ui-monospace, monospace; white-space: nowrap; }
+.harness-inspector.is-safe { border-left-color: #719d7d; background: #f1f7f3; }
+.harness-inspector.is-caught { border-left-color: var(--accent); background: #fdf2ee; }
+
+.harness-proof-strip { display: grid; grid-template-columns: minmax(210px, 1.2fr) repeat(3, minmax(150px, 1fr)) auto; margin-top: 16px; border: 1px solid var(--line); background: #fff; }
+.harness-proof-strip > * { min-width: 0; padding: 18px; border-right: 1px solid var(--line); }
+.proof-strip-intro label { font-size: 9px; }
+.proof-strip-intro p { margin: 7px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+.harness-proof-strip article { display: flex; align-items: center; gap: 12px; }
+.harness-proof-strip article > b { flex: none; color: var(--accent); font-size: 25px; letter-spacing: -0.05em; }
+.harness-proof-strip article div { display: grid; gap: 3px; }
+.harness-proof-strip article strong { font-size: 11px; line-height: 1.25; }
+.harness-proof-strip article span { color: var(--muted); font-size: 10px; line-height: 1.35; }
+.harness-proof-strip .btn-download { align-self: stretch; border: 0; display: flex; justify-content: center; min-width: 120px; }
+
+@media (max-width: 1020px) {
+  .harness-title-row { grid-template-columns: 0.8fr 1.2fr; }
+  .harness-legend { grid-column: 1 / -1; grid-template-columns: repeat(3, auto); justify-content: start; }
+  .harness-circuit { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto; gap: 12px; }
+  .harness-node,
+  .harness-node--1,
+  .harness-node--2,
+  .harness-node--3,
+  .harness-node--4,
+  .harness-node--5,
+  .harness-node--6,
+  .harness-node--7 { grid-column: auto; grid-row: auto; min-height: 140px; }
+  .harness-node::after,
+  .circuit-input,
+  .circuit-output { display: none; }
+  .harness-proof-strip { grid-template-columns: repeat(3, 1fr); }
+  .proof-strip-intro { grid-column: 1 / -1; border-bottom: 1px solid var(--line); }
+  .harness-proof-strip .btn-download { grid-column: 1 / -1; border-top: 1px solid var(--line); }
+}
+
+@media (max-width: 700px) {
+  .harness-title-row { grid-template-columns: 1fr; gap: 18px; }
+  .harness-legend { grid-column: 1; grid-template-columns: 1fr; }
+  .harness-story { padding: 16px; }
+  .harness-story-head { align-items: center; }
+  .harness-circuit { grid-template-columns: 1fr; padding: 16px; }
+  .harness-node { min-height: 128px; }
+  .harness-inspector { grid-template-columns: 1fr; gap: 10px; }
+  .harness-proof-strip { grid-template-columns: 1fr; }
+  .harness-proof-strip article { border-right: 0; border-bottom: 1px solid var(--line); }
+  .harness-proof-strip .btn-download { grid-column: 1; }
+}
+
 /* ============================================================================
    LEARNINGS
    ============================================================================ */

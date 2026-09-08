@@ -152,6 +152,44 @@
 
 /* Handoff section */
 
+.handoff-documents {
+  margin: 10px 0 34px;
+  padding: 26px 28px 14px;
+  border: 1px solid var(--line);
+  background: #fcfbfa;
+}
+
+.handoff-documents-head {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.85fr) minmax(320px, 1.15fr);
+  gap: 40px;
+  align-items: end;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.handoff-documents-head label {
+  color: var(--accent);
+  font: 10px ui-monospace, monospace;
+  letter-spacing: 0.14em;
+}
+
+.handoff-documents-head h2 {
+  margin: 7px 0 0;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+
+.handoff-documents-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.handoff-documents-head strong { color: var(--ink); }
+
 .handoff {
   border-top: 1px solid var(--line);
   padding-top: 20px;
@@ -1073,6 +1111,15 @@
 
   .brief-header {
     flex-direction: column;
+  }
+
+  .handoff-documents {
+    padding: 20px 16px 8px;
+  }
+
+  .handoff-documents-head {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .handoff-intro {

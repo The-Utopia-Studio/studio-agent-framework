@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import HandoffDispatch from './HandoffDispatch';
 import NodeDiagram from './NodeDiagram';
 
 type Answer =
@@ -62,7 +63,14 @@ export default function BuildFlow({ rec, answers, audience, runtimeHome, job, ow
   if (phase === 'diagram') {
     return (
       <section className="brief brief--full">
-        <NodeDiagram pathType={rec[1]} />
+        <NodeDiagram
+          pathType={rec[1]}
+          job={job}
+          owner={owner}
+          scheduled={has('scheduled')}
+          writes={has('write')}
+          reviewed={has('review')}
+        />
         <button className="nav-tab flow-reset" onClick={() => setPhase('brief')}>← Back to brief</button>
       </section>
     );
@@ -124,6 +132,20 @@ export default function BuildFlow({ rec, answers, audience, runtimeHome, job, ow
           <h3>{audienceLabels[audience]}</h3>
           <p>The build must prove this boundary before release.</p>
         </article>
+      </div>
+
+      <div className="handoff-documents">
+        <div className="handoff-documents-head">
+          <div>
+            <label>HANDOFF OUTPUTS</label>
+            <h2>The framework produces two build documents.</h2>
+          </div>
+          <p>
+            The PRD defines what <strong>{job}</strong> must do. Work orders turn that approved
+            definition into buildable tasks for <strong>{owner}</strong> and the selected tool.
+          </p>
+        </div>
+        <HandoffDispatch />
       </div>
 
       <div className="handoff">
