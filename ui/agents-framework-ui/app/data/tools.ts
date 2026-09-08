@@ -50,6 +50,12 @@ export const PATH_EXAMPLES = {
     status: 'READY',
     summary: 'Haniyah kicks it off every Monday. Agent reads sources, drafts the brief. Studio reviews before send.',
   },
+  PROJECT: {
+    name: 'Founder research workspace',
+    owner: 'Investment team',
+    status: 'READY',
+    summary: 'Keeps standing research instructions, reference material, and reviewed notes together without a custom runtime.',
+  },
   'MANAGED SURFACE': {
     name: 'Founder follow-up',
     owner: 'Growth',

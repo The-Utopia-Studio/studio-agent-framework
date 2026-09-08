@@ -1,112 +1,88 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import HandoffDispatch from './HandoffDispatch';
 import NodeDiagram from './NodeDiagram';
 
-type Answer = 'person' | 'scheduled' | 'read' | 'write' | 'review' | 'system';
-type Phase = 'brief' | 'dispatch' | 'running' | 'diagram';
+type Answer =
+  | 'person'
+  | 'scheduled'
+  | 'read'
+  | 'write'
+  | 'review'
+  | 'system'
+  | 'memory'
+  | 'no-memory';
+type Phase = 'brief' | 'preparing' | 'diagram';
 type Audience = 'internal-team' | 'fellow-scoped' | 'public' | 'privileged-admin';
 type RuntimeHome = 'utopia-os' | 'standalone' | 'local';
 
 type BuildFlowProps = {
   rec: string[];
   answers: Answer[];
-  audience: Audience | null;
-  runtimeHome: RuntimeHome | null;
+  audience: Audience;
+  runtimeHome: RuntimeHome;
+  job: string;
+  owner: string;
 };
 
-function FlowView({
-  label,
-  title,
-  children,
-}: {
-  label: string;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flow-view">
-      <label>{label}</label>
-      <h2 className="flow-view-title">{title}</h2>
-      {children}
-    </div>
-  );
-}
+const audienceLabels: Record<Audience, string> = {
+  'internal-team': 'Internal team access',
+  'fellow-scoped': 'Each fellow sees only their own information',
+  public: 'Public information only',
+  'privileged-admin': 'Restricted administrator access',
+};
+const homeLabels: Record<RuntimeHome, string> = {
+  'utopia-os': 'Inside Utopia OS',
+  standalone: 'Its own app',
+  local: 'Your current computer or tool',
+};
 
-export default function BuildFlow({ rec, answers, audience, runtimeHome }: BuildFlowProps) {
+export default function BuildFlow({ rec, answers, audience, runtimeHome, job, owner }: BuildFlowProps) {
   const [phase, setPhase] = useState<Phase>('brief');
   const [runStep, setRunStep] = useState(0);
-
+  const has = (answer: Answer) => answers.includes(answer);
   const runSteps = [
-    'Parsing PRD constraints…',
-    'Generating scaffold from work orders…',
-    'Dispatching to Claude for role design…',
-    'Codex writing integration stubs…',
-    'Cursor applying patches…',
-    'Running golden case…',
-    'Agent registered.',
+    'Checking that the job and owner are clear…',
+    `Preparing the ${rec[1].toLowerCase()} structure…`,
+    'Adding examples and pass/fail checks…',
+    'Applying access and review boundaries…',
+    'Build sequence ready.',
   ];
 
   useEffect(() => {
-    if (phase !== 'dispatch') return;
-    const t = setTimeout(() => setPhase('running'), 4200);
-    return () => clearTimeout(t);
-  }, [phase]);
-
-  useEffect(() => {
-    if (phase !== 'running') return;
+    if (phase !== 'preparing') return;
     if (runStep >= runSteps.length - 1) {
-      const t = setTimeout(() => setPhase('diagram'), 900);
-      return () => clearTimeout(t);
+      const timer = setTimeout(() => setPhase('diagram'), 700);
+      return () => clearTimeout(timer);
     }
-    const t = setTimeout(() => setRunStep((s) => s + 1), 650);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setRunStep((step) => step + 1), 520);
+    return () => clearTimeout(timer);
   }, [phase, runStep, runSteps.length]);
-
-  const generate = () => {
-    setRunStep(0);
-    setPhase('dispatch');
-  };
 
   if (phase === 'diagram') {
     return (
       <section className="brief brief--full">
         <NodeDiagram pathType={rec[1]} />
+        <button className="nav-tab flow-reset" onClick={() => setPhase('brief')}>← Back to brief</button>
       </section>
     );
   }
 
-  if (phase === 'dispatch') {
+  if (phase === 'preparing') {
     return (
       <section className="brief brief--full">
-        <FlowView label="05 · HANDOFF" title="Sending PRD and work orders to build tools.">
-          <HandoffDispatch />
-        </FlowView>
-      </section>
-    );
-  }
-
-  if (phase === 'running') {
-    return (
-      <section className="brief brief--full">
-        <FlowView label="05 · BUILDING" title="Building your agent.">
+        <div className="flow-view">
+          <label>BUILD PATH</label>
+          <h2 className="flow-view-title">Preparing the steps for your agent.</h2>
           <div className="running-stage">
-            <div className="running-bar">
-              <div
-                className="running-fill"
-                style={{ width: `${((runStep + 1) / runSteps.length) * 100}%` }}
-              />
+            <div className="running-bar" role="progressbar" aria-valuenow={runStep + 1} aria-valuemin={1} aria-valuemax={runSteps.length}>
+              <div className="running-fill" style={{ width: `${((runStep + 1) / runSteps.length) * 100}%` }} />
             </div>
             <ul className="running-log">
-              {runSteps.map((step, i) => (
-                <li key={step} className={i <= runStep ? 'done' : ''}>
-                  {i <= runStep ? '✓' : '·'} {step}
-                </li>
-              ))}
+              {runSteps.map((step, index) => <li key={step} className={index <= runStep ? 'done' : ''}>{index <= runStep ? '✓' : '·'} {step}</li>)}
             </ul>
           </div>
-        </FlowView>
+        </div>
       </section>
     );
   }
@@ -115,63 +91,53 @@ export default function BuildFlow({ rec, answers, audience, runtimeHome }: Build
     <section className="brief">
       <div className="brief-header">
         <div>
-          <label>BUILD BRIEF · {rec[0]}</label>
-          <h1>{rec[1]} PATH STARTED.</h1>
+          <label>YOUR BUILD BRIEF · PATH {rec[0]}</label>
+          <h1>{rec[1]}</h1>
           <p>{rec[2]}</p>
         </div>
+        <span className="brief-ready">READY TO HAND OFF</span>
       </div>
 
-      <div className="brief-steps">
-        <article>
-          <b>01</b>
-          <h3>Name the job</h3>
-          <p>What should happen, for whom, and what should exist at the end?</p>
+      <div className="brief-summary">
+        <article className="brief-summary-wide">
+          <b>THE JOB</b>
+          <h3>{job}</h3>
+          <p>Responsible owner: {owner}</p>
         </article>
         <article>
-          <b>02</b>
-          <h3>Set the owner</h3>
-          <p>Who is accountable for the output, access, and failure reports?</p>
+          <b>HOW IT RUNS</b>
+          <h3>{has('scheduled') ? 'Schedule or event' : 'A person starts it'}</h3>
+          <p>{homeLabels[runtimeHome]}</p>
         </article>
         <article>
-          <b>03</b>
-          <h3>Prove it first</h3>
-          <p>Define good, failed, and hardest-realistic runs before implementation.</p>
+          <b>WHAT IT CAN DO</b>
+          <h3>{has('write') ? 'Can change connected systems' : 'Reads and drafts only'}</h3>
+          <p>{has('review') ? 'A person reviews every result.' : 'Another system receives the result.'}</p>
         </article>
         <article>
-          <b>04</b>
-          <h3>Set the safety boundary</h3>
-          <p>
-            {audience === 'fellow-scoped'
-              ? 'Fellow-facing: authenticated identity and cross-fellow denial tests are required.'
-              : audience === 'public'
-                ? 'Public: the agent may use public data only.'
-                : 'Internal team: named team access, tool allowlist, and audit trail are required.'}
-          </p>
-          <em>{runtimeHome === 'utopia-os' ? 'Runs in Utopia OS.' : runtimeHome === 'standalone' ? 'Runs as a standalone app.' : 'Runs locally or on a managed surface.'}</em>
+          <b>MEMORY</b>
+          <h3>{has('memory') ? 'Approved history is retained' : 'Every run starts fresh'}</h3>
+          <p>{has('memory') ? 'Memory will be scoped and tested.' : 'No memory layer will be added.'}</p>
+        </article>
+        <article>
+          <b>ACCESS</b>
+          <h3>{audienceLabels[audience]}</h3>
+          <p>The build must prove this boundary before release.</p>
         </article>
       </div>
 
       <div className="handoff">
         <div className="handoff-intro">
           <div>
-            <label>04 · HANDOFF</label>
-            <p className="handoff-title">Two artifacts ready for the builder.</p>
+            <label>NEXT STEP</label>
+            <p className="handoff-title">Use this brief with the framework to create the agent and its checks.</p>
           </div>
           <div className="handoff-actions">
-            <a
-              className="btn-download"
-              href="/api/skills-zip?bundle=claude-single-skill-v3"
-              aria-label="Download the Claude-ready framework skill"
-              title="One Claude-uploadable skill ZIP: one top-level folder and one SKILL.md, with the eight skill instructions and linked evidence inside."
-            >
-              <span className="btn-download-arrow" aria-hidden="true">
-                ↓
-              </span>
-              <span>Download for Claude</span>
+            <a className="btn-download" href="/api/skills-zip?bundle=claude-single-skill-v3" aria-label="Download the agent-building framework">
+              <span className="btn-download-arrow" aria-hidden="true">↓</span>
+              <span>Download framework</span>
             </a>
-            <button className="solid compact" onClick={generate}>
-              Generate PRD and work orders →
-            </button>
+            <button className="solid compact" onClick={() => { setRunStep(0); setPhase('preparing'); }}>Show the build sequence →</button>
           </div>
         </div>
       </div>

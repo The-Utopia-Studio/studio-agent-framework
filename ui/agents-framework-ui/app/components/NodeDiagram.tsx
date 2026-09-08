@@ -120,7 +120,7 @@ export default function NodeDiagram({ pathType }: NodeDiagramProps) {
   const tools = blueprint.nodes.filter((n) => n.kind === 'tool');
   const buildToolItems = BUILD_TOOLS.filter((t) => blueprint.buildTools.includes(t.id));
 
-  const flowSteps = useMemo(() => buildFlowSteps(blueprint), [blueprint]);
+  const flowSteps = useMemo(() => buildFlowSteps(getAgentBlueprint(pathType)), [pathType]);
   const [stepIndex, setStepIndex] = useState(0);
   const [dot, setDot] = useState<Point>({ x: 100, y: 52 });
   const [visited, setVisited] = useState<Set<string>>(() => new Set(['trigger']));
@@ -132,30 +132,33 @@ export default function NodeDiagram({ pathType }: NodeDiagramProps) {
     const step = flowSteps[stepIndex % flowSteps.length];
     if (!step) return;
 
-    const from = getNodePosition(step.from, blueprint);
-    const to = getNodePosition(step.to, blueprint);
+    const activeBlueprint = getAgentBlueprint(pathType);
+    const from = getNodePosition(step.from, activeBlueprint);
+    const to = getNodePosition(step.to, activeBlueprint);
 
-    setDot(from);
-    const move = requestAnimationFrame(() => setDot(to));
+    let move = 0;
+    const reset = requestAnimationFrame(() => {
+      setDot(from);
+      move = requestAnimationFrame(() => setDot(to));
+    });
 
     const advance = setTimeout(() => {
-      setVisited((prev) => new Set([...prev, step.from, step.to]));
+      setVisited((prev) =>
+        (stepIndex + 1) % flowSteps.length === 0
+          ? new Set(['trigger'])
+          : new Set([...prev, step.from, step.to]),
+      );
       setStepIndex((i) => i + 1);
     }, 2400);
 
     return () => {
+      cancelAnimationFrame(reset);
       cancelAnimationFrame(move);
       clearTimeout(advance);
     };
-  }, [stepIndex, flowSteps, blueprint]);
+  }, [stepIndex, pathType, flowSteps]);
 
-  useEffect(() => {
-    if (stepIndex > 0 && stepIndex % flowSteps.length === 0) {
-      setVisited(new Set(['trigger']));
-    }
-  }, [stepIndex, flowSteps.length]);
-
-  const flowPaths = useMemo(() => {
+  const flowPaths = (() => {
     const seen = new Set<string>();
     return flowSteps.filter((s) => {
       const key = `${s.from}-${s.to}`;
@@ -163,15 +166,15 @@ export default function NodeDiagram({ pathType }: NodeDiagramProps) {
       seen.add(key);
       return true;
     });
-  }, [flowSteps]);
+  })();
 
   return (
     <div className="diagram-wrap">
       <div className="diagram-head">
-        <label>06 · AGENT BUILT</label>
-        <h3>{blueprint.name} is live.</h3>
+        <label>BUILD SEQUENCE</label>
+        <h3>How a {blueprint.name.toLowerCase()} build fits together.</h3>
         <p className="diagram-meta">
-          <strong>{blueprint.pathType} AGENT</strong> · {blueprint.owner} · {blueprint.status}
+          <strong>{blueprint.pathType}</strong> · example build
         </p>
         <p className="diagram-desc">{blueprint.summary}</p>
       </div>

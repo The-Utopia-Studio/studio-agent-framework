@@ -1,33 +1,78 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import BuildFlow from './components/BuildFlow';
 import Learnings from './components/Learnings';
 import StandardHarness from './components/StandardHarness';
 import ToolsFooter from './components/ToolsFooter';
 import { PATH_EXAMPLES } from './data/tools';
 
-type A = 'person' | 'scheduled' | 'read' | 'write' | 'review' | 'system';
+type A =
+  | 'person'
+  | 'scheduled'
+  | 'read'
+  | 'write'
+  | 'review'
+  | 'system'
+  | 'memory'
+  | 'no-memory';
 type Audience = 'internal-team' | 'fellow-scoped' | 'public' | 'privileged-admin';
 type RuntimeHome = 'utopia-os' | 'standalone' | 'local';
 type View = 'home' | 'learnings';
+type Preset = {
+  name: string;
+  job: string;
+  owner: string;
+  answers: A[];
+  audience: Audience;
+  runtimeHome: RuntimeHome;
+};
+
+const safeDefaults: A[] = ['person', 'read', 'review', 'no-memory'];
+const presets: Preset[] = [
+  {
+    name: 'Research brief',
+    job: 'Turn selected research sources into a weekly one-page briefing for the Studio team.',
+    owner: 'Studio research lead',
+    answers: ['person', 'read', 'review', 'no-memory'],
+    audience: 'internal-team',
+    runtimeHome: 'local',
+  },
+  {
+    name: 'Founder follow-up',
+    job: 'Draft a follow-up and update the CRM after every founder call.',
+    owner: 'Growth lead',
+    answers: ['scheduled', 'write', 'review', 'memory'],
+    audience: 'internal-team',
+    runtimeHome: 'utopia-os',
+  },
+  {
+    name: 'Website operator',
+    job: 'Review deployment requests, update the live website, and record every change.',
+    owner: 'Product lead',
+    answers: ['scheduled', 'write', 'system', 'memory'],
+    audience: 'internal-team',
+    runtimeHome: 'standalone',
+  },
+];
 
 const steps = [
-  ['01', 'INTAKE', 'A short interview routes the request.'],
-  ['02', 'DESIGN', 'Role, tools, memory, and boundaries.'],
-  ['03', 'PROVE FIRST', 'Golden cases before anything is built.'],
-  ['04', 'PRD & WORK ORDERS', 'A gated plan with named checks.'],
-  ['05', 'BUILD ON THE HARNESS', 'Mastra + Convex. Live only when doctor is green.'],
+  ['01', 'UNDERSTAND', 'Capture the job once in plain language.'],
+  ['02', 'CHOOSE THE PATH', 'Use the smallest setup that can do it safely.'],
+  ['03', 'DEFINE GOOD', 'Agree on examples and failure cases before building.'],
+  ['04', 'BUILD', 'Create the instructions, setup, or coded agent.'],
+  ['05', 'VERIFY', 'Run its own checks before calling it ready.'],
 ];
 
 export default function Home() {
-  const [a, setA] = useState<A[]>([]);
+  const [a, setA] = useState<A[]>(safeDefaults);
+  const [job, setJob] = useState('');
+  const [owner, setOwner] = useState('');
   const [started, setStarted] = useState(false);
   const [view, setView] = useState<View>('home');
-  const [audience, setAudience] = useState<Audience | null>(null);
-  const [runtimeHome, setRuntimeHome] = useState<RuntimeHome | null>(null);
+  const [audience, setAudience] = useState<Audience>('internal-team');
+  const [runtimeHome, setRuntimeHome] = useState<RuntimeHome>('local');
 
-  // Offset by the 74px sticky header, which scrollIntoView would otherwise scroll underneath.
   const toIntake = () => {
     const el = document.getElementById('intake');
     if (!el) return;
@@ -35,35 +80,50 @@ export default function Home() {
   };
 
   const has = (x: A) => a.includes(x);
+  const rec: [string, string, string] = (() => {
+    if (audience === 'privileged-admin' || (has('scheduled') && has('write') && has('system')))
+      return ['04', 'CODED AGENT', 'It needs its own controlled loop, durable history, and stronger release checks.'];
+    if (has('scheduled') || has('write'))
+      return ['03', 'MANAGED SURFACE', 'Use an existing platform for scheduling, approvals, and run visibility.'];
+    if (has('memory'))
+      return ['02', 'PROJECT', 'Keep standing instructions and reference files together without building a custom runtime.'];
+    return ['01', 'SKILL', 'Package the procedure as instructions and examples that a person can run on demand.'];
+  })();
 
-  const rec = useMemo(
-    () =>
-      has('scheduled') && has('write') && has('system')
-        ? ['04', 'CODED AGENT', 'Mastra runs the loop. Convex holds durable state and the event log.']
-        : has('scheduled') || has('write')
-          ? ['03', 'MANAGED SURFACE', 'A connected workflow with a named owner and review point.']
-          : has('person') && has('read')
-            ? ['01', 'SKILL', 'A repeatable procedure people can run on demand.']
-            : ['—', 'ANSWER THE INTAKE', 'Three decisions find the smallest thing that works.'],
-    [a],
-  );
-
-  const choose = (x: A) => setA((v) => (v.includes(x) ? v.filter((y) => y !== x) : [...v, x]));
+  const choiceGroups: Record<A, A[]> = {
+    person: ['person', 'scheduled'], scheduled: ['person', 'scheduled'],
+    read: ['read', 'write'], write: ['read', 'write'],
+    review: ['review', 'system'], system: ['review', 'system'],
+    memory: ['memory', 'no-memory'], 'no-memory': ['memory', 'no-memory'],
+  };
+  const choose = (x: A) => setA((current) => [...current.filter((v) => !choiceGroups[x].includes(v)), x]);
   const c = (x: A) => (has(x) ? 'choice chosen' : 'choice');
-  const ready =
-    (has('person') || has('scheduled')) &&
-    (has('read') || has('write')) &&
-    (has('review') || has('system'));
+
+  const completed = [
+    job.trim(), owner.trim(), has('person') || has('scheduled'), has('read') || has('write'),
+    has('review') || has('system'), has('memory') || has('no-memory'), audience, runtimeHome,
+  ].filter(Boolean).length;
+  const blockers = [
+    !job.trim() && 'Describe the result you want the agent to produce.',
+    !owner.trim() && 'Name the person responsible for its output and access.',
+  ].filter(Boolean) as string[];
+
+  const applyPreset = (preset: Preset) => {
+    setJob(preset.job);
+    setOwner(preset.owner);
+    setA(preset.answers);
+    setAudience(preset.audience);
+    setRuntimeHome(preset.runtimeHome);
+  };
 
   if (started) {
     return (
       <main>
         <header>
-          <button className="brand" onClick={() => setStarted(false)}>
-            <i>///</i> UTOPIA STUDIO
-          </button>
+          <button className="brand" onClick={() => setStarted(false)}><i>{'///'}</i> UTOPIA STUDIO</button>
+          <button className="nav-tab" onClick={() => setStarted(false)}>← Edit answers</button>
         </header>
-        <BuildFlow rec={rec} answers={a} audience={audience} runtimeHome={runtimeHome} />
+        <BuildFlow rec={rec} answers={a} audience={audience} runtimeHome={runtimeHome} job={job} owner={owner} />
       </main>
     );
   }
@@ -71,41 +131,11 @@ export default function Home() {
   return (
     <main>
       <header>
-        <button
-          className="brand"
-          onClick={() => {
-            setView('home');
-            window.scrollTo(0, 0);
-          }}
-        >
-          <i>///</i> UTOPIA STUDIO
-        </button>
+        <button className="brand" onClick={() => { setView('home'); window.scrollTo(0, 0); }}><i>{'///'}</i> UTOPIA STUDIO</button>
         <div className="header-actions">
-          <button
-            className="nav-tab"
-            aria-current={view === 'home'}
-            onClick={() => {
-              setView('home');
-              window.scrollTo(0, 0);
-            }}
-          >
-            Framework
-          </button>
-          <button
-            className="nav-tab"
-            aria-current={view === 'learnings'}
-            onClick={() => {
-              setView('learnings');
-              window.scrollTo(0, 0);
-            }}
-          >
-            Learnings
-          </button>
-          {view === 'home' && (
-            <button className="solid compact" onClick={toIntake}>
-              I want an agent →
-            </button>
-          )}
+          <button className="nav-tab" aria-current={view === 'home'} onClick={() => { setView('home'); window.scrollTo(0, 0); }}>Builder</button>
+          <button className="nav-tab" aria-current={view === 'learnings'} onClick={() => { setView('learnings'); window.scrollTo(0, 0); }}>Learnings</button>
+          {view === 'home' && <button className="solid compact" onClick={toIntake}>Build an agent →</button>}
         </div>
       </header>
 
@@ -113,53 +143,18 @@ export default function Home() {
 
       {view === 'home' && (
         <>
-      <section className="hero">
-        <label>THE UTOPIA STUDIO · AGENTS</label>
-        <div>
-          <article>
-            <h1>{'YOU WANT AN AGENT.\nSTART WITH THE JOB.'}</h1>
-            <p>
-              You do not need to choose a stack first. Tell us what needs to happen; the framework
-              finds the smallest reliable path.
-            </p>
-          </article>
-          <aside className="hero-aside">
-            <span className="hero-aside-num">01</span>
-            <p className="hero-aside-title">ROUTE BEFORE YOU BUILD</p>
-            <p className="hero-aside-sub">autonomy is earned, not assumed</p>
-            <a
-              className="btn-download"
-              href="/api/skills-zip?bundle=claude-single-skill-v3"
-              aria-label="Download the Claude-ready framework skill"
-              title="One Claude-uploadable skill ZIP: one top-level folder and one SKILL.md, with the seven stage instructions and linked evidence inside."
-            >
-              <span className="btn-download-arrow" aria-hidden="true">
-                ↓
-              </span>
-              <span>Download for Claude</span>
-            </a>
-          </aside>
-        </div>
-      </section>
-
-      <Intake a={a} c={c} choose={choose} rec={rec} start={() => setStarted(true)} ready={ready && !!audience && !!runtimeHome} has={has} audience={audience} setAudience={setAudience} runtimeHome={runtimeHome} setRuntimeHome={setRuntimeHome} />
-
-      <section className="path">
-        <label>THE BUILD PATH</label>
-        <div className="path-grid">
-          {steps.map((x) => (
-            <article key={x[0]}>
-              <b>{x[0]}</b>
-              <h3>{x[1]}</h3>
-              <p>{x[2]}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <StandardHarness />
-
-      <ToolsFooter />
+          <Intake job={job} setJob={setJob} owner={owner} setOwner={setOwner} c={c} choose={choose} rec={rec}
+            start={() => setStarted(true)} has={has} audience={audience} setAudience={setAudience}
+            runtimeHome={runtimeHome} setRuntimeHome={setRuntimeHome} completed={completed} blockers={blockers}
+            applyPreset={applyPreset} />
+          <section className="path">
+            <label>WHAT HAPPENS AFTER YOUR BRIEF</label>
+            <div className="path-grid">
+              {steps.map((x) => <article key={x[0]}><b>{x[0]}</b><h3>{x[1]}</h3><p>{x[2]}</p></article>)}
+            </div>
+          </section>
+          <StandardHarness />
+          <ToolsFooter />
         </>
       )}
     </main>
@@ -167,114 +162,90 @@ export default function Home() {
 }
 
 function Intake({
-  a,
-  c,
-  choose,
-  rec,
-  start,
-  ready,
-  has,
-  audience,
-  setAudience,
-  runtimeHome,
-  setRuntimeHome,
+  job, setJob, owner, setOwner, c, choose, rec, start, has, audience, setAudience,
+  runtimeHome, setRuntimeHome, completed, blockers, applyPreset,
 }: {
-  a: A[];
-  c: (x: A) => string;
-  choose: (x: A) => void;
-  rec: string[];
-  start: () => void;
-  ready: boolean;
-  has: (x: A) => boolean;
-  audience: Audience | null;
-  setAudience: (audience: Audience) => void;
-  runtimeHome: RuntimeHome | null;
-  setRuntimeHome: (home: RuntimeHome) => void;
+  job: string; setJob: (value: string) => void; owner: string; setOwner: (value: string) => void;
+  c: (x: A) => string; choose: (x: A) => void; rec: string[]; start: () => void;
+  has: (x: A) => boolean; audience: Audience; setAudience: (audience: Audience) => void;
+  runtimeHome: RuntimeHome; setRuntimeHome: (home: RuntimeHome) => void;
+  completed: number; blockers: string[]; applyPreset: (preset: Preset) => void;
 }) {
+  const example = PATH_EXAMPLES[rec[1] as keyof typeof PATH_EXAMPLES];
   return (
-    <section className="section" id="intake">
-      <label>START HERE</label>
-      <h2>WHAT DO YOU ACTUALLY NEED?</h2>
+    <section className="section builder" id="intake">
+      <div className="builder-intro">
+        <div>
+          <label>GUIDED AGENT BUILDER</label>
+          <h1>Tell us the job. We’ll choose the right kind of agent.</h1>
+          <p>No technical setup is needed here. We start with safe defaults: a person starts it, it drafts rather than writes, a human reviews it, and it remembers nothing.</p>
+        </div>
+        <div className="builder-progress" aria-label={`${completed} of 8 decisions complete`}>
+          <span>{completed} of 8 decisions</span>
+          <div><i style={{ width: `${(completed / 8) * 100}%` }} /></div>
+        </div>
+      </div>
+
+      <div className="preset-row" aria-label="Example agent briefs">
+        <span>Try an example</span>
+        {presets.map((preset) => <button key={preset.name} type="button" onClick={() => applyPreset(preset)}>{preset.name}</button>)}
+      </div>
+
       <div className="intake">
         <div className="qs">
-          <Q n="01" t="Who starts it?">
-            <button className={c('person')} onClick={() => choose('person')}>
-              A person kicks it off
-            </button>
-            <button className={c('scheduled')} onClick={() => choose('scheduled')}>
-              It runs on its own
-              <br />
-              schedule or event
-            </button>
+          <Q n="01" t="What should it produce?">
+            <input className="guided-input" value={job} onChange={(e) => setJob(e.target.value)} placeholder="Example: Turn meeting notes into a follow-up email for founders" />
           </Q>
-          <Q n="02" t="What does it touch?">
-            <button className={c('read')} onClick={() => choose('read')}>
-              Reads and drafts
-            </button>
-            <button className={c('write')} onClick={() => choose('write')}>
-              Writes to live systems
-            </button>
+          <Q n="02" t="Who is responsible for it?">
+            <input className="guided-input" value={owner} onChange={(e) => setOwner(e.target.value)} placeholder="A person or team, such as Growth lead" />
           </Q>
-          <Q n="03" t="Who checks the output?">
-            <button className={c('review')} onClick={() => choose('review')}>
-              A human reads it first
-            </button>
-            <button className={c('system')} onClick={() => choose('system')}>
-              It feeds another system
-            </button>
+          <Q n="03" t="How does it start?">
+            <button type="button" aria-pressed={has('person')} className={c('person')} onClick={() => choose('person')}>A person asks it</button>
+            <button type="button" aria-pressed={has('scheduled')} className={c('scheduled')} onClick={() => choose('scheduled')}>It starts on a schedule or event</button>
           </Q>
-          <Q n="04" t="Who is it for?">
-            <button className={audience === 'internal-team' ? 'choice chosen' : 'choice'} onClick={() => setAudience('internal-team')}>
-              Internal team
-              <br />named team access
-            </button>
-            <button className={audience === 'fellow-scoped' ? 'choice chosen' : 'choice'} onClick={() => setAudience('fellow-scoped')}>
-              Fellow-facing
-              <br />strict per-fellow boundary
-            </button>
-            <button className={audience === 'public' ? 'choice chosen' : 'choice'} onClick={() => setAudience('public')}>
-              Public
-              <br />public data only
-            </button>
+          <Q n="04" t="Can it change another system?">
+            <button type="button" aria-pressed={has('read')} className={c('read')} onClick={() => choose('read')}>No, it only reads and drafts</button>
+            <button type="button" aria-pressed={has('write')} className={c('write')} onClick={() => choose('write')}>Yes, it can make changes</button>
           </Q>
-          <Q n="05" t="Where will it run?">
-            <button className={runtimeHome === 'utopia-os' ? 'choice chosen' : 'choice'} onClick={() => setRuntimeHome('utopia-os')}>
-              Utopia OS
-            </button>
-            <button className={runtimeHome === 'standalone' ? 'choice chosen' : 'choice'} onClick={() => setRuntimeHome('standalone')}>
-              Standalone app
-            </button>
-            <button className={runtimeHome === 'local' ? 'choice chosen' : 'choice'} onClick={() => setRuntimeHome('local')}>
-              Local / managed
-            </button>
+          <Q n="05" t="Who checks the result?">
+            <button type="button" aria-pressed={has('review')} className={c('review')} onClick={() => choose('review')}>A person checks every result</button>
+            <button type="button" aria-pressed={has('system')} className={c('system')} onClick={() => choose('system')}>Another system uses it directly</button>
+          </Q>
+          <Q n="06" t="Should it remember anything next time?">
+            <button type="button" aria-pressed={has('no-memory')} className={c('no-memory')} onClick={() => choose('no-memory')}>No, each run starts fresh</button>
+            <button type="button" aria-pressed={has('memory')} className={c('memory')} onClick={() => choose('memory')}>Yes, it needs approved history</button>
+          </Q>
+          <Q n="07" t="Who can use the information?">
+            <button type="button" className={audience === 'internal-team' ? 'choice chosen' : 'choice'} onClick={() => setAudience('internal-team')}>Internal team</button>
+            <button type="button" className={audience === 'fellow-scoped' ? 'choice chosen' : 'choice'} onClick={() => setAudience('fellow-scoped')}>Each fellow sees only their own</button>
+            <button type="button" className={audience === 'public' ? 'choice chosen' : 'choice'} onClick={() => setAudience('public')}>Public information only</button>
+            <button type="button" className={audience === 'privileged-admin' ? 'choice chosen' : 'choice'} onClick={() => setAudience('privileged-admin')}>Restricted administrator access</button>
+          </Q>
+          <Q n="08" t="Where should people use it?">
+            <button type="button" className={runtimeHome === 'utopia-os' ? 'choice chosen' : 'choice'} onClick={() => setRuntimeHome('utopia-os')}>Inside Utopia OS</button>
+            <button type="button" className={runtimeHome === 'standalone' ? 'choice chosen' : 'choice'} onClick={() => setRuntimeHome('standalone')}>Its own app</button>
+            <button type="button" className={runtimeHome === 'local' ? 'choice chosen' : 'choice'} onClick={() => setRuntimeHome('local')}>On my computer or current tool</button>
           </Q>
         </div>
-        <aside className="rec">
-          <label>YOUR PATH</label>
+
+        <aside className="rec" aria-live="polite">
+          <label>RECOMMENDED PATH</label>
           <b>{rec[0]}</b>
           <h3>{rec[1]}</h3>
           <p>{rec[2]}</p>
-          {PATH_EXAMPLES[rec[1] as keyof typeof PATH_EXAMPLES] && (
+          {example && (
             <div className="rec-example">
-              <span className="rec-example-label">Example agent</span>
-              <strong>{PATH_EXAMPLES[rec[1] as keyof typeof PATH_EXAMPLES].name}</strong>
-              <em>{PATH_EXAMPLES[rec[1] as keyof typeof PATH_EXAMPLES].owner} · {PATH_EXAMPLES[rec[1] as keyof typeof PATH_EXAMPLES].status}</em>
-              <p>{PATH_EXAMPLES[rec[1] as keyof typeof PATH_EXAMPLES].summary}</p>
+              <span className="rec-example-label">What this can look like</span>
+              <strong>{example.name}</strong>
+              <p>{example.summary}</p>
             </div>
           )}
-          <button className="solid" onClick={start} disabled={!ready}>
-            Start the build path →
-          </button>
-          <small>
-            {[
-              (has('person') || has('scheduled')) && 'trigger',
-              (has('read') || has('write')) && 'surface',
-              (has('review') || has('system')) && 'output',
-              audience && 'audience',
-              runtimeHome && 'runtime',
-            ].filter(Boolean).length}{' '}
-            of 5 decisions recorded
-          </small>
+          <div className={blockers.length ? 'blocker-box' : 'ready-box'}>
+            <strong>{blockers.length ? 'Before we can continue' : 'Your brief is ready'}</strong>
+            {blockers.length ? <ul>{blockers.map((blocker) => <li key={blocker}>{blocker}</li>)}</ul> : <p>We have enough information to prepare the build path. You can change any answer later.</p>}
+          </div>
+          <button className="solid" onClick={start} disabled={blockers.length > 0}>Review my build brief →</button>
+          <small>{completed} of 8 decisions recorded</small>
         </aside>
       </div>
     </section>
@@ -282,13 +253,5 @@ function Intake({
 }
 
 function Q(p: { n: string; t: string; children: React.ReactNode }) {
-  return (
-    <fieldset>
-      <legend>
-        <b>{p.n}</b>
-        {p.t}
-      </legend>
-      <div>{p.children}</div>
-    </fieldset>
-  );
+  return <fieldset><legend><b>{p.n}</b>{p.t}</legend><div className="question-options">{p.children}</div></fieldset>;
 }

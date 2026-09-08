@@ -1,5 +1,46 @@
 /* Build flow — handoff, dispatch, running, diagram */
 
+.brief-ready {
+  flex: none;
+  padding: 8px 10px;
+  border: 1px solid #719d7d;
+  color: #52745c;
+  font: 10px ui-monospace, monospace;
+  letter-spacing: 0.08em;
+}
+
+.brief-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 2px solid var(--accent);
+  margin-bottom: 32px;
+}
+
+.brief-summary article {
+  min-height: 145px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-top: 0;
+  background: #fff;
+}
+
+.brief-summary article:nth-child(even) { border-left: 0; }
+.brief-summary-wide { grid-column: 1 / -1; }
+.brief-summary article b {
+  color: var(--accent);
+  font: 10px ui-monospace, monospace;
+  letter-spacing: 0.1em;
+}
+.brief-summary article h3 { margin: 9px 0 7px; font-size: 18px; line-height: 1.35; }
+.brief-summary article p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.flow-reset { margin-top: 22px; }
+
+@media (max-width: 700px) {
+  .brief-summary { grid-template-columns: 1fr; }
+  .brief-summary-wide { grid-column: 1; }
+  .brief-summary article:nth-child(even) { border-left: 1px solid var(--line); }
+}
+
 .brief {
   position: relative;
   max-width: 1160px;
