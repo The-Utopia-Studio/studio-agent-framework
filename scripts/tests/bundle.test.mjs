@@ -41,6 +41,8 @@ test('built ZIP is installable and contains manifest and implementation resource
     'harness/run.js',
     'harness/agent-suite.js',
     'harness/pipeline.js',
+    'examples/generated-agents/briefing-agent/agent-manifest.json',
+    'examples/generated-agents/memory-workflow-agent/src/index.mjs',
     'agent-structure/INSTRUCTIONS.md',
     'agent-prd/assets/prd-template.md',
     'package-lock.json',

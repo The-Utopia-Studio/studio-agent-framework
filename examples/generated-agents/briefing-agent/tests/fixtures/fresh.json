@@ -1,0 +1,5 @@
+{
+  "case": "fresh",
+  "input": { "topic": "renewable energy" },
+  "expect": { "output": "Brief: renewable energy", "context_used": false }
+}

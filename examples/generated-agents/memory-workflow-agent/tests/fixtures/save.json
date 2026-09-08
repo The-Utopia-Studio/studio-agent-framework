@@ -1,0 +1,5 @@
+{
+  "case": "save",
+  "input": { "tenant_id": "studio-a", "resource": "notes", "note": "ship the digest" },
+  "expect": { "output": "Saved: ship the digest", "memory_scope": "studio-a" }
+}

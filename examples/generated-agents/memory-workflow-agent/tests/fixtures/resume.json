@@ -1,0 +1,5 @@
+{
+  "case": "resume",
+  "input": { "tenant_id": "studio-a", "resource": "notes", "workflow": "resume", "seed": "ship the digest" },
+  "expect": { "output": "Remembered: ship the digest", "memory_scope": "studio-a" }
+}

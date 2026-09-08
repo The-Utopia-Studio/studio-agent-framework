@@ -6,7 +6,7 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "test": "node --test harness/tests/*.test.js long-horizon/intake/tests/*.test.js bakeoff/evals/behavior.test.js mastra-harness/tests/scaffold.test.mjs scripts/tests/*.test.mjs",
+    "test": "node --test harness/tests/*.test.js harness/tests/*.test.mjs long-horizon/intake/tests/*.test.js bakeoff/evals/behavior.test.js mastra-harness/tests/scaffold.test.mjs scripts/tests/*.test.mjs",
     "check": "node scripts/check-skills.mjs",
     "bundle": "node scripts/build-bundle.mjs"
   },

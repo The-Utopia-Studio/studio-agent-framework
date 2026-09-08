@@ -1,0 +1,3 @@
+{
+  "schema_version": "1.0.0", "agent_id": "briefing-agent", "job": "Turn a supplied topic into a short, clearly labeled briefing for a reader.", "owner": "Studio", "rung": 4, "profile": "coded", "evidence_profile": "prototype", "runtime_home": "local test process", "talk_surface": "cli", "tool_identity": "none", "implementation_authorized": true, "stage": "verification", "blockers": [], "decisions": { "workflow": "not required", "memory": "none" }, "artifacts": { "workflow": "docs/agents/workflow.md", "agent_spec": "docs/agents/agent-spec.md", "eval_contract": "docs/agents/eval-contract.md", "prd": "docs/agents/prd.md", "work_orders": "docs/agents/work-orders.md", "manifest": "agent-manifest.json", "deliverable": "src/index.mjs" }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "memory-workflow-agent",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "dependencies": { "@mastra/core": "1.63.2", "@mastra/convex": "1.5.4" }
+}
