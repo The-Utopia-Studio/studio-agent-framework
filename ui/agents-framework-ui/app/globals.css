@@ -78,6 +78,23 @@
   color: var(--accent);
   outline: none;
 }
+
+.builder-direct-download {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 16px 0 8px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  background: #fff;
+}
+
+.builder-direct-download > div { display: grid; gap: 4px; }
+.builder-direct-download strong { font-size: 14px; letter-spacing: -0.015em; }
+.builder-direct-download span:not(.btn-download-arrow) { color: var(--muted); font-size: 12px; line-height: 1.45; }
+.builder-direct-download .btn-download span:last-child { color: inherit; font-size: inherit; line-height: inherit; }
 .guided-input {
   grid-column: 1 / -1;
   width: 100%;
@@ -120,6 +137,7 @@
   .builder-intro { grid-template-columns: 1fr; }
   .builder-progress span { text-align: left; }
   .builder .rec { position: static; }
+  .builder-direct-download { align-items: flex-start; flex-direction: column; }
 }
 
 * {

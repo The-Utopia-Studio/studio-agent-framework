@@ -203,6 +203,17 @@ function Intake({
         {presets.map((preset) => <button key={preset.name} type="button" onClick={() => applyPreset(preset)}>{preset.name}</button>)}
       </div>
 
+      <div className="builder-direct-download">
+        <div>
+          <strong>Want to build directly with the framework?</strong>
+          <span>Download the complete skills, templates, schemas, harness, and checks.</span>
+        </div>
+        <a className="btn-download" href="/api/skills-zip?bundle=claude-single-skill-v3" aria-label="Download the agent-building framework">
+          <span className="btn-download-arrow" aria-hidden="true">↓</span>
+          <span>Download framework</span>
+        </a>
+      </div>
+
       <div className="intake">
         <div className="qs">
           <Q n="01" t="What should it produce?">
