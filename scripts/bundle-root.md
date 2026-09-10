@@ -18,3 +18,13 @@ This is one bundled Claude skill. The stage instructions live in the folders bes
 ## Security baseline
 
 Every design names its principal, allowed data, tool allowlist, audit path, refusal tests, and approval requirements. Fellow-scoped work requires cross-fellow isolation proof. Internal-team work must not claim fellow-private access. The bundle gives instructions only; it does not grant access to data, connectors, or credentials.
+
+## Directory and deterministic harness
+
+The Agent Directory is the registry record for a shipped agent: its owner, job,
+audience/data profile, runtime home, approved tools, evaluation status, and evidence.
+The modular harness is deterministic: it uses the declared manifest, exact pins, named
+fixtures, and fixed pass/fail graders. Given the same manifest, adapter, and fixtures,
+it produces the same conformance verdict. The directory says what an agent is declared
+to be; the harness proves that declared contract has been tested before release. Neither
+one grants data or tool permissions—the deployed runtime enforces those boundaries.

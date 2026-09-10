@@ -5,6 +5,13 @@ description: Interview the user and produce an Agent PRD — the planning docume
 
 # Agent PRD
 
+**Directory and harness handoff.** The PRD must produce the fields for the Agent
+Directory record: job, owner, audience/data profile, runtime home, approved tools,
+evaluation status, and evidence. The Directory is a registry, not permission. For
+coded agents, work orders must name the deterministic harness inputs: the manifest,
+exact version pins, named fixtures, and fixed pass/fail graders. That makes a release
+verdict reproducible rather than a judgement call.
+
 Turn confirmed agent decisions into a buildable PRD, work orders, and (for coded agents)
 a validated AgentManifest. Load `learnings` and [the pipeline contract](../agent-structure/references/pipeline.md).
 Use the intake carrier; ask only for facts that are still missing. Preserve user authorization.
