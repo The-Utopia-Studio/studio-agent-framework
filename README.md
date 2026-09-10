@@ -1,90 +1,181 @@
 # Studio Standard Agent Framework
 
-The Utopia Studio standard for how agents get **specified, judged, and shipped**.
+The Utopia Studio system for turning an agent idea into a **clear, buildable, and tested agent**.
 
-Eight skills. One pipeline. The point is that an agent build at the Studio is not a
-matter of taste: the scope is written so it can be scored, the thing that grades is
-never the thing that generated, the rules that stopped us before are loaded before
-the first question, and a build that isn't ready gets stopped with the reason named
-instead of politely completed.
+It helps a person answer three questions:
 
-Install the complete eight-skill chain, including agent-structure.
+1. What should this agent do?
+2. What is the smallest safe way to build it?
+3. What evidence must pass before we call it ready?
 
+The framework connects the whole journey. It does not stop after writing a prompt or a PRD. It
+carries confirmed decisions into the repository, implementation, and verification steps, and it
+records a clear blocker when required information or evidence is missing.
+
+## Start here
+
+### Use the guided builder
+
+The easiest path for a nontechnical user is the visual builder:
+
+```bash
+cd ui/agents-framework-ui
+npm ci
+npm run dev
 ```
-learnings/            the hard rules — load first, cited by ID (CTX-1, MEM-8, STATE-1a, HORIZON-4 …)
-agent-builder/        the front door — intake, then chains the four stages
-  hermes/             the eval harness around agent-builder (rubric + cases + judge log)
-workflow-design/      stage 1 — fleet or solo, spawn triggers, loop exits
-agent-design/         stage 2 — one agent: role · tools · memory layer · eval pointer
-eval-first-spec/      stage 3 — 20 golden cases, autonomy L0–L4, cost per outcome
-agent-prd/            stage 4 — hard gates → PRD → work orders
-mastra-harness/       stage 5 — implement a work order on Mastra + ConvexStore
+
+Open the local URL, describe the job, name the owner, and answer the eight plain-language
+questions. The builder recommends the smallest suitable path and produces a reviewable brief with
+a visual PRD and work-order handoff.
+
+The main page also lets you download the complete framework without completing the questionnaire.
+
+### Use it as an installed skill
+
+Build the portable bundle:
+
+```bash
+npm ci
+npm run bundle
 ```
 
-Stage 5 exists because stage 4 ends with *"Stop. Do not begin executing the first order unless
-asked"* — and nothing picked it up from there. It decides, per agent, whether the agent needs a
-Mastra workflow at all and which memory channels it gets (both are real choices with real costs,
-not defaults), then ships the three runtime pieces that are always forgotten and a `doctor`
-command that must exit 0 before an order is called done. Evidence in
-[`long-horizon/`](long-horizon/).
+Upload `dist/studio-agent-framework.zip` to a compatible Agent Skills host, then ask:
 
-For rung-4 coded agents, [`AgentManifest`](docs/agent-manifest/DESIGN.md) is the checkable hand-off
-from PRD to harness. Its runner validates the selected contract, package pins, manifest-declared
-golden cases, and portable behaviour rules in CI. That CI is intentionally mock-only: it protects
-regressions, while the long-running/live claims remain labeled with their actual provenance.
+> Build an agent that turns meeting notes into reviewed Linear issues.
 
-**Credits.** `agent-design`, `workflow-design`, and `eval-first-spec` are from Ollie's
-Icarus pack (modules 09 + 07), bundled with attribution and Studio integration edits so the chain is testable in one
-place. Current wrappers clarify proportional evidence, optional memory, and handoffs; source rights
-remain as recorded in docs/LICENSE-ICARUS.md. `agent-builder`, `agent-prd`, `mastra-harness`, and `learnings` are Haniyah's.
+Use the word **build** when you want the complete journey. Ask to **design**, **evaluate**, or
+**write the PRD** only when you want that individual stage.
+
+## What it produces
+
+Every build starts a `build-state.json` carrier. It preserves the confirmed job, owner, risk,
+runtime, permissions, memory choice, current stage, blockers, and paths to produced artifacts.
+
+The full flow is:
+
+```mermaid
+flowchart LR
+    I["1. Intake<br/>job · owner · risk"]
+    W["2. Workflow<br/>solo or multi-agent"]
+    D["3. Agent design<br/>role · tools · context"]
+    E["4. Evaluation<br/>examples · failures · cost"]
+    P["5. PRD<br/>PRD · work orders · manifest"]
+    S["6. Structure<br/>real repository files"]
+    B["7. Implementation<br/>working agent"]
+    V["8. Verification<br/>observed evidence"]
+
+    I --> W --> D --> E --> P --> S --> B --> V
+```
+
+| Step | What happens | Main output |
+|---|---|---|
+| Intake | Clarify the job, owner, users, risk, runtime, and authority | `build-state.json` |
+| Workflow | Decide whether this is one agent or a bounded workflow | Workflow decision |
+| Agent design | Define role, tools, context, identity, and optional memory | Agent specification |
+| Evaluation | Define good results, failure cases, graders, and budget | Evaluation contract |
+| PRD | Turn the decisions into an implementation handoff | PRD + work orders |
+| Structure | Create the smallest correct repository profile | Skill, managed, or coded layout |
+| Implementation | Build the approved work orders | Working deliverable |
+| Verification | Run the generated agent's own checks | Evaluation and conformance results |
+
+For coded agents, `agent-prd` also produces `agent-manifest.json`. The manifest is the
+machine-checkable handoff from design to implementation. It records identity, permissions,
+runtime pins, tools, memory, budgets, fixtures, and required proof checks.
+
+## The four build paths
+
+The framework chooses the lowest rung that can do the job safely:
+
+| Rung | Use it when | Typical result |
+|---|---|---|
+| 1 · Skill | A person runs a repeatable set of instructions | Portable skill folder |
+| 2 · Project | The work needs standing instructions and reference files | Shared project workspace |
+| 3 · Managed surface | An existing platform can provide scheduling, approval, or visibility | Configured managed agent |
+| 4 · Coded agent | The job needs its own loop, durable state, or consequential automation | Repository + runtime harness |
+
+Memory and workflows are choices, not defaults. A simple reviewed skill should not inherit the
+same cost and evidence burden as an autonomous production service.
+
+## The eight skills
+
+```text
+learnings/         active rules learned from real failures; loaded first
+agent-builder/     front door that routes and carries the complete build
+workflow-design/   decides one agent versus a bounded workflow
+agent-design/      defines role, tools, identity, context, and memory
+eval-first-spec/   defines cases, graders, thresholds, autonomy, and cost
+agent-prd/         produces the PRD, work orders, and coded-agent manifest
+agent-structure/   creates and checks skill, managed, and coded layouts
+mastra-harness/    implements approved coded work on Mastra + Convex
+```
+
+The shared lifecycle contract is
+[`agent-structure/references/pipeline.md`](agent-structure/references/pipeline.md). Detailed runtime
+responsibilities are in
+[`agent-structure/references/runtime-contracts.md`](agent-structure/references/runtime-contracts.md).
+
+## How verification works
+
+The framework uses three result states:
+
+- `passed`: all requested checks were observed and passed.
+- `incomplete`: required checks or live evidence are still missing.
+- `failed`: the declaration is invalid or an observed check failed.
+
+Missing evidence never becomes a pass. Release mode exits unsuccessfully for both `incomplete`
+and `failed` results.
+
+Useful commands:
+
+```bash
+npm run check
+npm test
+npm run bundle
+
+node harness/pipeline.js <agent-repo>/build-state.json
+node harness/run.js --manifest=<agent-repo>/agent-manifest.json
+node harness/structure.js --root=<agent-repo> --profile=<profile>
+```
+
+See [`harness/README.md`](harness/README.md) for actual-agent adapters, proof modules, and release
+verification.
+
+## What is proven today
+
+Repository tests cover metadata, references, package structure, pipeline transitions, manifest
+validation, scaffolds, the downloadable ZIP, and two generated-agent journeys:
+
+- A simple stateless briefing agent.
+- A resumable agent with workflow state and tenant-scoped memory.
+
+Those examples run through repository validation, persisted stage handoffs, actual-agent fixtures,
+completion checks, repeated deterministic runs, context changes, and simulated restart.
+
+This is useful local and CI evidence. It does not certify live model quality, human evaluator
+agreement, production Convex recovery, or every external provider's side-effect behaviour. Each
+production agent must supply that evidence for its own runtime and integrations.
+
+## Why both SQL and Convex appear
+
+Mastra uses whichever storage adapter is configured. `LibSQLStore` writes SQL and `ConvexStore`
+writes supported records to Convex. They are alternatives, not databases that synchronize with
+one another.
+
+The bake-off uses SQLite or LibSQL for explicit test configurations. Production Studio scaffolds
+select Convex and fail when its configuration is missing. The domain event log remains separate
+from mutable workflow snapshots.
+
+## Credits
+
+`agent-design`, `workflow-design`, and `eval-first-spec` originate from Ollie's Icarus pack and
+include Studio integration wrappers so they participate in one tested pipeline. Rights and
+attribution are recorded in [`docs/LICENSE-ICARUS.md`](docs/LICENSE-ICARUS.md).
+
+`agent-builder`, `agent-prd`, `agent-structure`, `mastra-harness`, and `learnings` are Studio-owned.
 
 ---
 
-## Connected build pipeline (7 September 2026)
-
-Eight skills. The shared contract is [agent-structure/references/pipeline.md](agent-structure/references/pipeline.md).
-A saved `build-state.json` carries confirmed facts and artifact paths across stages; coded builds
-must emit `agent-manifest.json` before implementation. Validate the carrier with
-`node harness/pipeline.js <agent-repo>/build-state.json` and the manifest with
-`node harness/run.js --manifest=<path>`. Missing runtime evidence is `incomplete`, never a pass.
-
-`agent-structure` defines skill, managed, and coded repository profiles. Memory and workflows
-are optional choices. Prototype and reviewed builds use proportional evidence; production keeps
-the full gate. The runtime stack is unchanged; external-tool experiments are deferred.
-
-### Why both SQL and Convex appear
-
-Mastra uses the configured storage adapter. `LibSQLStore` writes SQL; `ConvexStore` writes supported
-runtime records to Convex. They are alternatives, not a synchronization pipeline. The bake-off's
-SQLite canonical log and optional LibSQL vendor store are explicit test configurations.
-Production scaffolds select Convex and fail on missing configuration. Domain events are separate
-from mutable workflow snapshots. See [runtime responsibilities](agent-structure/references/runtime-contracts.md).
-
-### Install and verify
-
-Install all eight skill folders, or build the single-skill bundle: `npm ci && npm run bundle`.
-Upload `dist/studio-agent-framework.zip` to a compatible skill host. Bundle-only coded builds
-include the manifest, harness, reference fixtures and validator dependencies; run `npm ci` where
-execution is available. On a chat-only host, hand the saved artifacts to a coding environment.
-Optional external skills are not required; the pipeline contract defines inline fallbacks.
-
-Run `npm run check` for metadata/references and `npm test` for regressions. Install the pinned
-bake-off dependencies with `npm ci --prefix bakeoff/mastra` before running runtime fixtures.
-The bundle has a version record; do not mix installed releases or duplicate old learnings skills.
-
-### Verification vocabulary
-
-- `passed`: all requested core and manifest-declared proof checks were observed passing.
-- `incomplete`: one or more checks were not executed, including missing live evidence.
-- `failed`: an observed failure or invalid declaration.
-
-`--release` exits nonzero for both incomplete and failed results. Without it, declaration-only
-validation may exit zero with an explicit incomplete result so planning can proceed.
-See [the runner contract](harness/README.md) for actual-agent proof modules.
-
----
-
-## Historical workflow and operational evidence
+## Detailed workflow and operational evidence
 
 The sections below preserve earlier experiments. The current pipeline contract above controls
 stage transitions, packaging, and proportional evidence when older examples differ.
