@@ -38,13 +38,6 @@ generator≠evaluator rule gets restated three ways, and a fellow who only neede
 project gets marched toward a codebase. This skill is the carrier — it holds the answers,
 translates between the stages, and enforces the shared rules exactly once.
 
-The final Agent Directory record is the registry view of that carrier: job, owner,
-audience/data profile, runtime home, approved tools, evaluation status, and evidence.
-It does not grant permissions. The modular harness is the proof layer: it runs the
-declared manifest, exact pins, named fixtures, and fixed graders. The same manifest,
-adapter, and fixtures must yield the same conformance verdict; a changed verdict must
-be traceable to a changed input or implementation.
-
 ## When to use / When NOT
 
 Use when someone wants to build an agent and hasn't been routed yet — especially when

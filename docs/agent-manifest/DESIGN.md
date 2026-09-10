@@ -11,13 +11,6 @@ It is not a policy engine and not a second PRD. It is the narrow, versioned cont
 
 It must not turn a stated fact into a passing fact. Every conformance claim is `verified`, `unverified`, `corrected`, `unenforced`, or `not-applicable`. A verified claim requires an actual check; an unenforced claim requires `enforcement: none` and an explanatory note. A check always names its failure condition.
 
-The Agent Directory is the human-facing registry view of this contract: job, owner,
-audience/data profile, runtime home, approved tools, evaluation status, and evidence.
-The modular harness is its reproducible proof layer. Given the same manifest, adapter,
-exact pins, named fixtures, and fixed graders, it must produce the same verdict. Neither
-the directory nor the manifest grants data or tool permissions; the deployed runtime
-enforces those boundaries.
-
 This proposal adds:
 
 - [`agent-manifest.schema.json`](../../schemas/agent-manifest.schema.json), a Draft 2020-12 schema.
