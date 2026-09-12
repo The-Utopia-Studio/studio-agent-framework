@@ -86,13 +86,21 @@ export async function GET() {
     if (!fileListResponse.ok) throw new Error('Could not read bundle file list');
     const files: unknown = await fileListResponse.json();
     if (!Array.isArray(files) || !files.length || files.some((file: unknown) => typeof file !== 'string' || !/^[a-zA-Z0-9_.-]+(?:\/[a-zA-Z0-9_.-]+)*$/.test(file) || file.split('/').some(part => part === '..' || part === '.'))) throw new Error('Invalid bundle file list');
-    const entries = await fetchEntries(files, sha);
+    const exclusionResponse = await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/${sha}/ui/agents-framework-ui/app/data/bundle-excludes.json`, { cache: 'no-store' });
+    if (!exclusionResponse.ok) throw new Error('Could not read bundle exclusions');
+    const exclusions: unknown = await exclusionResponse.json();
+    if (!Array.isArray(exclusions) || exclusions.some((source: unknown) => typeof source !== 'string')) throw new Error('Invalid bundle exclusions');
+    const patterns = exclusions.map((source) => new RegExp(source));
+    const includedFiles = files.filter((file) => !patterns.some((pattern) => pattern.test(file)));
+    // Claude accepts at most 200 ZIP entries. Reserve two entries for SKILL.md and version metadata.
+    if (includedFiles.length + 2 > 200) throw new Error('Bundle exceeds host file limit');
+    const entries = await fetchEntries(includedFiles, sha);
     const root = entries.find(entry => entry.name === `${BUNDLE_FOLDER}/scripts/bundle-root.md`);
     if (!root) throw new Error('Bundle root instructions missing');
     const zip = makeZip([
       { name: `${BUNDLE_FOLDER}/SKILL.md`, bytes: root.bytes },
       ...entries,
-      { name: `${BUNDLE_FOLDER}/bundle-version.json`, bytes: new TextEncoder().encode(JSON.stringify({ commit: sha, files })) },
+      { name: `${BUNDLE_FOLDER}/bundle-version.json`, bytes: new TextEncoder().encode(JSON.stringify({ commit: sha, files: includedFiles })) },
     ]);
     return new NextResponse(zip, {
       headers: {

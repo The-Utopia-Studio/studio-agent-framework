@@ -207,6 +207,7 @@
   "scripts/tests/structure.test.mjs",
   "scripts/zip.mjs",
   "ui/agents-framework-ui/app/api/skills-zip/route.ts",
+  "ui/agents-framework-ui/app/data/bundle-excludes.json",
   "ui/agents-framework-ui/app/data/bundle-files.json",
   "workflow-design/SKILL.md",
   "workflow-design/examples/sample.md",

@@ -6,11 +6,9 @@ import { makeZip } from './zip.mjs';
 import { checkSkills } from './check-skills.mjs';
 const issues = checkSkills(process.cwd());
 if (issues.length) throw new Error(issues.join('\n'));
-const omittedFromUploadBundle = [
-  /^agent-design\/tests\//,
-  /^eval-first-spec\/tests\//,
-  /^workflow-design\/tests\//,
-];
+const omittedFromUploadBundle = JSON.parse(
+  fs.readFileSync('ui/agents-framework-ui/app/data/bundle-excludes.json'),
+).map((source) => new RegExp(source));
 const files = JSON.parse(fs.readFileSync('ui/agents-framework-ui/app/data/bundle-files.json')).filter(
   (file) => !omittedFromUploadBundle.some((pattern) => pattern.test(file)),
 );
