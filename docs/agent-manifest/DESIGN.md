@@ -90,7 +90,7 @@ Call it adopted only when two coded agents with opposite workflow decisions have
 
 ## Priority order for this repo now
 
-1. **Resolve licence/redistribution rights.** Agreed: this is above CI because the pack is already distributed as a zip and the LICENSE explicitly makes bundled Icarus coverage conditional.
+1. **Licence/redistribution rights — done.** Root `LICENSE` and `docs/LICENSE-ICARUS.md` record Apache-2.0 coverage for the full repo, including bundled Icarus skill directories (confirmed 2026-09-12).
 2. **Make live evidence reproducible—or label it external-only.** This is above ordinary CI. Mock CI proves regression protection, not the 41-hour or live 12/12 claims.
 3. **Schema plus validator.** This gives TUS-2767 a stable input and stops design/runtime drift.
 4. **Runner over existing checks.** It changes declarations into observed results.

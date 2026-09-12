@@ -18,12 +18,8 @@
 
    -----------------------------------------------------------------------
 
-   NOTE ON SCOPE. This repository bundles material credited in README.md to
-   Ollie's Icarus pack (`agent-design`, `workflow-design`, `eval-first-spec`).
-   Confirm the Icarus pack's own licence permits redistribution under Apache-2.0
-   before treating this file as covering those three directories. If it does not,
-   either relicense this repo to match, or unbundle them and reference by URL.
-   This placeholder is deliberately explicit rather than silently wrong.
-
-   Status and search notes: docs/LICENSE-ICARUS.md (licence still unresolved;
-   Apache-2.0 is not claimed for those three directories).
+   SCOPE. This Apache-2.0 grant covers the full repository, including the
+   three skill directories credited to Ollie's Icarus pack in README.md
+   (`agent-design/`, `workflow-design/`, `eval-first-spec/`). Confirmed
+   2026-09-12 by The Utopia Studio. Attribution history:
+   docs/LICENSE-ICARUS.md.

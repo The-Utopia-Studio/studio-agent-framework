@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import BuildFlow from './components/BuildFlow';
+import JourneyGuide, { type JourneyKind } from './components/JourneyGuide';
 import Learnings from './components/Learnings';
 import StandardHarness from './components/StandardHarness';
 import ToolsFooter from './components/ToolsFooter';
@@ -47,9 +48,9 @@ const presets: Preset[] = [
     runtimeHome: 'utopia-os',
   },
   {
-    name: 'Website operator',
-    job: 'Review deployment requests, update the live website, and record every change.',
-    owner: 'Product lead',
+    name: 'Domain operator',
+    job: 'Run a durable niche workflow with human approval before irreversible writes.',
+    owner: 'Domain lead',
     answers: ['scheduled', 'write', 'system', 'memory'],
     audience: 'internal-team',
     runtimeHome: 'standalone',
@@ -72,6 +73,7 @@ export default function Home() {
   const [view, setView] = useState<View>('home');
   const [audience, setAudience] = useState<Audience>('internal-team');
   const [runtimeHome, setRuntimeHome] = useState<RuntimeHome>('local');
+  const [journey, setJourney] = useState<JourneyKind>(null);
 
   const toIntake = () => {
     const el = document.getElementById('intake');
@@ -81,7 +83,7 @@ export default function Home() {
 
   const has = (x: A) => a.includes(x);
   const rec: [string, string, string] = (() => {
-    if (audience === 'privileged-admin' || (has('scheduled') && has('write') && has('system')))
+    if (journey === 'domain' || audience === 'privileged-admin' || (has('scheduled') && has('write') && has('system')))
       return ['04', 'CODED AGENT', 'It needs its own controlled loop, durable history, and stronger release checks.'];
     if (has('scheduled') || has('write'))
       return ['03', 'MANAGED SURFACE', 'Use an existing platform for scheduling, approvals, and run visibility.'];
@@ -122,6 +124,15 @@ export default function Home() {
     setA(preset.answers);
     setAudience(preset.audience);
     setRuntimeHome(preset.runtimeHome);
+    if (preset.name === 'Domain operator') setJourney('domain');
+  };
+
+  const selectJourney = (kind: JourneyKind) => {
+    setJourney(kind);
+    if (kind === 'domain') {
+      setA(['scheduled', 'write', 'system', 'memory']);
+      setRuntimeHome('standalone');
+    }
   };
 
   if (started) {
@@ -155,10 +166,11 @@ export default function Home() {
 
       {view === 'home' && (
         <>
+          <JourneyGuide selected={journey} onSelect={selectJourney} />
           <Intake job={job} setJob={setJob} owner={owner} setOwner={setOwner} c={c} choose={choose} rec={rec}
             start={() => setStarted(true)} has={has} audience={audience} setAudience={setAudience}
             runtimeHome={runtimeHome} setRuntimeHome={setRuntimeHome} completed={completed} blockers={blockers}
-            applyPreset={applyPreset} />
+            applyPreset={applyPreset} journey={journey} />
           <section className="path">
             <label>WHAT HAPPENS AFTER YOUR BRIEF</label>
             <div className="path-grid">
@@ -175,22 +187,31 @@ export default function Home() {
 
 function Intake({
   job, setJob, owner, setOwner, c, choose, rec, start, has, audience, setAudience,
-  runtimeHome, setRuntimeHome, completed, blockers, applyPreset,
+  runtimeHome, setRuntimeHome, completed, blockers, applyPreset, journey,
 }: {
   job: string; setJob: (value: string) => void; owner: string; setOwner: (value: string) => void;
   c: (x: A) => string; choose: (x: A) => void; rec: string[]; start: () => void;
   has: (x: A) => boolean; audience: Audience; setAudience: (audience: Audience) => void;
   runtimeHome: RuntimeHome; setRuntimeHome: (home: RuntimeHome) => void;
   completed: number; blockers: string[]; applyPreset: (preset: Preset) => void;
+  journey: JourneyKind;
 }) {
   const example = PATH_EXAMPLES[rec[1] as keyof typeof PATH_EXAMPLES];
   return (
     <section className="section builder" id="intake">
       <div className="builder-intro">
         <div>
-          <label>GUIDED AGENT BUILDER</label>
-          <h1>Tell us the job. We’ll choose the right kind of agent.</h1>
-          <p>No technical setup is needed here. We start with safe defaults: a person starts it, it drafts rather than writes, a human reviews it, and it remembers nothing.</p>
+          <label>{journey === 'domain' ? 'DOMAIN HARNESS BUILDER' : 'GUIDED AGENT BUILDER'}</label>
+          <h1>
+            {journey === 'domain'
+              ? 'Describe the niche job. We’ll route you to a durable coded harness.'
+              : 'Tell us the job. We’ll choose the right kind of agent.'}
+          </h1>
+          <p>
+            {journey === 'domain'
+              ? 'Domain harnesses usually need a controlled loop, human gates, and recovery proofs. Start safe: we will still refuse to overbuild when a simpler rung is enough.'
+              : 'No technical setup is needed here. We start with safe defaults: a person starts it, it drafts rather than writes, a human reviews it, and it remembers nothing.'}
+          </p>
         </div>
         <div className="builder-progress" aria-label={`${completed} of 8 decisions complete`}>
           <span>{completed} of 8 decisions</span>
