@@ -29,12 +29,7 @@ export default function ToolsFooter() {
 
   return (
     <section className="stack-footer">
-      <label>04 · WHAT YOU BUILD ON</label>
-      <p className="stack-intro">
-        Decided per layer, on evidence. The harness is now a standard; the rest is a mix of settled
-        decisions and named pilots. Nothing here is vibes.
-      </p>
-
+      <label>STACK</label>
       <div className="stack-grid">
         <StackCell item={convex} />
         <StackCell item={inngest} />
@@ -46,13 +41,10 @@ export default function ToolsFooter() {
           <div className="stack-featured-copy">
             <div className="stack-featured-head">
               <h3>{STACK_FEATURED.name}</h3>
-              <span className="stack-featured-sub">{STACK_FEATURED.subtitle}</span>
               <StatusBadge status={STACK_FEATURED.status} label={STACK_FEATURED.statusLabel} />
             </div>
-            <p>{STACK_FEATURED.description}</p>
             <div className="stack-featured-meta">
               <strong>{STACK_FEATURED.verified}</strong>
-              <span>{STACK_FEATURED.specs}</span>
             </div>
           </div>
         </article>
@@ -61,11 +53,6 @@ export default function ToolsFooter() {
         <StackCell item={activeloop} />
         <StackCell item={supermemory} />
       </div>
-
-      <footer className="stack-footnote">
-        <strong>{STACK_FEATURED.footnote}</strong>
-        <p>{STACK_FEATURED.footnoteBody}</p>
-      </footer>
     </section>
   );
 }

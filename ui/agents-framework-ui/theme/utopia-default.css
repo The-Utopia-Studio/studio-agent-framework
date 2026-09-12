@@ -1,0 +1,76 @@
+/**
+ * Utopia Default theme tokens for the Agents Framework UI.
+ * Source policy: theme/theme-utopia-default.json
+ * (Ceramic: packages/design-system/src/manifests/theme-utopia-default.json)
+ *
+ * This surface is a product tool, so the page canvas stays light (White / Light Grey)
+ * with Special Black ink and Brick Red as a 5–15% accent — per visualPolicy.allow
+ * and Ceramic foundations for product workspaces.
+ */
+
+:root,
+[data-theme='utopia-default'] {
+  /* Brand primitives */
+  --utopia-brick-red: #cc5536;
+  --utopia-special-black: #3c3235;
+  --utopia-light-grey: #eeeeee;
+  --utopia-white: #ffffff;
+
+  --utopia-black-80: #635b5e;
+  --utopia-black-60: #8f898b;
+  --utopia-black-50: #a6a0a2;
+  --utopia-black-40: #bdb7b9;
+  --utopia-black-20: #e3e1e2;
+
+  --utopia-red-80: #d77a59;
+  --utopia-red-60: #e3a385;
+  --utopia-red-40: #f0c6af;
+  --utopia-red-20: #f6e2d7;
+
+  /* Ceramic semantic roles — light product workspace mapping */
+  --background: var(--utopia-white);
+  --foreground: var(--utopia-special-black);
+  --card: var(--utopia-white);
+  --card-foreground: var(--utopia-special-black);
+  --primary: #b8472c;
+  --primary-foreground: var(--utopia-white);
+  --secondary: var(--utopia-light-grey);
+  --secondary-foreground: var(--utopia-special-black);
+  --muted: var(--utopia-black-80);
+  --muted-foreground: var(--utopia-black-80);
+  --border: rgb(60 50 53 / 16%);
+  --input: rgb(60 50 53 / 24%);
+  --ring: var(--utopia-red-80);
+  --surface: var(--utopia-white);
+  --surface-elevated: var(--utopia-light-grey);
+  --overlay: rgb(60 50 53 / 86%);
+  --modal-surface: var(--utopia-special-black);
+  --popover-surface: var(--utopia-special-black);
+
+  --radius: 0px;
+  --radius-control: 0px;
+  --radius-surface: 0px;
+
+  --font-sans: 'TWK Lausanne', 'Helvetica Neue', Arial, var(--font-geist-sans), sans-serif;
+  --font-display: var(--font-sans);
+  --font-mono: ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace;
+
+  --motion-duration-press: 160ms;
+  --motion-duration-page: 420ms;
+  --motion-duration-expand: 360ms;
+  --motion-duration-reveal: 440ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-press-scale: 0.97;
+  --motion-distance-reveal: 8px;
+  --shadow-control: none;
+
+  /* Legacy aliases used by existing builder CSS */
+  --ink: var(--foreground);
+  --paper: #fcfbfa;
+  --line: #ddd8d6;
+  --accent: var(--primary);
+  --accent-soft: var(--utopia-red-80);
+  --motion-ease: var(--motion-ease-standard);
+  --motion-reveal: var(--motion-duration-reveal);
+}

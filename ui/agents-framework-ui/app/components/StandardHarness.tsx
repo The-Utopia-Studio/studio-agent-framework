@@ -6,13 +6,13 @@ type ScenarioId = 'normal' | 'offline' | 'crash' | 'memory';
 type Tone = 'safe' | 'caught';
 
 const STEPS = [
-  { n: '1', kind: 'GATE', name: 'Can it start?', plain: 'Check every service before work begins.', detail: 'No internet becomes a clean offline result. The agent never half-starts.' },
-  { n: '2', kind: 'PLAN', name: 'Can work resume?', plain: 'Save the known sequence when losing progress matters.', detail: 'After a crash, a fresh process reloads the workflow instead of guessing where it was.' },
-  { n: '3', kind: 'AI', name: 'Make one decision', plain: 'Give the model one bounded judgement.', detail: 'Code owns the predictable control flow. The model decides only the part that needs judgement.' },
-  { n: '4', kind: 'STORE', name: 'Record what happened', plain: 'Write events outside the running process.', detail: 'A fresh process and an independent reviewer can inspect the same durable record.' },
-  { n: '5', kind: 'MEMORY', name: 'Save useful memory', plain: 'Code writes the approved update after the work.', detail: 'The agent cannot claim it remembered something without actually storing it.' },
-  { n: '6', kind: 'CHECK', name: 'Verify the memory', plain: 'Read it back and check freshness.', detail: 'A full-looking note still fails if the expected content or timestamp did not change.' },
-  { n: '7', kind: 'REVIEW', name: 'Judge the run', plain: 'A separate check decides whether it passed.', detail: 'The generator never marks its own work. Failed evidence blocks release.' },
+  { n: '1', kind: 'GATE', name: 'Can it start?', plain: 'Preflight services.', detail: 'Fail closed if offline.' },
+  { n: '2', kind: 'PLAN', name: 'Can it resume?', plain: 'Save the sequence.', detail: 'Fresh process reloads state.' },
+  { n: '3', kind: 'AI', name: 'One decision', plain: 'Bounded model call.', detail: 'Code owns the loop.' },
+  { n: '4', kind: 'STORE', name: 'Record it', plain: 'Append events.', detail: 'Audit outside the process.' },
+  { n: '5', kind: 'MEMORY', name: 'Save memory', plain: 'Code writes updates.', detail: 'No silent memory claims.' },
+  { n: '6', kind: 'CHECK', name: 'Read it back', plain: 'Freshness check.', detail: 'Stale notes fail.' },
+  { n: '7', kind: 'REVIEW', name: 'Judge the run', plain: 'Separate checker.', detail: 'Generator never self-passes.' },
 ] as const;
 
 const SCENARIOS: Record<ScenarioId, {
@@ -24,35 +24,35 @@ const SCENARIOS: Record<ScenarioId, {
   result: string;
 }> = {
   normal: {
-    label: 'Normal run', eyebrow: 'EVERY GUARD PASSES',
-    lead: 'Watch one complete run from wake-up to independent review.',
+    label: 'Normal', eyebrow: 'PASS',
+    lead: 'Full run.',
     path: [0, 1, 2, 3, 4, 5, 6], tone: 'safe',
-    result: 'Safe finish — the output, state, memory, and review evidence agree.',
+    result: 'Safe finish.',
   },
   offline: {
-    label: 'No internet', eyebrow: 'STOP BEFORE WORK',
-    lead: 'The agent wakes while its required services are unreachable.',
+    label: 'Offline', eyebrow: 'STOP',
+    lead: 'Services unreachable.',
     path: [0], tone: 'caught',
-    result: 'Stopped safely — recorded as offline, with no half-finished work.',
+    result: 'Stopped cleanly.',
   },
   crash: {
-    label: 'Process crashes', eyebrow: 'RESUME FROM DURABLE STATE',
-    lead: 'The process dies after recording progress, then starts again fresh.',
+    label: 'Crash', eyebrow: 'RESUME',
+    lead: 'Process dies mid-run.',
     path: [0, 1, 2, 3, 1, 3, 4, 5, 6], tone: 'safe',
-    result: 'Recovered — the workflow resumed from its saved position without repeating the action.',
+    result: 'Resumed from saved state.',
   },
   memory: {
-    label: 'Memory goes stale', eyebrow: 'CATCH A QUIET FAILURE',
-    lead: 'The run looks healthy, but the expected memory update never landed.',
+    label: 'Stale memory', eyebrow: 'CATCH',
+    lead: 'Memory write never landed.',
     path: [0, 1, 2, 3, 4, 5], tone: 'caught',
-    result: 'Caught — read-back and freshness checks block the stale result.',
+    result: 'Blocked on read-back.',
   },
 };
 
 const PROVEN = [
-  ['12 / 12', 'recovery checks passed', 'Crash, resume, and duplicate-action cases.'],
-  ['41 h', 'ran unattended', 'Across three laptop sleep boundaries.'],
-  ['$0.19', 'spent under a $3 cap', 'The budget guard stopped further work.'],
+  ['12/12', 'recovery'],
+  ['41h', 'unattended'],
+  ['$0.19', 'under $3 cap'],
 ];
 
 export default function StandardHarness() {
@@ -88,17 +88,13 @@ export default function StandardHarness() {
     <section className="standard standard--visual" id="harness">
       <div className="harness-title-row">
         <div className="standard-heading">
-          <label>03 · THE STANDARD HARNESS</label>
-          <h2>SEE WHAT KEEPS AN AGENT SAFE.</h2>
+          <label>HARNESS</label>
+          <h2>What keeps a run safe.</h2>
         </div>
-        <p className="standard-intro">
-          The model makes one bounded decision. The harness checks before it, records after it,
-          and stops or recovers the run when something goes wrong.
-        </p>
-        <div className="harness-legend" aria-label="Diagram legend">
+        <div className="harness-legend" aria-label="Legend">
           <span><i className="legend-dot legend-dot--guard" /> guard</span>
-          <span><i className="legend-dot legend-dot--ai" /> AI decision</span>
-          <span><i className="legend-dot legend-dot--proof" /> evidence</span>
+          <span><i className="legend-dot legend-dot--ai" /> model</span>
+          <span><i className="legend-dot legend-dot--proof" /> proof</span>
         </div>
       </div>
 
@@ -147,14 +143,10 @@ export default function StandardHarness() {
       </div>
 
       <div className="harness-proof-strip">
-        <div className="proof-strip-intro">
-          <label>TESTED AGAINST REAL FAILURES</label>
-          <p>The diagram reflects observed recovery, unattended operation, and budget evidence.</p>
-        </div>
-        {PROVEN.map(([figure, what, how]) => (
-          <article key={what}><b>{figure}</b><div><strong>{what}</strong><span>{how}</span></div></article>
+        {PROVEN.map(([figure, what]) => (
+          <article key={what}><b>{figure}</b><strong>{what}</strong></article>
         ))}
-        <a className="btn-download" href="https://github.com/The-Utopia-Studio/studio-agent-framework/tree/main/long-horizon" target="_blank" rel="noreferrer"><span aria-hidden="true">→</span><span>See evidence</span></a>
+        <a className="btn-download" href="https://github.com/The-Utopia-Studio/studio-agent-framework/tree/main/long-horizon" target="_blank" rel="noreferrer"><span aria-hidden="true">→</span><span>Evidence</span></a>
       </div>
     </section>
   );
