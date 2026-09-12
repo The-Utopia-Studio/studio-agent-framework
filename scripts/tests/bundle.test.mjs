@@ -16,6 +16,9 @@ test('built ZIP is installable and contains manifest and implementation resource
   const unpack = spawnSync('python3', ['-m', 'zipfile', '-e', zip, dir], { encoding: 'utf8' });
   assert.equal(unpack.status, 0, unpack.stderr);
   const root = path.join(dir, 'studio-agent-framework');
+  const listing = spawnSync('unzip', ['-Z', '-1', zip], { encoding: 'utf8' });
+  assert.equal(listing.status, 0, listing.stderr);
+  assert.ok(listing.stdout.trim().split('\n').length <= 200, 'bundle stays within host file limit');
   assert.deepEqual(validateStructure(root, 'skill'), []);
   assert.deepEqual(checkSkills(root), []);
   const installedPackage = JSON.parse(fs.readFileSync(path.join(root, 'package.json')));

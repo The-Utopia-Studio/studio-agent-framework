@@ -6,7 +6,14 @@ import { makeZip } from './zip.mjs';
 import { checkSkills } from './check-skills.mjs';
 const issues = checkSkills(process.cwd());
 if (issues.length) throw new Error(issues.join('\n'));
-const files = JSON.parse(fs.readFileSync('ui/agents-framework-ui/app/data/bundle-files.json'));
+const omittedFromUploadBundle = [
+  /^agent-design\/tests\//,
+  /^eval-first-spec\/tests\//,
+  /^workflow-design\/tests\//,
+];
+const files = JSON.parse(fs.readFileSync('ui/agents-framework-ui/app/data/bundle-files.json')).filter(
+  (file) => !omittedFromUploadBundle.some((pattern) => pattern.test(file)),
+);
 const encoder = new TextEncoder();
 const readFile = (file) =>
   fs.readFileSync(
@@ -42,6 +49,8 @@ entries.push({
     ),
   ),
 });
+if (entries.length > 200)
+  throw new Error(`Upload bundle contains ${entries.length} files; the host limit is 200.`);
 const output =
   process.argv.find((a) => a.startsWith('--output='))?.slice(9) ||
   'dist/studio-agent-framework.zip';
