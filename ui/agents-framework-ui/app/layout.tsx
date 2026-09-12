@@ -13,7 +13,11 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-export const metadata: Metadata = { title: 'Utopia Studio — Agents', description: 'The front door for building the right agent at Utopia Studio.' };
+export const metadata: Metadata = {
+  title: 'Studio Agent Framework — Utopia Studio',
+  description:
+    'Turn an agent idea into a clear, buildable, tested agent — or scaffold a domain-specific harness for niche intelligence.',
+};
 
 export default function RootLayout({
   children,

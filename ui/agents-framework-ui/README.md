@@ -1,11 +1,20 @@
 # Agents Framework UI
 
-An interactive walkthrough of the Utopia Studio Agents Framework. It routes a request to the smallest appropriate build path, then demonstrates the resulting agent flow, harness, and handoff artifacts.
+Interactive front door for the Utopia Studio Agent Framework.
+
+It helps someone choose between:
+
+- **Build an agent** — guided intake, lowest safe rung, reviewable brief
+- **Build a domain harness** — niche intelligence path toward Mastra + Convex
+
+Then it walks the recommended path, harness behaviour, and handoff artifacts.
+
+Visual language follows Utopia Default / Ceramic tokens (Brick Red emphasis, square geometry, border-led elevation).
 
 ## Run locally
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -15,4 +24,4 @@ npm run dev
 npm run build
 ```
 
-The Weekly Research Brief is shown as a Claude scheduled-task skill. Managed Surface and Coded Agent examples use Mastra as their standard agent harness. The production build uses Next.js so it can deploy directly to Vercel.
+Managed Surface and Coded Agent examples use Mastra as the standard harness. The production build uses Next.js for Vercel.
