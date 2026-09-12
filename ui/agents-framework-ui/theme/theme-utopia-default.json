@@ -1,0 +1,198 @@
+{
+  "$schema": "https://utopia-studio.co/design-system/theme.schema.json",
+  "id": "utopia-default",
+  "name": "The Utopia Studio",
+  "shortName": "Utopia Default",
+  "type": "theme-policy",
+  "locked": true,
+  "summary": "The default locked theme for The Utopia Studio. It maps the Ceramic semantic contract to the studio's brand primitives while keeping those decisions out of reusable core components.",
+  "brandAssets": {
+    "wordmark": {
+      "src": "/brand/the-utopia-studio-wordmark.avif",
+      "presentationSrc": "/brand/the-utopia-studio-wordmark.svg",
+      "alt": "The Utopia Studio",
+      "usage": "May identify The Utopia Studio branded products, documents, and template surfaces. Core components must not depend on this asset."
+    }
+  },
+  "sourceFiles": [
+    "packages/design-system/src/themes/utopia-default.css",
+    "packages/design-system/src/manifests/theme-utopia-default.json"
+  ],
+  "motionProfile": "ceremonial",
+  "brandPrimitives": {
+    "colors": {
+      "brickRed": "#CC5536",
+      "specialBlack": "#3C3235",
+      "lightGrey": "#EEEEEE",
+      "white": "#FFFFFF"
+    },
+    "typography": {
+      "family": "TWK Lausanne",
+      "arabicFamily": "Readex Pro",
+      "weights": [
+        350,
+        500,
+        700
+      ],
+      "arabicWeights": [
+        300,
+        500
+      ],
+      "headlineCasing": "uppercase",
+      "headlineTracking": "0.02em to 0.04em",
+      "arabicDisplayFamily": "Readex Pro",
+      "arabicDisplayCasing": "none",
+      "arabicDisplayRule": "Do not translate Latin all-caps styling into Arabic uppercase. Use Arabic display scale, weight, rhythm, and Readex Pro instead."
+    },
+    "geometry": {
+      "surfaceRadius": "0px",
+      "controlRadius": "0px",
+      "elevation": "hairline borders and background shifts; no brand-surface drop shadows"
+    }
+  },
+  "semanticMappings": {
+    "--background": "Special Black",
+    "--foreground": "White",
+    "--primary": "Accessible Brick Red action tone (#B8472C); preserve #CC5536 as the brand primitive",
+    "--secondary": "Light Grey",
+    "--radius-control": "Square geometry",
+    "--radius-surface": "Square geometry",
+    "--radius-chat-bubble": "Square chat message geometry",
+    "--radius-chat-composer": "Square chat input geometry",
+    "--radius-chat-token": "Square chat token geometry",
+    "--motion-duration-press": "160ms physical press feedback",
+    "--motion-duration-page": "420ms ceremonial view transition",
+    "--motion-duration-expand": "360ms composed disclosure transition",
+    "--motion-duration-reveal": "440ms blur-capable surface reveal",
+    "--motion-duration-icon": "640ms action-specific icon motion",
+    "--motion-ease-standard": "Direct interaction easing",
+    "--motion-ease-emphasized": "Soft reveal and icon easing",
+    "--motion-ease-icon": "Action-specific icon easing",
+    "--motion-press-scale": "0.97",
+    "--motion-distance-page": "8px logical view shift",
+    "--motion-distance-reveal": "8px soft entrance distance",
+    "--font-sans": "TWK Lausanne",
+    "--font-arabic": "Readex Pro",
+    "--font-arabic-display": "Readex Pro",
+    "--font-arabic-body": "Readex Pro",
+    "--font-weight-arabic-body": "300",
+    "--font-weight-arabic-display": "500",
+    "--font-size-display": "clamp(44px, 8vw, 96px)",
+    "--font-size-arabic-body": "16px",
+    "--font-size-arabic-body-lg": "19px",
+    "--font-size-arabic-display": "clamp(40px, 7.3vw, 87px)",
+    "--line-height-arabic": "1.75",
+    "--line-height-arabic-body": "1.85",
+    "--line-height-arabic-display": "1.28",
+    "--tracking-arabic": "0",
+    "--tracking-arabic-display": "0",
+    "--sidebar-width": "17rem",
+    "--shadow-control": "none",
+    "--control-height-sm": "32px",
+    "--sidebar-width-collapsed": "4rem",
+    "--sidebar-min-block-size": "30rem",
+    "--sidebar-rail-size": "8px",
+    "--overlay": "Special Black at modal dim opacity",
+    "--modal-surface": "Special Black solid",
+    "--popover-surface": "Special Black solid"
+  },
+  "visualPolicy": {
+    "tone": [
+      "warm",
+      "confident",
+      "architectural",
+      "serious",
+      "spare"
+    ],
+    "allow": [
+      "asymmetric layouts",
+      "large uppercase headlines",
+      "Brick Red as a 5-15% accent",
+      "hairline borders",
+      "solid Special Black, Light Grey, Brick Red, and White surfaces",
+      "editorial whitespace that isolates one dominant message",
+      "three-bar signatures as structural punctuation",
+      "full-bleed brand panels that alternate dark, accent, and light colourways"
+    ],
+    "avoid": [
+      "startup-cute styling",
+      "generic SaaS gradients",
+      "drop shadows on brand surfaces",
+      "glassmorphism",
+      "textures",
+      "rounded marketing cards",
+      "pure black",
+      "uniform card grids with equal visual weight",
+      "low-contrast grey-on-grey hierarchy",
+      "using Brick Red for small body copy when contrast is insufficient"
+    ]
+  },
+  "visualGrammar": {
+    "thesis": "The interface should feel authored by a brand studio before it feels like a generic software dashboard.",
+    "composition": [
+      "Give every page one dominant typographic entry point.",
+      "Use asymmetric whitespace and offset alignment instead of centering every block.",
+      "Alternate Special Black, Brick Red, and Light Grey as large editorial fields; do not reduce them to small UI accents.",
+      "Use boxes only when containment communicates function. Prefer rules, fields, and spacing for editorial grouping."
+    ],
+    "typography": [
+      "Latin display headlines use TWK Lausanne 700, uppercase, tight line-height, and compact tracking.",
+      "Korean and Arabic retain native casing; Arabic uses Readex Pro at a lighter weight (300 body, 500 display) and a wider line-height to match the same visual mass as the Latin rhythm.",
+      "Small labels are concise, medium-weight, and widely tracked; body copy remains calm and readable."
+    ],
+    "signature": [
+      "Use the three-bar mark as punctuation at major page entries, never as repeated decoration.",
+      "Use a Brick Red full stop or short rule to terminate key Latin headlines."
+    ],
+    "interaction": [
+      "Active navigation is expressed with a Brick Red rule and stronger text, not a soft grey pill.",
+      "Hover states shift fields or rules directly; avoid floating card shadows and playful bounce.",
+      "Motion is deliberate, planar, and ceremonial with short directional travel."
+    ],
+    "accessibility": [
+      "Brick Red on Special Black is a graphic accent only, not normal-size body text.",
+      "White on Brick Red is reserved for large or strong text; smaller copy uses the deep brand ink token with verified contrast.",
+      "Functional focus rings use the accessible ring token even when the graphic brand accent differs."
+    ]
+  },
+  "iconPolicy": {
+    "system": "phosphor",
+    "description": "Use Phosphor Icons for interface actions and navigation. The Utopia dot-and-bar graphic remains a brand mark, not a component icon.",
+    "allow": [
+      "Phosphor Icons",
+      "regular weight by default",
+      "monochrome currentColor icons",
+      "RTL-aware directional mirroring"
+    ],
+    "avoid": [
+      "Lucide",
+      "Heroicons",
+      "Feather",
+      "emoji",
+      "mixed icon families",
+      "unlabeled icon-only controls"
+    ],
+    "coreNote": "Phosphor is selected by the Utopia Default theme. Core components remain icon-system neutral."
+  },
+  "translations": {
+    "ar": {
+      "summary": "الثيم الافتراضي المقفل لـ The Utopia Studio. يربط عقد Ceramic الدلالي بقيم الاستوديو الأولية مع إبقاء قرارات العلامة خارج مكونات الجوهر القابلة لإعادة الاستخدام.",
+      "iconPolicy": {
+        "system": "Phosphor Icons",
+        "description": "استخدم أيقونات Phosphor لإجراءات الواجهة والتنقل. يبقى رسم النقاط والأشرطة الخاص بـ Utopia علامة للهوية وليس أيقونة للمكوّنات.",
+        "allow": ["أيقونات Phosphor", "السُمك العادي افتراضياً", "أيقونات أحادية بلون currentColor", "عكس الاتجاه في RTL"]
+      }
+    }
+  },
+  "aiRules": [
+    "Read this theme policy after the core semantic contract.",
+    "Do not apply Utopia brand restrictions to other themes unless their manifests say so.",
+    "Do not hardcode Brick Red, Special Black, TWK Lausanne, or Utopia icon rules inside reusable core components.",
+    "When Arabic or lang=\"ar\" content is present, use --font-arabic mapped to Readex Pro and the Arabic display/body weight and line-height roles. Never apply Latin uppercase or letter-spacing to Arabic.",
+    "Arabic display sizing follows the Latin display scale at approximately 90-92%, rather than making Arabic headings larger than Latin headings. Arabic display line-height must be at least 1.28.",
+    "Do not apply Latin uppercase display styling to Arabic. Use Arabic display/body tokens and text-transform: none.",
+    "When this theme is active, use Phosphor Icons for interface actions and navigation; do not mix icon families.",
+    "Modal content uses --modal-surface and must stay solid in Utopia Default; only the overlay dims the page behind it.",
+    "Floating content such as select, menu, popover, and tooltip uses --popover-surface so alpha page surfaces do not make controls look translucent."
+  ]
+}

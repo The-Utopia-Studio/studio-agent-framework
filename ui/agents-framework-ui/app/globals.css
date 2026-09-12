@@ -1,18 +1,5 @@
 @import 'tailwindcss';
-
-:root {
-  /* Utopia Default / Ceramic semantic mapping for this product surface */
-  --ink: #3c3235;
-  --muted: #635b5e;
-  --line: #ddd8d6;
-  --accent: #b8472c;
-  --accent-soft: #d77a59;
-  --paper: #fcfbfa;
-  --surface: #ffffff;
-  --radius-control: 0px;
-  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
-  --motion-reveal: 440ms;
-}
+@import '../theme/utopia-default.css';
 
 /* Guided builder */
 .builder { padding-top: 42px; }
